@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:password@mysql.db:3306/charles_explorer"
+}
+
+model Text {
+  id    Int @id @default(autoincrement())
+  value String @db.VarChar(5000)
+  lang  String @db.VarChar(2)
+
+  class_names Class[] @relation("ClassNames")
+  class_syllabus Class[] @relation("ClassSyllabus")
+  class_annotation Class[] @relation("ClassAnnotation")
+
+  department_names Department[] @relation("DepartmentNames")
+  department_abbreviations Department[] @relation("DepartmentAbbreviations")
+
+  faculty_names Faculty[] @relation("FacultyNames")
+  faculty_abbreviations Faculty[] @relation("FacultyAbbreviations")
+
+  publication_names Publication[] @relation("PublicationNames")
+  publication_abstract Publication[] @relation("PublicationAbstract")
+  publication_keywords Publication[] @relation("PublicationKeywords")
+
+  programme_names Programme[] @relation("ProgrammeNames")
+  programme_profiles Programme[] @relation("ProgrammeProfiles")
+
+  person_names Person[] @relation("PersonNames")
+}
+
+model Class {
+  id                    String                  @id
+  names                 Text[]                  @relation("ClassNames")
+  syllabus              Text[]                  @relation("ClassSyllabus")
+  annotation            Text[]                  @relation("ClassAnnotation")
+  departments           Department[]
+  faculties             Faculty[]
+  people                Person[]
+  programmes            Programme[]
+}
+
+model Department {
+  id              String            @id
+  poid            String?           @unique
+  names           Text[]            @relation("DepartmentNames")
+  abbreviations   Text[]            @relation("DepartmentAbbreviations")
+  faculties       Faculty[]
+
+  classes         Class[]
+  programmes      Programme[]
+  people          Person[]
+  publication     Publication[]
+}
+
+model Faculty {
+  id              String            @id
+  poid            String?           @unique
+  names           Text[]            @relation("FacultyNames")
+  abbreviations   Text[]            @relation("FacultyAbbreviations")
+
+  departments     Department[]
+  classes         Class[]
+  programmes      Programme[]
+  people          Person[]
+  publications    Publication[]
+}
+
+model Person {
+  id                 String               @id
+  ukco               String               @unique
+  names              Text[]               @relation("PersonNames")
+  classes            Class[]
+  departments        Department[]
+  faculties          Faculty[]
+  publications       Publication[]
+  programmes         Programme[]
+}
+
+model Publication {
+  id                 String               @id
+  names              Text[]               @relation("PublicationNames")
+  year               String
+  authors            String
+  abstract           Text[]               @relation("PublicationAbstract")
+  keywords           Text[]               @relation("PublicationKeywords")
+  people             Person[]
+  faculties          Faculty[]
+  departments        Department[]
+}
+
+model Programme {
+  id                    String                  @id
+  names                 Text[]                  @relation("ProgrammeNames")
+  type                  String                  
+  form                  String
+  departments           Department[]
+  faculties             Faculty[]             
+  people                Person[]
+  programmes            Programme[]             @relation("RelatedProgrammes")
+  related_programmes    Programme[]             @relation("RelatedProgrammes")
+  classes               Class[]
+  profiles              Text[]                  @relation("ProgrammeProfiles")
+}
