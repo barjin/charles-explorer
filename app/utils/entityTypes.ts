@@ -8,8 +8,8 @@ const entitiesPlurals: Record<entityTypes, string> = {
     class: 'classes'
 }
 
-export const isValidEntity = (entity: entityTypes): entity is entityTypes => {
-    return entities.includes(entity);
+export const isValidEntity = (entity?: string): entity is entityTypes => {
+    return entities.includes(entity as entityTypes);
 }
 
 export const getPlural = (entity: entityTypes): string => {

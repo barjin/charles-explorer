@@ -50,11 +50,11 @@ async function main() {
                         create: [
                             {
                                 lang: "en",
-                                value: "Publication 1"
+                                value: "On parsing XML documents with a non-deterministic automaton"
                             },
                             {
                                 lang: "cs",
-                                value: "Publikace 1"
+                                value: "O parsování XML dokumentů pomocí nedeterministického automatu"
                             }
                         ]
                     },
