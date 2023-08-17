@@ -14,6 +14,36 @@ export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 };
 
+export const ErrorBoundary = ({ error }) => {
+  console.log(error);
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <Meta />
+        <Links />
+      </head>
+
+      <body className="w-screen h-screen">
+        <div className="w-full h-full grid grid-cols-1 xl:grid-cols-3 gap-4 text-slate-800">
+          <div className="xl:col-start-2 xl:col-end-3 rounded-md bg-slate-100 p-4 drop-shadow-md m-5">
+            <h1 className="text-2xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2">Oh no!</h1>
+            <p>
+              Charles Explorer seems to be down. Please try again later.
+            </p>
+            <pre>{error?.message}</pre>
+          </div>
+        </div>
+        <Scripts />
+        <LiveReload />
+      </body>
+    </html>
+  )
+}
+
 export default function App() {
   return (
     <html lang="en">

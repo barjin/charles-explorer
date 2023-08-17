@@ -1,16 +1,17 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["metrics"]
 }
 
 datasource db {
-  provider = "mysql"
-  url      = "mysql://root:password@mysql.db:3306/charles_explorer"
+  provider = "postgresql"
+  url      = "postgresql://postgres:charles_explorer_db_password@localhost:5432/charles_explorer_db?schema=public"
 }
 
 model Text {
   id    Int @id @default(autoincrement())
-  value String @db.VarChar(5000)
-  lang  String @db.VarChar(2)
+  value String
+  lang  String
 
   class_names Class[] @relation("ClassNames")
   class_syllabus Class[] @relation("ClassSyllabus")
@@ -45,7 +46,6 @@ model Class {
 
 model Department {
   id              String            @id
-  poid            String?           @unique
   names           Text[]            @relation("DepartmentNames")
   abbreviations   Text[]            @relation("DepartmentAbbreviations")
   faculties       Faculty[]
@@ -58,7 +58,6 @@ model Department {
 
 model Faculty {
   id              String            @id
-  poid            String?           @unique
   names           Text[]            @relation("FacultyNames")
   abbreviations   Text[]            @relation("FacultyAbbreviations")
 
@@ -71,7 +70,7 @@ model Faculty {
 
 model Person {
   id                 String               @id
-  ukco               String               @unique
+  private_id         String               @unique
   names              Text[]               @relation("PersonNames")
   classes            Class[]
   departments        Department[]
