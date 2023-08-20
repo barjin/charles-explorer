@@ -104,7 +104,7 @@ function TextField({field, data}: any) {
 
   return (getLocalized(data[field as keyof typeof data] as any)?.trim()?.length ?? -1) > 0 ?
       (<div key={field}>
-        <h3 className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer" onClick={collapse}>
+        <h3 className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" onClick={collapse}>
           { capitalize(field) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
         </h3>
         <div className={`text-stone-600 ${collapsed ? 'hidden' : ''} pt-2`}>
@@ -114,6 +114,31 @@ function TextField({field, data}: any) {
         }
         </div>
       </div>) : null
+}
+
+function RelatedEntities({ category, collection }: { category: entityTypes, collection: any[] }){
+  const [collapsed, setCollapsed] = useState<Boolean>(false);
+
+  const collapse = useCallback(() => {  
+    setCollapsed(!collapsed);
+  }, [collapsed]);
+
+  return (<div className="w-full">
+    <h3 id={getPlural(category)} className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" onClick={collapse}>
+      {capitalize(getPlural(category))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
+    </h3>
+    <div className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}>
+    {
+      collection.map((item, i) => (
+        <RelatedItem 
+          key={i}
+          item={item}
+          type={category}
+        />
+      ))
+    }
+    </div>
+  </div>);
 }
 
 export default function Index() {
@@ -126,7 +151,7 @@ export default function Index() {
       <div className="flex justify-center items-center flex-row">
         <IconWithBackground
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
-          background={getFacultyColor(data.faculties[0].id)}
+          background={getFacultyColor(data.faculties[0]?.id)}
         />
         <div className="p-4">
           <h2 className="text-stone-800 font-sans font-semibold text-3xl">{getLocalizedName(data)}</h2>
@@ -159,20 +184,7 @@ export default function Index() {
           const relatedCollection = data[getPlural(category) as any];
           if(relatedCollection && relatedCollection.length > 0) {
             return (
-            <>
-              <h2 id={getPlural(category)} className="text-stone-800 font-sans font-semibold text-1xl py-4">
-                {capitalize(getPlural(category))}
-              </h2>
-              {
-                relatedCollection.map((item, i) => (
-                  <RelatedItem 
-                    key={i}
-                    item={item}
-                    type={category}
-                  />
-                ))
-              }
-            </>
+              <RelatedEntities category={category} collection={relatedCollection} />
             );
           }
         })

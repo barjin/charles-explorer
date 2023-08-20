@@ -13,7 +13,7 @@ export function RelatedItem({item, type}: { item: any, type: entityTypes }) {
     return (
       <Link title={name} to={link} className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
         <div className={`${loading ? 'motion-safe:animate-pulse' : ''} flex space-x-4`}>
-          <div className="p-1 bg-orange-400 text-white text-xl" style={{backgroundColor: getFacultyColor(item.faculties[0].id)}}>
+          <div className="p-1 bg-orange-400 text-white text-xl" style={{backgroundColor: getFacultyColor(item.faculties[0]?.id)}}>
             {CategoryIcons[type]({})}
           </div>
           <div className="flex-1 w-full p-2">
