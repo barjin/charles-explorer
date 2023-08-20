@@ -1,5 +1,5 @@
 //todo: add toggle
-const currentLanguage = 'cs';
+const currentLanguage = 'cze';
 
 export const getLocalizedName = (object: { names: { value: string; lang: string; }[] } | null) => {
   return getLocalized(object?.names);
@@ -7,7 +7,7 @@ export const getLocalizedName = (object: { names: { value: string; lang: string;
 
 export const getLocalized = (object: { value: string; lang: string; }[] | null | undefined) => {
   return object?.find(x => x.lang == currentLanguage)?.value ?? 
-    object?.find(x => x.lang == 'en')?.value;
+    object?.find(x => x.lang == 'eng')?.value;
 }
 
 export function capitalize(str: string) : string {

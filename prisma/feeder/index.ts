@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 import sqlite3 from 'sqlite3';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import cliProgress from 'cli-progress';
 import colors from 'ansi-colors';
@@ -28,17 +28,17 @@ const transformers: Doubles = {
                 id: data.FACULTY_ID,
                 names: {
                     create: [{
-                        lang: 'en',
+                        lang: 'eng',
                         value: data.FACULTY_NAME_EN,
                     },
                     {
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.FACULTY_NAME_CS,
                     }]
                 },
                 abbreviations: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.ABBR
                     }],
                 },
@@ -61,13 +61,13 @@ const transformers: Doubles = {
                 },
                 abbreviations: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.ABBR
                     }]
                 },
                 names: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.DEPT_NAME_CS,
                     }]
                 }
@@ -75,7 +75,7 @@ const transformers: Doubles = {
         }
     },
     person: {
-        query: 'SELECT PERSON.*, CLASS.FACULTY_ID, CLASS.DEPT_ID FROM PERSON LEFT JOIN CLASS ON PERSON.PERSON_ID = CLASS.TEACHER_ID GROUP BY PERSON_ID;',
+        query: 'SELECT PERSON.*, CLASS.FACULTY_ID, CLASS.DEPT_ID FROM PERSON LEFT JOIN CLASS ON PERSON.PERSON_ID = CLASS.TEACHER_ID GROUP BY PERSON_ID',
         transform: (data: any) => {
             const hashedId = crypto.createHash('sha256').update(data.PERSON_ID).digest('hex');
             const id = parseInt(hashedId.slice(0, 10), 16).toString();
@@ -85,7 +85,7 @@ const transformers: Doubles = {
                 private_id: data.PERSON_ID,
                 names: {
                     create: [{
-                        lang: 'en',
+                        lang: 'eng',
                         value: data.PERSON_NAME,
                     }]
                 },
@@ -109,32 +109,32 @@ const transformers: Doubles = {
                 id: data.CLASS_ID,
                 names: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.CLASS_NAME_CS,
                     },
                     {
-                        lang: 'en',
+                        lang: 'eng',
                         value: data.CLASS_NAME_EN,
                     }]
                 },
                 annotation: {
                     create: [
                     {
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.ANNOTATION_CS,
                     },
                     {
-                        lang: 'en',
+                        lang: 'eng',
                         value: data.ANNOTATION_EN,
                     }]
                 },
                 syllabus: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: data.SYLABUS_CS,
                     },
                     {
-                        lang: 'en',
+                        lang: 'eng',
                         value: data.SYLABUS_EN,
                     }]
                 },
@@ -174,11 +174,11 @@ GROUP BY ID`,
                 id: row.ID,
                 names: {
                     create: [{
-                        lang: 'cs',
+                        lang: 'cze',
                         value: row.NAME_CS,
                     },
                     {
-                        lang: 'en',
+                        lang: 'eng',
                         value: row.NAME_EN,
                     }]
                 },
@@ -202,11 +202,102 @@ GROUP BY ID`,
                 }
             }
         }
-    }
+    },
+    publication: {
+        query: `
+        SELECT P.*, 
+    json_group_array(json_object(
+            'lang',PUBLICATION_KEYWORDS.languague,
+            'title', PUBLICATION_KEYWORDS.title,
+            'abstract', PUBLICATION_KEYWORDS.abstract,
+            'keywords', PUBLICATION_KEYWORDS.keywords)
+    ) as LOCALIZED FROM
+            (SELECT publication.PUBLICATION_ID, 
+                    PUB_YEAR,
+                    group_concat(DISTINCT DEPARTMENT.DEPT_ID) AS DEPT_ID,
+                    group_concat(DISTINCT DEPARTMENT.FACULTY_ID) AS FACULTY_ID,
+                    group_concat(DISTINCT PERSON.PERSON_ID) AS AUTHORS
+                    from 
+                    PUBLICATION
+                            LEFT JOIN
+                    DEPARTMENT
+                    ON PUBLICATION.DEPT_POID = DEPARTMENT.POID
+                            LEFT JOIN
+                    PUBLICATION_AUTHOR
+                    ON PUBLICATION.PUBLICATION_ID = PUBLICATION_AUTHOR.PUBLICATION_ID
+                    	LEFT JOIN
+                    PERSON
+                    ON PUBLICATION_AUTHOR.PERSON_ID = PERSON.PERSON_ID
+            GROUP by PUBLICATION.PUBLICATION_ID
+            {{LIMIT}} {{OFFSET}}) AS P
+            LEFT JOIN
+        PUBLICATION_KEYWORDS
+        ON PUBLICATION_KEYWORDS.PUBLICATION_ID = P.PUBLICATION_ID
+    GROUP by P.PUBLICATION_ID`,
+        transform: (row) => {
+            const localized: Record<string, any>[] = JSON.parse(row.LOCALIZED).filter((x,i,a) => {
+                return a.findIndex((y: any) => y.lang === x.lang) === i;
+            });
+
+            return {
+                id: row.PUBLICATION_ID,
+                year: row.PUB_YEAR,
+                authors: '',
+                departments: {
+                    connect: row.DEPT_ID?.split(',').map((x: string) => ({ id: x.length > 0 ? x : null })),
+                },
+                faculties: {
+                    connect: row.FACULTY_ID?.split(',').map((x: string) => ({ id: x.length > 0 ? x : null })),
+                },
+                people: {
+                    connect: row.AUTHORS?.split(',').map((x: string) => ({ private_id: x.length > 0 ? x : null })),
+                },
+                names: {
+                    create: localized.map((x: any) => ({
+                        lang: x.lang,
+                        value: x.title,
+                    }))
+                },
+                abstract: {
+                    create: localized.map((x: any) => ({
+                        lang: x.lang,
+                        value: x.abstract,
+                    }))
+                },
+                keywords: {
+                    create: localized.map((x: any) => ({
+                        lang: x.lang,
+                        value: x.keywords,
+                    }))
+                }
+            }
+        }
+    },
 };
 
 function containsNullishLiterals(obj: any) {
     return Object.values(obj).some(x => !x);
+}
+
+export function getOnlyLiterals(obj: Record<string, string>, tableName: string) {
+    const literalFields = getSchemaFields(tableName)
+    ?.filter(x => x.kind === 'scalar')
+    .map(x => x.name);
+
+    if (!literalFields) {
+        throw new Error(`Table ${tableName} not found`);
+    }
+
+    return Object.fromEntries(
+        Object.entries(obj)
+        .filter(([key]) => literalFields.includes(key))
+    )
+}
+
+export function getSchemaFields(tableName: string) {
+    return Prisma.dmmf.datamodel.models
+    .find(x => x.name.toLowerCase() === tableName.toLowerCase())
+    ?.fields
 }
 
 export function removeNullishLiterals(obj: ReturnType<Declaration<'class'>['transform']>) {
@@ -224,20 +315,51 @@ export function removeNullishLiterals(obj: ReturnType<Declaration<'class'>['tran
     return obj;
 }
 
-function stripConnectors(obj: any) {
-    return Object.fromEntries(Object.entries(obj).filter(([_, value]: [string, any]) => !value?.connect));
-}
+// function stripConnectorsAndCreators(obj: any) {
+//     return Object.fromEntries(Object.entries(obj).filter(([_, value]: [string, any]) => !value?.connect && !value?.create));
+// }
+
+// function stripConnectors(obj: any) {
+//     return Object.fromEntries(Object.entries(obj).filter(([_, value]: [string, any]) => !value?.connect));
+// }
 
 function getConnectors(obj: any){
     return Object.fromEntries(Object.entries(obj).filter(([key, value]: [string, any]) => value?.connect || key === 'id'));
 }
 
+function getCreators(obj: any){
+    return Object.fromEntries(Object.entries(obj).filter(([key, value]: [string, any]) => value?.create || key === 'id'));
+}
+
+async function addIdsToCreators(){
+    let count = await outDB.text.count() + 1;
+    return (obj: any) => {
+        return Object.fromEntries(Object.entries(obj).map(([key, value]: [string, any]) => {
+            if (value?.create) {
+                value.create = value.create.map((x: any, i: number) => ({
+                    ...x,
+                    id: count + i,
+                }));
+
+                count += value.create.length;
+            }
+
+            return [key, value];
+        }));
+    }
+}
+
+function capitalize(s: string) {
+    return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 const ordering = [
-    'faculty', 
-    'department', 
-    'person',
-    // 'class',
-    // 'programme'
+    // 'faculty', 
+    // 'department', 
+    // 'person',
+    'class',
+    'programme',
+    'publication'
 ] as const;
 
 const moons = [
@@ -251,7 +373,7 @@ const moons = [
     "🌘 "
 ];
 
-const batchSize = 500;
+const batchSize = 1000;
 
 console.log((colors.bgRed.bold.white(`
   ███╗                                                                                         
@@ -263,10 +385,34 @@ console.log((colors.bgRed.bold.white(`
 
 const totals: Partial<Record<keyof typeof transformers, number>> = {};
 
+const getQuery = (query: string, limit?: number, offset?: number) => {
+    if(!limit && !offset) return query.replace('{{LIMIT}}', '').replace('{{OFFSET}}', '');
+
+    if(!query.includes('LIMIT') && !query.includes('OFFSET')) {
+        query += ` LIMIT ${limit} OFFSET ${offset}`;
+    }
+    if(query.includes('{{LIMIT}}'))
+        {
+            query = query.replace('{{LIMIT}}', `LIMIT ${limit}`);
+        }
+    if(query.includes('{{OFFSET}}'))
+        {
+            query = query.replace('{{OFFSET}}', `OFFSET ${offset}`);
+        }
+
+    return query;
+}
+
 (async () => {
     await new Promise(r => inDB.exec(`CREATE INDEX IF NOT EXISTS "STUDY_PROGRAMME_ID" ON "STUDY_PROGRAMME" ("STUDY_PROGRAMME_ID");
     CREATE INDEX IF NOT EXISTS "STUDY_PROGRAMME_CLASS_ID" ON "STUDY_PROGRAMME_CLASS" ("ID");
-    CREATE INDEX IF NOT EXISTS "CLASS_ID" ON "CLASS" ("CLASS_ID");`, r));
+    CREATE INDEX IF NOT EXISTS "PUBLICATION_AUTHOR_PUB_ID" ON "PUBLICATION_AUTHOR" ("PUBLICATION_ID");
+    CREATE INDEX IF NOT EXISTS "PUBLICATION_ID" ON "PUBLICATION" ("PUBLICATION_ID");
+    CREATE INDEX IF NOT EXISTS "PUBLICATION_KEYWORDS_PUB_ID" ON PUBLICATION_KEYWORDS("PUBLICATION_ID");
+    CREATE INDEX IF NOT EXISTS "CLASS_ID" ON "CLASS" ("CLASS_ID");
+    CREATE INDEX IF NOT EXISTS "TEACHER_ID" ON "CLASS" ("TEACHER_ID");
+    CREATE INDEX IF NOT EXISTS "PERSON_ID" ON "PERSON" ("PERSON_ID");
+    `, r));
 
     for (let i = 0; i < ordering.length; i++) {
         const table = ordering[i];
@@ -278,12 +424,12 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
         }, cliProgress.Presets.shades_classic);
         
         totals[table] = await new Promise((resolve) => {
-            inDB.all(`SELECT COUNT(*) FROM (${transformer!.query.replace(';', '')});`, (err: any, rows: any[]) => {
+            inDB.all(`SELECT COUNT(*) FROM (${getQuery(transformer?.query as string).replace(';', '')});`, (err: any, rows: any[]) => {
                 if (err) {
                     throw err;
                 }
 
-                singleBar.start(rows[0]['COUNT(*)'], 0, { spinner: '😴', tableName: table.toUpperCase() });
+                // singleBar.start(rows[0]['COUNT(*)'], 0, { spinner: '😴', tableName: table.toUpperCase() });
                 resolve(rows[0]['COUNT(*)']);
             });
         });
@@ -291,53 +437,113 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
         let done = false;
         let offset = 0;
 
-        const total = totals[table];
+        // const total = totals[table];
 
-        while (!done) {
-            await new Promise<void>((resolve) => {
-                const getQuery = () => `${transformer!.query.replaceAll(';', '')} LIMIT ${batchSize} OFFSET ${offset};`;            
-                inDB.all(getQuery(), (err, rows) => {
-                    if (err) {
-                        console.error(err);
-                        return;
-                    }
+        // while (!done) {
+        //     await new Promise<void>((resolve) => {
+        //         inDB.all(getQuery(transformer?.query as string, batchSize, offset), (err, rows: ReturnType<Declaration<'class'>['transform']>[]) => {
+        //             (async () => {
+        //                 const transformedRows: any[] = rows.map(transformer!.transform as any);
 
-                    const transformed = rows.map(transformer!.transform).map(removeNullishLiterals).map(stripConnectors);
+        //                 const existingIds = (await (outDB[table] as any)
+        //                     .findMany({ 
+        //                         where: { 
+        //                             id: { 
+        //                                 in: transformedRows.map(x => x.id) 
+        //                             } 
+        //                         }, 
+        //                         select: { 
+        //                             id: true 
+        //                         } 
+        //                     })).map((x: any) => x.id);
+
+        //                 const data = transformedRows
+        //                     .map((x) => getOnlyLiterals(x, table))
+        //                     .filter(x => !existingIds.includes(x.id));
+
+        //                 // Insert base rows here
+        //                 await (outDB[table] as any).createMany({ data, skipDuplicates: true });
+
+        //                 const creators = transformedRows
+        //                     .map(getCreators)
+        //                     .filter(x => !existingIds.includes(x.id))
+        //                     .map(x => removeNullishLiterals(x as any))
+        //                     .map(await addIdsToCreators())
+                            
+        //                 //collect all the create objects
+
+        //                 await (outDB.text).createMany({ 
+        //                     data: creators
+        //                         .flatMap(x => Object.entries(x)
+        //                             .filter(([_,v]) => v.create)
+        //                             .flatMap(x => x[1].create)
+        //                         ), 
+        //                     skipDuplicates: true 
+        //                 });
+
+        //                 const newTableRecords: Record<string, any[]> = {};
+
+        //                 for (const creator of creators) {
+        //                     for (const [key, value] of Object.entries(creator)){
+        //                         if (key === 'id') continue;
     
-                    (async () => {
-                        for( const row of transformed ) {
-                            try {
-                                await (outDB[table] as any).create({ data: row });
-                            } catch (e: any) {
-                                // we don't want to throw on duplicate key errors (idempotency)
-                                if(e.code !== 'P2002') {
-                                    console.error(row);
-                                    throw e;
-                                }
-                            }
-                        }
-                    })();
+        //                         const tableName = `_${capitalize(table)}${capitalize(key)}`;
+        //                         const joinableIds = value.create?.map((x: any) => x.id);
     
-                    offset += batchSize;
-                    singleBar.update(offset > total! ? total! : offset, { spinner: moons[Math.floor(offset / batchSize) % moons.length], tableName: table.toUpperCase() });
+        //                         if (joinableIds.length > 0) {
+        //                             newTableRecords[tableName] ??= []; 
+        //                             newTableRecords[tableName] = [
+        //                                 ...newTableRecords[tableName],
+        //                                 ...joinableIds.map((id: any) => ({
+        //                                     A: creator.id,
+        //                                     B: id
+        //                                 }))
+        //                             ];
+        //                         }
+        //                     }
+        //                 }
 
-                    if (offset > total!) {
-                        done = true;
-                        singleBar.stop();
-                    }
-                });   
+        //                 for (const [key, value] of Object.entries(newTableRecords)) {
+        //                     try {
+        //                         await outDB.$executeRawUnsafe(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
+        //                     } catch (e) {
+        //                         console.log();
+        //                         console.log(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
+        //                         console.log();
+        //                         throw e;
+        //                     }
+        //                 }
 
-                const interval = setInterval(async () => {
-                    const metrics = await (outDB as any).$metrics.json();
-                    if(metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value > 5) {
-                        singleBar.update({ spinner: '⌚️', tableName: `${table.toUpperCase()} (${metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value} busy connections)` } );
-                    } else {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, 1e3);
-            });
-        }
+        //                 // throw new Error('Not implemented');
+                        
+        //                 offset += batchSize;
+        //                 singleBar.update(offset > total! ? total! : offset, { spinner: moons[Math.floor(offset / batchSize) % moons.length], tableName: table.toUpperCase() });
+    
+        //                 if (offset > total!) {
+        //                     done = true;
+        //                     singleBar.stop();
+        //                 }
+
+        //                 resolve();
+        //             })();
+        //         });   
+        //     });
+        // }
+
+        // await new Promise<void>(async (r) => {
+        //     const polling = async () => {
+        //         const count = await (outDB[table] as any).count(); 
+
+        //         if (count !== total) {
+        //             console.error(`Table ${table.toUpperCase()} is not consistent! Expected ${total}, got ${count}. Waiting for consistency...`);
+        //         } else {
+        //             clearInterval(interval);
+        //             r();
+        //         }
+        //     }
+        //     const interval = setInterval(polling, 5e3);
+        //     polling();
+        // });
     }
 
     console.log(`
@@ -345,7 +551,15 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
 ✅ ${colors.greenBright('Importing data complete!')}
 ${colors.white('Running data joining task')}
 
-    `)
+    `);
+
+    const fields: any = {};
+
+    for (const table of ordering) {
+        fields[table] = Object.fromEntries(Prisma.dmmf.datamodel.models.find(x => x.name === capitalize(table)).fields.map(x => [x.name, x]));
+    }
+
+    const peoplePrivToPubl = Object.fromEntries((await outDB.person.findMany({select: {id: true, private_id: true}})).map(x => [x.private_id, x.id]));
 
     for (let i = 0; i < ordering.length; i++) {
         const table = ordering[i];
@@ -362,50 +576,71 @@ ${colors.white('Running data joining task')}
 
         singleBar.start(total!, 0, { spinner: '😴', tableName: table.toUpperCase() });
 
-
         while (!done) {
             await new Promise<void>((resolve) => {
-                const getQuery = () => `${transformer!.query.replaceAll(';', '')} LIMIT ${batchSize} OFFSET ${offset};`;            
-                inDB.all(getQuery(), (err, rows) => {
+                inDB.all(getQuery(transformer?.query as string, batchSize, offset), (err, rows) => {
                     if (err) {
                         console.error(err);
                         return;
                     }
 
-                    const transformed = rows.map(transformer!.transform).map(removeNullishLiterals).map(getConnectors);
-    
+                    const transformedRows = rows.map(transformer!.transform).map(removeNullishLiterals).map(getConnectors);
+                    const newTableRecords: Record<string, any[]> = {};
+                    
                     (async () => {
-                        for( const row of transformed ) {
-                            try {
-                                await (outDB[table] as any).update({where: { id: row.id }, data: row });
-                            } catch (e: any) {
-                                // we don't want to throw on duplicate key errors (idempotency)
-                                if(e.code !== 'P2002') {
-                                    console.error(row);
-                                    throw e;
+
+                        for(const row of transformedRows) {
+                            for (const [key,value] of Object.entries(row)) {
+                                if (key === 'id') continue;
+                                
+                                const tableName = `_${fields[table][key].relationName}`;
+    
+                                if (value.connect) {
+                                    const connectors = Array.isArray(value.connect) ? value.connect : [value.connect];
+    
+                                    newTableRecords[tableName] ??= [];
+    
+                                    newTableRecords[tableName].push(...connectors.map((connector: any) => {                               
+                                        return {
+                                            A: key.localeCompare(table) > 0 ? row.id : connector.private_id ? peoplePrivToPubl[connector.private_id] : connector.id,
+                                            B: key.localeCompare(table) > 0 ? connector.private_id ? peoplePrivToPubl[connector.private_id] : connector.id : row.id
+                                        };
+                                    }));
                                 }
                             }
+                        }  
+
+                        for (const [key, value] of Object.entries(newTableRecords)) {
+                            try {
+                                await outDB.$executeRawUnsafe(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')} ON CONFLICT DO NOTHING`);
+                            } catch (e) {
+                                console.log();
+                                console.log(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
+                                console.log();
+                                throw e;
+                            }
                         }
+
+                        offset += batchSize;
+                        singleBar.update(offset > total! ? total! : offset, { spinner: moons[Math.floor(offset / batchSize) % moons.length], tableName: table.toUpperCase() });
+
+                        if (offset > total!) {
+                            done = true;
+                            singleBar.stop();
+                        }
+
+                        const interval = setInterval(async () => {
+                            const metrics = await (outDB as any).$metrics.json();
+                            if(metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value > 5) {
+                                singleBar.update({ spinner: '⌚️', tableName: `${table.toUpperCase()} (${metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value} busy connections)` } );
+                            } else {
+                                clearInterval(interval);
+                                resolve();
+                            }
+                        }, 1e3);
                     })();
     
-                    offset += batchSize;
-                    singleBar.update(offset > total! ? total! : offset, { spinner: moons[Math.floor(offset / batchSize) % moons.length], tableName: table.toUpperCase() });
-
-                    if (offset > total!) {
-                        done = true;
-                        singleBar.stop();
-                    }
                 });   
-
-                const interval = setInterval(async () => {
-                    const metrics = await (outDB as any).$metrics.json();
-                    if(metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value > 5) {
-                        singleBar.update({ spinner: '⌚️', tableName: `${table.toUpperCase()} (${metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value} busy connections)` } );
-                    } else {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, 1e3);
             });
         }
     }
