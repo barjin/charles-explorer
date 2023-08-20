@@ -64,8 +64,54 @@ export const loader = async ({ params }: { params: URLParams }) => {
   return { category, textFields: getTextFields(category)?.filter(x => x !== 'names'), ...loaded };
 }
 
+function stripHTML(html: string) {
+  return html?.replaceAll(/<.*?>/gi, '');
+}
+
+function isANumberedList(text: string) {
+  const threshold = 3;
+
+  const matches = Array.from(text?.matchAll(/\s(\d+)(\.|\))\s/g));
+  return matches.length >= threshold;
+}
+  
+
 function formatText(text: string | null | undefined) {
-  return text?.split('______').flatMap(x => x.split('\n').filter(x => x !== ''));
+  text = stripHTML(text ?? ''); 
+
+  if(isANumberedList(text)) {
+    return text?.split(/\s(?=\d+\.)/g)
+    .map(x => x.trim().length > 0 ? x.trim() + ' \n' : x.trim())
+    .filter(x => x.length > 0) ?? [];
+  }
+
+  const base = text?.split('______')
+    .flatMap(x => x.split('\n'))
+    .reduce((p, x) => {
+      if (/\w/.test(x.trim()[0]) && x.trim()[0]?.toLowerCase() === x.trim()?.[0]) {
+        p[p.length - 1] += x;
+      } else {
+        p.push(x);
+      }
+      return p;
+    }, [''])
+    .filter(x => x.trim().length > 0) ?? [];
+
+  if (base.length < 2) {
+    return text?.split(/\.\s(?=[A-Z])/g)
+    .map((x, i, a) => x.trim().length > 0 && i !== (a.length - 1) ? x.trim() + '. ' : x.trim())
+    .reduce((p, x, i) => {
+      if (i % 2 === 1) {
+        p[p.length - 1] += x;
+      } else {
+        p.push(x);
+      }
+      return p;
+    }, [''])
+    .filter(x => x.length > 0) ?? [];
+  }
+
+  return base;
 }
 
 export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeof loader>> }) => {
@@ -108,9 +154,25 @@ function TextField({field, data}: any) {
           { capitalize(field) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
         </h3>
         <div className={`text-stone-600 ${collapsed ? 'hidden' : ''} pt-2`}>
-        { 
-          formatText(getLocalized(data[field as keyof typeof data] as any))
-          ?.map((x, i) => <p key={i} className="pb-2 px-3">{x}</p>)
+        { (() => {
+            switch (field) {
+              case 'keywords':
+                return <div className="space-x-2">{
+                    getLocalized(data[field as keyof typeof data] as any)
+                    ?.split(';')
+                    .filter(x => x.trim().length > 0)
+                    .map((x, i) => (
+                      <p key={i} 
+                        className="bg-slate-500 mb-2 hover:cursor-pointer hover:bg-slate-400 transition-colors select-none px-3 py-1 rounded-md inline-block  text-white w-fit">
+                          {x}
+                      </p>)
+                    )
+                  }</div>;
+              default:
+                return formatText(getLocalized(data[field as keyof typeof data] as any))
+                ?.map((x, i) => <p key={i} className="pb-2 px-3">{x}</p>)
+            }
+          })()
         }
         </div>
       </div>) : null
@@ -155,7 +217,7 @@ export default function Index() {
         />
         <div className="p-4">
           <h2 className="text-stone-800 font-sans font-semibold text-3xl">{getLocalizedName(data)}</h2>
-          <span className="text-stone-600">{capitalize(data.category)} at {getLocalizedName(data.faculties[0])}, CUNI</span>
+          <span className="text-stone-600">{capitalize(data.category)} at {data.faculties.map(x => getLocalizedName(x)).join(', ')}</span>
           <div className="text-sm">
             <span className="text-stone-600">
               {
