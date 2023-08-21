@@ -181,9 +181,26 @@ function TextField({field, data}: any) {
 function RelatedEntities({ category, collection }: { category: entityTypes, collection: any[] }){
   const [collapsed, setCollapsed] = useState<Boolean>(false);
 
+  const groupByName = useCallback((collection: any[]) => {
+    return Object.values(collection.reduce((p: Record<string, any>, x) => {
+      const name = getLocalizedName(x) as string;
+      if (!p[name]) {
+        p[name] = [];
+      }
+      p[name].push(x);
+      return p;
+    }, []));
+  }, {});
+
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
   }, [collapsed]);
+
+  collection.sort((a, b) => {
+    return b.faculties.length - a.faculties.length;
+  });
+
+  const groupedCollection = groupByName(collection);
 
   return (<div className="w-full">
     <h3 id={getPlural(category)} className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" onClick={collapse}>
@@ -191,10 +208,10 @@ function RelatedEntities({ category, collection }: { category: entityTypes, coll
     </h3>
     <div className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}>
     {
-      collection.map((item, i) => (
+      groupedCollection.map((item, i) => (
         <RelatedItem 
           key={i}
-          item={item}
+          items={item}
           type={category}
         />
       ))
