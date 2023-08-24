@@ -6,10 +6,11 @@ import { createMetaTitle } from "~/utils/meta";
 import { capitalize, getLocalized, getLocalizedName } from "~/utils/lang";
 import { getNames , getJoinableEntities, getTextFields } from "~/utils/retrievers";
 import { isValidEntity, entities, getPlural, type entityTypes }  from "~/utils/entityTypes";
-import { RelatedItem } from "~/components/RelatedItem";
+import { RelatedItem, getSteppedGradientCSS } from "~/components/RelatedItem";
 import { CategoryIcons } from "~/utils/icons";
 import { useCallback, useState } from "react";
 import { getFacultyColor } from "~/utils/colors";
+import { getLinkedData } from "~/utils/linkedData";
 
 interface URLParams {
   category: entityTypes;
@@ -69,10 +70,9 @@ function stripHTML(html: string) {
 }
 
 function isANumberedList(text: string) {
-  const threshold = 3;
+  const matches = Array.from(text?.matchAll(/\s?(\d+)(\.|\))\s/g)).map(x => x[1]);
 
-  const matches = Array.from(text?.matchAll(/\s(\d+)(\.|\))\s/g));
-  return matches.length >= threshold;
+  return '123456789'.includes(matches.slice(0,5).join(''));
 }
   
 
@@ -80,7 +80,7 @@ function formatText(text: string | null | undefined) {
   text = stripHTML(text ?? ''); 
 
   if(isANumberedList(text)) {
-    return text?.split(/\s(?=\d+\.)/g)
+    return text?.split(/\s(?=\d+[.)])/g)
     .map(x => x.trim().length > 0 ? x.trim() + ' \n' : x.trim())
     .filter(x => x.length > 0) ?? [];
   }
@@ -122,12 +122,15 @@ export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeo
     {
         name: "description",
         content: `${capitalize(data.category)} with this id does not exist.`
-    }
+    },
   ];
 
   return [
-    { title: createMetaTitle(getLocalizedName(data) ?? 'Unknown researcher') },
-    { name: "description", content: `${getLocalizedName(data)} is a researcher at the Charles University in Prague.` },
+    { title: createMetaTitle(getLocalizedName(data) ?? `Unknown ${data.category}`) },
+    { name: "description", content: `"${getLocalizedName(data)}" is a ${data.category} at the Charles University in Prague.` },
+    {
+        "script:ld+json": getLinkedData(data.category, data),
+    }
   ];
 };
 
@@ -163,7 +166,14 @@ function TextField({field, data}: any) {
                     .filter(x => x.trim().length > 0)
                     .map((x, i) => (
                       <p key={i} 
-                        className="bg-slate-500 mb-2 hover:cursor-pointer hover:bg-slate-400 transition-colors select-none px-3 py-1 rounded-md inline-block  text-white w-fit">
+                        className={`
+                          bg-orange-400
+                          mb-2 
+                          hover:cursor-pointer 
+                          hover:bg-orange-300 
+                          transition-colors select-none px-3 py-1 rounded-md inline-block  text-white w-fit`}
+                        >
+
                           {x}
                       </p>)
                     )
@@ -230,11 +240,19 @@ export default function Index() {
       <div className="flex justify-center items-center flex-row">
         <IconWithBackground
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
-          background={getFacultyColor(data.faculties[0]?.id)}
+          background={getSteppedGradientCSS(
+            data.faculties.length > 0 ?
+              data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+          )
+          }
         />
         <div className="p-4">
           <h2 className="text-stone-800 font-sans font-semibold text-3xl">{getLocalizedName(data)}</h2>
-          <span className="text-stone-600">{capitalize(data.category)} at {data.faculties.map(x => getLocalizedName(x)).join(', ')}</span>
+          <span className="text-stone-600">{capitalize(data.category)} at {
+            data.faculties.length > 0 ?
+              data.faculties.map(x => getLocalizedName(x)).join(', ')
+              : 'CUNI'
+          }</span>
           <div className="text-sm">
             <span className="text-stone-600">
               {
@@ -243,7 +261,7 @@ export default function Index() {
                     return (
                     <span className="pr-3" key={x}>
                       <a href={`#${getPlural(x)}`}>
-                        <FaRegBookmark style={{display: 'inline'}} fontSize={14}/> {data[getPlural(x)].length} {getPlural(x)}
+                        <FaRegBookmark style={{display: 'inline'}} fontSize={14}/> {data[getPlural(x)].length} {data[getPlural(x)].length !== 1 ? getPlural(x) : x}
                       </a>
                     </span>);
                   }
@@ -254,7 +272,9 @@ export default function Index() {
         </div>
       </div>
       {
-        textFields?.map((field: any) => (
+        textFields?.filter((x) => {
+          return (getLocalized(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
+        }).map((field: any) => (
           <TextField field={field} data={data} />
         ))
       }

@@ -4,7 +4,7 @@ import { type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
 import { getLocalizedName } from "~/utils/lang";
 
-function getSteppedGradientCSS(colors: string[]) {
+export function getSteppedGradientCSS(colors: string[]) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
 }
 

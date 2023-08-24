@@ -1,29 +1,14 @@
 import { type entityTypes } from "~/utils/entityTypes";
 import { getNames } from "~/utils/retrievers";
 import { db } from "./prisma";
+import { Solr } from "prisma/feeder/solr/solr";
 
-async function getRelevantIds(query: string, category: entityTypes, { limit: number = 10 } = {}): Promise<string[]>{
-    return ["123"];
-    // const url = `http://localhost:8983/solr/charles/select?fl=id&q=${query}&rows=${number}&wt=json`;
-    // return fetch(url)
-    //     .then(res => res.json())
-    //     .then(json => json.response.docs)
-    //     .then(docs => docs.map(doc => doc.id));
+const solr = new Solr('http://localhost:8983', db);
+
+async function getRelevantIds(query: string, category: entityTypes, { limit = 10 } = {}): Promise<string[]>{
+    return (await solr.getCollection(category).searchIds(query, { rows: limit })).map(({ id }) => id);
 }
 
-export async function getRelevantEntities(query: string, category: entityTypes, { limit } = { limit: 10 }): Promise<any[]>
-    {
-        const ids = await getRelevantIds(query, category, { limit });
-        return (db[category] as typeof db['class']).findMany({
-            where: {
-                id: {
-                    in: ids
-                }
-            },
-            include: {
-            ...getNames().include,
-            departments: getNames(),
-            faculties: getNames(),
-            },
-        });
-    }
+export async function getRelevantEntities(query: string, category: entityTypes, { limit } = { limit: 30 }): Promise<any[]> {
+    return await solr.getCollection(category).search(query, { rows: limit });
+}

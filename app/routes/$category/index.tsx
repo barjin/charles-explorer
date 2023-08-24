@@ -6,6 +6,7 @@ import { useLoaderData, useParams } from "@remix-run/react";
 import { getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
+import { useCallback } from "react";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -41,6 +42,19 @@ export default function Category() {
     const records = useLoaderData();
     const params = useParams<{ category: entityTypes }>();
 
+    const groupByName = useCallback((collection: any[]) => {
+        return Object.values(collection.reduce((p: Record<string, any>, x) => {
+          const name = getLocalizedName(x) as string;
+          if (!p[name]) {
+            p[name] = [];
+          }
+          p[name].push(x);
+          return p;
+        }, []));
+      }, {});
+
+    const groupedCollection = groupByName(records);
+
     return (
         <>
             {
@@ -51,12 +65,10 @@ export default function Category() {
                 )
             }
             {
-                records.map((x: any) => (
+                groupedCollection.map((x: any) => (
                     <RelatedItem
                         key={x.id}
-                        name={getLocalizedName(x)!}
-                        description={getLocalizedName(x.faculties[0])!}
-                        link={`./${x.id}`}
+                        items={x}
                         type={params.category!}
                     />
                 ))

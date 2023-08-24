@@ -1,3 +1,23 @@
+import { db } from '~/connectors/prisma';
+
+const facultyIds = [11140,
+11240,
+11320,
+11310,
+11210,
+11150,
+11280,
+11220,
+11120,
+11260,
+11410,
+11110,
+11160,
+11270,
+11510,
+11230,
+11130];
+
 const HSLToRGB = (h, s, l) => {
     s /= 100;
     l /= 100;
@@ -9,6 +29,10 @@ const HSLToRGB = (h, s, l) => {
 };
 
 export function getFacultyColor(facultyId: string) {
-    const hue = ((parseInt(facultyId) - 11000) / 901) * 360;
-    return `rgb(${HSLToRGB(hue, 100, 30).join(",")})`;
+  const faculty = facultyIds.findIndex((faculty) => String(faculty) === facultyId);
+  
+  const hue = (faculty * 360) / facultyIds.length;
+  const [r, g, b] = HSLToRGB(hue, 100, 30);
+  const hex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+  return `#${hex}`;
 }

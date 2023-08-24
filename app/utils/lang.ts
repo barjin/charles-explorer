@@ -7,7 +7,7 @@ export const getLocalizedName = (object: { names: { value: string; lang: string;
 
 export const getLocalized = (object: { value: string; lang: string; }[] | null | undefined) => {
   return object?.find(x => x.lang == currentLanguage)?.value ?? 
-    object?.find(x => x.lang == 'eng')?.value;
+    object?.[0]?.value;
 }
 
 export function capitalize(str: string) : string {
