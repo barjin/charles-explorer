@@ -1,16 +1,29 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { getSearchUrl } from "~/utils/backend";
-import { Link, useParams } from "@remix-run/react";
+import { Link, useParams, useNavigate } from "@remix-run/react";
 import { BiSearch } from "react-icons/bi";
 import { capitalize } from "~/utils/lang";
 import { type entityTypes } from "~/utils/entityTypes";
 
 export function SearchBar({ query, setQuery }: { query: string, setQuery: (x: string) => void }) {
+    const form = useRef<HTMLFormElement>(null);
     const [focus, setFocus] = useState(false);
+    const navigate = useNavigate();
     const searchMode = useParams<{ category: entityTypes }>().category!;
 
+    const onSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if(query.length > 0) {
+            navigate(getSearchUrl(searchMode, query));
+            setFocus(false);
+        }
+    }, [query, searchMode, navigate]);
+
     return (
-    <form>
+    <form 
+        ref={form}
+        onSubmit={onSubmit}>
         <div className="bg-white p-2 pl-4 rounded-lg flex flex-row border-b-slate-200 border-b-2">
             <input 
                 onFocus={() => setFocus(true)}
@@ -28,7 +41,7 @@ export function SearchBar({ query, setQuery }: { query: string, setQuery: (x: st
                 }} 
             />
             <Link 
-                to={query.length > 0 ? getSearchUrl(searchMode, query) : '#'}
+                to={getSearchUrl(searchMode, query)}
                 className="border-l-slate-200 border-l-2 pl-2 cursor-pointer"
             >
                 <BiSearch size={28} color='gray'/>
