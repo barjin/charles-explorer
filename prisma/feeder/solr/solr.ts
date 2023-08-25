@@ -5,10 +5,33 @@ class SolrCollection {
     private solr: Solr;
     private collection: string;
     private emptyResponse = [];
+    private exists = false;
 
     constructor(solr: Solr, collection: string) {
         this.solr = solr;
         this.collection = collection;
+    }
+
+    public async createIfNotExists() {
+        if(this.exists) return;
+
+        await axios(`${this.solr.url}/solr/admin/cores?action=STATUS&core=${this.collection}`).then(async (res) => {
+            if(Object.values(res.data.status[this.collection]).length > 0) return;
+
+            await axios.post(`${this.solr.url}/api/cores`, {
+                create: [{
+                    name: this.collection,
+                    instanceDir: this.collection,
+                    configSet: "sharedConfig"
+                }]
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+
+        this.exists = true;
     }
 
     private getSelfUrl(slug: string = '') {
@@ -16,6 +39,8 @@ class SolrCollection {
     }
 
     async addDocument(document: any) {
+        await this.createIfNotExists();
+
         await axios.post(this.getSelfUrl('update'), document, {
             headers: {
                 'Content-Type': 'application/json'
@@ -24,11 +49,15 @@ class SolrCollection {
     }
 
     async addDocuments(documents: any[]) {
+        await this.createIfNotExists();
+
         await axios.post(this.getSelfUrl('update'), documents, {
             headers: {
                 'Content-Type': 'application/json'
             }
         });
+        
+        await axios.get(this.getSelfUrl('update?commit=true'));
     }
     
     private escapeSolrQuery(query: string){
@@ -45,14 +74,17 @@ class SolrCollection {
         const escapedQuery = this.escapeSolrQuery(query);
         
         let queryParts: string[] = [];
-        ["class_name_cs", "class_annotation_cs", "class_syllabus_cs"].forEach((field, i) => {
-            queryParts.push(`${field}:"${escapedQuery}"^${10 - 3*i}`);
+        const fields = ["lvl0_cs", "lvl0_en", "lvl1_cs", "lvl1_en", "lvl2_cs", "lvl2_en"];
+
+        fields.forEach((field, i) => {
+            queryParts.push(`${field}:"${escapedQuery}"^${fields.length - i}`);
         });
     
         let solrQuery = queryParts.join(' OR ');
     
         try {
-            return axios.get(`${this.getSelfUrl('select')}?fl=id, score&indent=true&q=(${encodeURIComponent(solrQuery)})&rows=${options?.rows ?? 30}&start=0`).then(res => res.data.response.docs);
+            const url = `${this.getSelfUrl('select')}?fl=id, score&indent=true&q=(${encodeURIComponent(solrQuery)})&rows=${options?.rows ?? 30}&start=0`;
+            return axios.get(url).then(res => res.data.response.docs);
         }
         catch (e) {
             console.error(e);
