@@ -305,38 +305,40 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
 
     const solr = new Solr('http://localhost:8983', outDB);
 
-    console.log(JSON.stringify(await solr.getCollection('class').search('RDF'),null, 2));
+    await solr.getCollection('class').createIfNotExists();
 
-    // const batchSize = 100;
-    // let cursor: string | undefined = undefined;
-    // let hasMore = true;
+    // console.log(JSON.stringify(await solr.getCollection('class').search('RDF'),null, 2));
 
-    // while (hasMore) {
-    //     const classes: any[] = await outDB.class.findMany({
-    //         include: {
-    //             names: true,
-    //             annotation: true,
-    //             syllabus: true,
-    //         },
-    //         take: batchSize,
-    //         skip: cursor ? 1 : 0,
-    //         cursor: cursor ? { id: cursor } : undefined,
-    //     });
+    const batchSize = 1000;
+    let cursor: string | undefined = undefined;
+    let hasMore = true;
 
-    //     await solr.getCollection('class').addDocuments(classes.map(cls => ({
-    //         id: cls.id,
-    //         class_name_cs: cls.names.find(x => x.lang === 'cze')?.value,
-    //         class_name_en: cls.names.find(x => x.lang === 'eng')?.value,
-    //         class_annotation_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
-    //         class_annotation_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
-    //         class_syllabus_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
-    //         class_syllabus_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
-    //     })));
+    while (hasMore) {
+        const classes: any[] = await outDB.class.findMany({
+            include: {
+                names: true,
+                annotation: true,
+                syllabus: true,
+            },
+            take: batchSize,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+        });
 
-    //     if (classes.length < batchSize) {
-    //         hasMore = false;
-    //     } else {
-    //         cursor = classes[classes.length - 1].id;
-    //     }
-    // }
+        await solr.getCollection('class').addDocuments(classes.map(cls => ({
+            id: cls.id,
+            lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
+            lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
+            lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
+            lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
+            lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
+            lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
+        })));
+
+        if (classes.length < batchSize) {
+            hasMore = false;
+        } else {
+            cursor = classes[classes.length - 1].id;
+        }
+    }
 })();
