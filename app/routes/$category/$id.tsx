@@ -72,14 +72,14 @@ function stripHTML(html: string) {
 function isANumberedList(text: string) {
   const matches = Array.from(text?.matchAll(/\s?(\d+)(\.|\))\s/g)).map(x => x[1]);
 
-  return '123456789'.includes(matches.slice(0,5).join(''));
+  return matches.length > 3 && '123456789'.includes(matches.slice(0,5).join(''));
 }
   
 
 function formatText(text: string | null | undefined) {
   text = stripHTML(text ?? ''); 
 
-  if(isANumberedList(text)) {
+  if(isANumberedList(text ?? '')) {
     return text?.split(/\s(?=\d+[.)])/g)
     .map(x => x.trim().length > 0 ? x.trim() + ' \n' : x.trim())
     .filter(x => x.length > 0) ?? [];
