@@ -11,6 +11,7 @@ import { CategoryIcons } from "~/utils/icons";
 import { useCallback, useState } from "react";
 import { getFacultyColor } from "~/utils/colors";
 import { getLinkedData } from "~/utils/linkedData";
+import icon404 from "./../../img/404.svg";
 
 interface URLParams {
   category: entityTypes;
@@ -117,11 +118,11 @@ function formatText(text: string | null | undefined) {
 export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeof loader>> }) => {
   if (!data) return [
     {
-      title: createMetaTitle(`Missing ${data.category}`)
+      title: createMetaTitle('Not found')
     },
     {
         name: "description",
-        content: `${capitalize(data.category)} with this id does not exist.`
+        content: `${capitalize(data?.category ?? 'entity') } with this id does not exist.`
     },
   ];
 
@@ -132,6 +133,18 @@ export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeo
         "script:ld+json": getLinkedData(data.category, data),
     }
   ];
+};
+
+export const ErrorBoundary = ({ error }) => {
+  return (
+    <div className="flex flex-col w-full justify-center items-center mt-5">
+      <img src={icon404} className="w-1/3 mx-auto" alt="Not found."/>
+      <h1 className="text-3xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2 mt-5">Oh no!</h1>
+      <p>
+        The entity you are looking for does not exist.
+      </p>
+    </div>
+  )
 };
 
 function IconWithBackground({ icon, background, size }) {
