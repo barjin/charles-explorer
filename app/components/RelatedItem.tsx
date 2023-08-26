@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useLocation } from "@remix-run/react";
 import { CategoryIcons } from "~/utils/icons";
 import { type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
@@ -10,12 +10,16 @@ export function getSteppedGradientCSS(colors: string[]) {
 
 export function RelatedItem({items, type}: { items: any, type: entityTypes }) {
     const loading = !items;
+    const { search } = useLocation();
 
     const name = getLocalizedName(items[0]) ?? '';
     const link = `/${type}/${items[0].id}`;
   
     return (
-      <Link title={name} to={link} className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
+      <Link 
+        title={name} 
+        to={{pathname: link, search: search }} 
+        className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
         <div className={`${loading ? 'motion-safe:animate-pulse' : ''} flex space-x-4`}>
           <div className="p-1 bg-orange-400 text-white text-xl" style={{background: getSteppedGradientCSS(items[0].faculties.map(x => getFacultyColor(x.id)))}}>
             {CategoryIcons[type]({})}
