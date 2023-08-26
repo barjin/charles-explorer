@@ -7,6 +7,7 @@ import { getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
+import icon404 from "./../../img/404.svg";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -37,6 +38,18 @@ export function meta() {
         }
     ];
 }
+
+export const ErrorBoundary = ({ error }) => {
+    return (
+      <div className="flex flex-col w-full justify-center items-center mt-5">
+        <h1 className="text-3xl font-bold mb-4 pb-2 my-3">Oh no!</h1>
+        <img src={icon404} className="w-1/3 mx-auto my-5" alt="Not found."/>
+        <p>
+          There was an error loading this page.
+        </p>
+      </div>
+    )
+  };  
 
 export default function Category() {
     const records = useLoaderData();
