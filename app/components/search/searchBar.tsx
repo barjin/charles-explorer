@@ -1,13 +1,17 @@
 import { useCallback, useRef, useState } from "react";
 import { getSearchUrl } from "~/utils/backend";
-import { Link, useParams, useNavigate } from "@remix-run/react";
+import { Link, useParams, useNavigate, useLocation } from "@remix-run/react";
 import { BiSearch } from "react-icons/bi";
 import { capitalize } from "~/utils/lang";
 import { type entityTypes } from "~/utils/entityTypes";
 
-export function SearchBar({ query, setQuery }: { query: string, setQuery: (x: string) => void }) {
+export function SearchBar() {
+    const { search } = useLocation();
+
     const form = useRef<HTMLFormElement>(null);
     const [focus, setFocus] = useState(false);
+    const [ query, setQuery ] = useState<string>(new URLSearchParams(search).get('query') ?? '');
+
     const navigate = useNavigate();
     const searchMode = useParams<{ category: entityTypes }>().category!;
 
