@@ -1,4 +1,4 @@
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, HandleErrorFunction } from "@remix-run/node";
 import styles from './styles/app.css';
 
 import {
@@ -14,7 +14,7 @@ export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 };
 
-export const ErrorBoundary = ({ error }) => {
+export const ErrorBoundary: HandleErrorFunction = (error) => {
   console.log(error);
 
   return (
@@ -34,7 +34,9 @@ export const ErrorBoundary = ({ error }) => {
             <p>
               Charles Explorer seems to be down. Please try again later.
             </p>
-            <pre>{error?.message}</pre>
+            <pre
+              className="text-xs font-mono text-white bg-slate-500 mt-4 py-4 rounded-md px-4 overflow-auto"
+            >{JSON.stringify(error, null, 2)}</pre>
           </div>
         </div>
         <Scripts />
