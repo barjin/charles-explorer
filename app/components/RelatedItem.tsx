@@ -2,7 +2,7 @@ import { Link } from "@remix-run/react";
 import { CategoryIcons } from "~/utils/icons";
 import { type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
-import { getLocalizedName } from "~/utils/lang";
+import { capitalize, getLocalizedName } from "~/utils/lang";
 
 export function getSteppedGradientCSS(colors: string[]) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
@@ -30,7 +30,12 @@ export function RelatedItem({items, type}: { items: any, type: entityTypes }) {
                 }> +{items.length - 1}</span> : null
               }
               </div>
-            <div className="text-sm text-slate-600 overflow-hidden text-ellipsis whitespace-nowrap">{items[0].faculties.map(x => getLocalizedName(x)).join(', ') ?? ''}</div>
+            <div className="text-sm text-slate-600 overflow-hidden text-ellipsis whitespace-nowrap">
+              {items[0].faculties.length > 0 ? 
+                items[0].faculties.map(x => getLocalizedName(x)).join(', ') ?? '' :
+                `${capitalize(type)} at CUNI`
+              }
+            </div>
           </div>
         </div>
       </Link>
