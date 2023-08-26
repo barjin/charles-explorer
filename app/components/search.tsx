@@ -1,4 +1,4 @@
-import { useParams, useSearchParams, Link } from '@remix-run/react';
+import { useParams, useSearchParams, Link, useLocation } from '@remix-run/react';
 import { useCallback, useEffect, useState } from 'react';
 import { getSearchUrl } from '~/utils/backend';
 import { type entityTypes } from '~/utils/entityTypes';
@@ -33,22 +33,13 @@ import { CategoryIcons } from '~/utils/icons';
 // }
 
 export function SearchTool() {
-    const [searchParams] = useSearchParams();
-    const getQuery = useCallback(() => {
-        return searchParams.get('query') ?? '';
-    }, [searchParams]);
-
-    const [searchText, setSearchText] = useState(getQuery());
+    const { search } = useLocation();
     const searchMode = useParams<{ category: entityTypes }>().category!;
-
-    useEffect(() => {
-        setSearchText(getQuery());
-    }, [searchMode, getQuery]);
 
     return (
         <div className='w-full pb-4 bg-slate-50 drop-shadow-md rounded-md'>
             <div className='relative'>
-                <SearchBar query={searchText} setQuery={setSearchText} />
+                <SearchBar/>
             </div>
             <div className="flex flex-row w-full justify-around pt-3 bg-slate-50 divide-x-2">
                 {
@@ -56,7 +47,7 @@ export function SearchTool() {
                         CategoryIcons
                     ).map(([mode, icon]) => (
                         <Link 
-                            to={getSearchUrl(mode as any, searchText)}
+                            to={{ pathname: `/${mode}`, search: search.toString() }}
                             key={mode} 
                             className='flex flex-1 flex-col items-center'
                         >
