@@ -8,6 +8,14 @@ export function getSteppedGradientCSS(colors: string[] | null) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
 }
 
+function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
+  if (props.disabled) {
+    return <div {...props as any} />
+  }
+
+  return <Link {...props} />
+}
+
 export function RelatedItem({ items, type }: { items: any, type: entityTypes | 'skeleton' }) {
     const { search } = useLocation();
 
@@ -17,9 +25,10 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
     const skeleton = type === 'skeleton';
 
     return (
-      <Link 
+      <Linkv2
         title={name} 
-        to={{pathname: link, search: search }} 
+        disabled={skeleton}
+        to={{ pathname: link, search: search }} 
         className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
         <div className={`flex space-x-4 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
           <div 
@@ -30,7 +39,9 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
             {
               skeleton ?
               <>&nbsp;&nbsp;&nbsp;&nbsp;</> :
-              CategoryIcons[type]({})
+              CategoryIcons[type]({
+                title: type,
+              })
             }
           </div>
           <div className={`flex-1 w-full p-2`}>
@@ -56,6 +67,6 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
             </div>
           </div>
         </div>
-      </Link>
+      </Linkv2>
     )
   }
