@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 import { AsyncDatabase } from 'promised-sqlite3';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import cliProgress from 'cli-progress';
 import colors from 'ansi-colors';
 import { getQuerySize } from './sqlite/getQuerySize';
@@ -313,32 +313,68 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
     let cursor: string | undefined = undefined;
     let hasMore = true;
 
+    // while (hasMore) {
+    //     const classes: any[] = await outDB.class.findMany({
+    //         include: {
+    //             names: true,
+    //             annotation: true,
+    //             syllabus: true,
+    //         },
+    //         take: batchSize,
+    //         skip: cursor ? 1 : 0,
+    //         cursor: cursor ? { id: cursor } : undefined,
+    //     });
+
+    //     await solr.getCollection('class').addDocuments(classes.map(cls => ({
+    //         id: cls.id,
+    //         lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
+    //         lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
+    //         lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
+    //         lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
+    //         lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
+    //         lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
+    //     })));
+
+    //     if (classes.length < batchSize) {
+    //         hasMore = false;
+    //     } else {
+    //         cursor = classes[classes.length - 1].id;
+    //     }
+    // }
+    
+    await solr.getCollection('publication').createIfNotExists();
+
+    // console.log(JSON.stringify(await solr.getCollection('class').search('RDF'),null, 2));
+
+    cursor = undefined;
+    hasMore = true;
+
     while (hasMore) {
-        const classes: any[] = await outDB.class.findMany({
+        const publications: any = await outDB.publication.findMany({
             include: {
                 names: true,
-                annotation: true,
-                syllabus: true,
+                abstract: true,
+                keywords: true,
             },
             take: batchSize,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
         });
 
-        await solr.getCollection('class').addDocuments(classes.map(cls => ({
-            id: cls.id,
-            lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
-            lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
-            lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
-            lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
-            lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
-            lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
+        await solr.getCollection('publication').addDocuments(publications.map((pub: any) => ({
+            id: pub.id,
+            lvl0_cs: pub.names.find(x => x.lang === 'cze')?.value,
+            lvl0_en: pub.names.find(x => x.lang === 'eng')?.value,
+            lvl1_cs: pub.keywords.find(x => x.lang === 'cze')?.value,
+            lvl1_en: pub.keywords.find(x => x.lang === 'eng')?.value,
+            lvl2_cs: pub.abstract?.find(x => x.lang === 'cze')?.value,
+            lvl2_en: pub.abstract?.find(x => x.lang === 'eng')?.value
         })));
 
-        if (classes.length < batchSize) {
+        if (publications.length < batchSize) {
             hasMore = false;
         } else {
-            cursor = classes[classes.length - 1].id;
+            cursor = publications[publications.length - 1].id;
         }
     }
 })();
