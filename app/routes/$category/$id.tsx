@@ -166,7 +166,17 @@ function TextField({field, data}: any) {
 
   return (getLocalized(data[field as keyof typeof data] as any)?.trim()?.length ?? -1) > 0 ?
       (<div key={field}>
-        <h3 className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" onClick={collapse}>
+        <h3 
+          className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" 
+          onClick={collapse}
+          aria-label={`Toggle text field ${field}, currently ${collapsed ? 'collapsed' : 'expanded'}`}
+          onKeyDown={(e) => {
+            if(e.key === 'Enter') {
+              collapse();
+            }
+          }} 
+          tabIndex={0}
+        >
           { capitalize(field) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
         </h3>
         <div className={`text-stone-600 ${collapsed ? 'hidden' : ''} pt-2`}>
@@ -226,10 +236,24 @@ function RelatedEntities({ category, collection }: { category: entityTypes, coll
   const groupedCollection = groupByName(collection);
 
   return (<div className="w-full">
-    <h3 id={getPlural(category)} className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" onClick={collapse}>
+    <h3 
+      id={getPlural(category)} 
+      className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" 
+      onClick={collapse}
+      aria-label={`Toggle related ${getPlural(category)} section, currently ${collapsed ? 'collapsed' : 'expanded'}`}
+      onKeyDown={(e) => {
+        if(e.key === 'Enter') {
+          collapse();
+        }
+      }} 
+      tabIndex={0}
+    >
       {capitalize(getPlural(category))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
     </h3>
-    <div className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}>
+    <div 
+      className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}
+      role="list"
+    >
     {
       groupedCollection.map((item, i) => (
         <RelatedItem 

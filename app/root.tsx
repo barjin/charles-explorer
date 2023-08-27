@@ -18,7 +18,7 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
   console.log(error);
 
   return (
-    <html lang="en">
+    <html lang="cs">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -48,7 +48,7 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
 
 export default function App() {
   return (
-    <html lang="en">
+    <html lang="cs">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />

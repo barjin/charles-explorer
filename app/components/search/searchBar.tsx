@@ -29,7 +29,11 @@ export function SearchBar() {
         ref={form}
         onSubmit={onSubmit}>
         <div className="bg-white p-2 pl-4 rounded-lg flex flex-row border-b-slate-200 border-b-2">
+            <label 
+                htmlFor="searchBar" 
+                className="sr-only">Search</label>
             <input 
+                id="searchBar"
                 onFocus={() => setFocus(true)}
                 onBlur={() => {
                     setTimeout(() => setFocus(false), 100);
@@ -37,8 +41,10 @@ export function SearchBar() {
                 type="text" 
                 className='w-full border-none outline-none bg-white'
                 placeholder="Search for a topic" 
+                title="Search for a topic"
                 defaultValue="Default"
                 value={query}
+                tabIndex={0}
                 onChange={(x) => {
                     setQuery(x.target.value);
                     setFocus(true);
@@ -47,8 +53,9 @@ export function SearchBar() {
             <Link 
                 to={getSearchUrl(searchMode, query)}
                 className="border-l-slate-200 border-l-2 pl-2 cursor-pointer"
+                title={`Search for ${query}`}
             >
-                <BiSearch size={28} color='gray'/>
+                <BiSearch size={28} color='gray' title={`Search for ${query}`}/>
             </Link>     
         </div>
         <div className={`${focus ? 'flex' : 'hidden'} absolute px-5 py-2 pt-3 bg-slate-50 flex-col w-full box-border rounded-md drop-shadow-lg`}>

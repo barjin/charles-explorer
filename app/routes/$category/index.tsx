@@ -55,9 +55,11 @@ export const ErrorBoundary = (e) => {
 function SearchResults({ groupedRecords, category }: { groupedRecords: any[], category: entityTypes }) {
     return (
         groupedRecords.length > 0 ? 
-        groupedRecords.map((items, i) => (
+        <div role="list" className="w-full flex flex-col">
+        {groupedRecords.map((items, i) => (
             <RelatedItem key={i} items={items} type={category} />
-        )) :
+        ))}
+        </div> :
         <div>
             <span className="text-slate-600">No results found :(</span>
         </div>

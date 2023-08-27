@@ -49,14 +49,21 @@ export function SearchTool() {
                         <Link 
                             to={{ pathname: `/${mode}`, search: search.toString() }}
                             key={mode} 
+                            title={`Search for a ${mode}`}
+                            role='button'
+                            aria-label={`Search for a ${mode}`}
                             className='flex flex-1 flex-col items-center'
                         >
                             {icon({
                                 className: `${searchMode === mode ? 'text-orange-400' : 'text-slate-400'} pb-1`,
                                 size: 25,
                                 cursor: 'pointer',
+                                ariaHidden: true,
                             } as any)}
-                            <span className='inline text-xs'>
+                            <span 
+                                className='inline text-xs'
+                                aria-hidden={true}
+                            >
                                 {capitalize(mode)}
                             </span>
                         </Link>
