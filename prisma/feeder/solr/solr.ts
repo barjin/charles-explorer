@@ -35,7 +35,7 @@ class SolrCollection {
     }
 
     private getSelfUrl(slug: string = '') {
-        return `${this.solr.url}/solr/${this.collection}/${slug}`;
+        return new URL(`/solr/${this.collection}/${slug}`, this.solr.url).href;
     }
 
     async addDocument(document: any) {
@@ -111,12 +111,12 @@ class SolrCollection {
             }
         });
 
-        return entities.sort((a, b) => {
-            const aScore = idsWithScores.find(({ id }) => id === a.id)?.score;
-            const bScore = idsWithScores.find(({ id }) => id === b.id)?.score;
-
-            return bScore - aScore;
-        });
+        return entities
+            .map((entity: any) => ({
+                ...entity,
+                score: idsWithScores.find(({ id }) => entity.id === id)?.score ?? 0
+            }))
+            .sort((a: any, b: any) => b.score - a.score);
     }
 }
 
