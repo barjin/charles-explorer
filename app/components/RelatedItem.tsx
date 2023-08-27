@@ -4,29 +4,40 @@ import { type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
 import { capitalize, getLocalizedName } from "~/utils/lang";
 
-export function getSteppedGradientCSS(colors: string[]) {
+export function getSteppedGradientCSS(colors: string[] | null) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
 }
 
-export function RelatedItem({items, type}: { items: any, type: entityTypes }) {
-    const loading = !items;
+export function RelatedItem({ items, type }: { items: any, type: entityTypes | 'skeleton' }) {
     const { search } = useLocation();
 
     const name = getLocalizedName(items[0]) ?? '';
     const link = `/${type}/${items[0].id}`;
-  
+
+    const skeleton = type === 'skeleton';
+
     return (
       <Link 
         title={name} 
         to={{pathname: link, search: search }} 
         className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
-        <div className={`${loading ? 'motion-safe:animate-pulse' : ''} flex space-x-4`}>
-          <div className="p-1 bg-orange-400 text-white text-xl" style={{background: getSteppedGradientCSS(items[0].faculties.map(x => getFacultyColor(x.id)))}}>
-            {CategoryIcons[type]({})}
+        <div className={`flex space-x-4 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
+          <div 
+            className={`p-1 ${skeleton ? 'bg-slate-400' : 'bg-orange-400'} text-white text-xl`}
+            style={{
+              background: !skeleton ? getSteppedGradientCSS(items[0].faculties?.map(x => getFacultyColor(x.id))) : undefined
+            }}>
+            {
+              skeleton ?
+              <>&nbsp;&nbsp;&nbsp;&nbsp;</> :
+              CategoryIcons[type]({})
+            }
           </div>
-          <div className="flex-1 w-full p-2">
-            <div className="h-6 font-medium text-ellipsis whitespace-nowrap overflow-x-hidden w-11/12 overflow-y-hidden">
-              {name}
+          <div className={`flex-1 w-full p-2`}>
+            <div className={`h-6 font-medium ${skeleton ? 'bg-slate-300 rounded-sm border-b-2 border-b-white' : ''} text-ellipsis whitespace-nowrap overflow-x-hidden w-11/12 overflow-y-hidden`}>
+              {
+                skeleton ? <>&nbsp;</> : name
+              }
               {
                 items.length > 1 ? 
                 <span className="text-xs text-slate-400 pb-3" title={
@@ -34,10 +45,13 @@ export function RelatedItem({items, type}: { items: any, type: entityTypes }) {
                 }> +{items.length - 1}</span> : null
               }
               </div>
-            <div className="text-sm text-slate-600 overflow-hidden text-ellipsis whitespace-nowrap">
-              {items[0].faculties.length > 0 ? 
-                items[0].faculties.map(x => getLocalizedName(x)).join(', ') ?? '' :
-                `${capitalize(type)} at CUNI`
+            <div className={
+              `text-sm text-slate-600 overflow-hidden ${skeleton ? 'bg-slate-300 w-5/12 rounded-sm border-t-2 border-t-white' : ''} text-ellipsis whitespace-nowrap`}>
+              {
+                skeleton ? <>&nbsp;</> :
+                items[0].faculties.length > 0 ? 
+                  items[0].faculties.map(x => getLocalizedName(x)).join(', ') ?? '' :
+                  `${capitalize(type)} at CUNI`
               }
             </div>
           </div>

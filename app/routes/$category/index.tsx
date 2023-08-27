@@ -1,8 +1,8 @@
 import { type LoaderArgs, redirect } from "@remix-run/node";
-import { getRelevantEntities } from "~/connectors/solr";
+import { searchClient } from "~/connectors/solr";
 import { type entityTypes, isValidEntity } from "~/utils/entityTypes";
 import { getSearchUrl } from "~/utils/backend";
-import { useLoaderData, useParams } from "@remix-run/react";
+import { useLoaderData, useNavigation, useParams } from "@remix-run/react";
 import { getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
@@ -24,11 +24,10 @@ export async function loader({ params, request }: LoaderArgs) {
             return redirect(getSearchUrl(category, 'Machine Learning'));
         }
     
-        return getRelevantEntities(query, category);
+        return searchClient.search(category, query);
     }
 
     return redirect('/');
-
 }
 
 export function meta() {
@@ -39,7 +38,9 @@ export function meta() {
     ];
 }
 
-export const ErrorBoundary = ({ error }) => {
+export const ErrorBoundary = (e) => {
+    console.log(e);
+
     return (
       <div className="flex flex-col w-full justify-center items-center mt-5">
         <h1 className="text-3xl font-bold mb-4 pb-2 my-3">Oh no!</h1>
@@ -50,6 +51,22 @@ export const ErrorBoundary = ({ error }) => {
       </div>
     )
   };  
+
+function SearchResults({ groupedRecords, category }: { groupedRecords: any[], category: entityTypes }) {
+    return (
+        groupedRecords.length > 0 ? 
+        groupedRecords.map((items, i) => (
+            <RelatedItem key={i} items={items} type={category} />
+        )) :
+        <div>
+            <span className="text-slate-600">No results found :(</span>
+        </div>
+    )
+}
+
+function SkeletonLoading() {
+    return <SearchResults groupedRecords={Array(10).fill(0).map(x => [{}])} category={"skeleton" as any} />
+}
 
 export default function Category() {
     const records = useLoaderData();
@@ -64,29 +81,15 @@ export default function Category() {
           p[name].push(x);
           return p;
         }, []));
-      }, {});
+      }, []);
 
     const groupedCollection = groupByName(records);
+    const { state } = useNavigation();
 
     return (
-        <>
-            {
-                records.length === 0 && (
-                    <div>
-                        <span className="text-slate-600">No results found :(</span>
-                    </div>
-                )
-            }
-            {
-                groupedCollection.map((x: any) => (
-                    <RelatedItem
-                        key={x.id}
-                        items={x}
-                        type={params.category!}
-                    />
-                ))
-            }
-        </>
+        state === 'loading' ? 
+        <SkeletonLoading /> :
+        <SearchResults groupedRecords={groupedCollection} category={params.category!} />
     )
 
 }
