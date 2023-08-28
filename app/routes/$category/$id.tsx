@@ -1,5 +1,5 @@
 import type { V2_MetaFunction } from "@remix-run/node";
-import { useLoaderData, useParams } from "@remix-run/react";
+import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { createMetaTitle } from "~/utils/meta";
@@ -12,6 +12,7 @@ import { useCallback, useState } from "react";
 import { getFacultyColor } from "~/utils/colors";
 import { getLinkedData } from "~/utils/linkedData";
 import icon404 from "./../../img/404.svg";
+import { getSearchUrl } from "~/utils/backend";
 
 interface URLParams {
   category: entityTypes;
@@ -188,7 +189,9 @@ function TextField({field, data}: any) {
                     ?.split(';')
                     .filter(x => x.trim().length > 0)
                     .map((x, i) => (
-                      <p key={i} 
+                      <Link 
+                        key={i} 
+                        to={getSearchUrl(data.category, x.trim())}
                         className={`
                           bg-orange-400
                           mb-2 
@@ -196,9 +199,8 @@ function TextField({field, data}: any) {
                           hover:bg-orange-300 
                           transition-colors select-none px-3 py-1 rounded-md inline-block  text-white w-fit`}
                         >
-
                           {x}
-                      </p>)
+                      </Link>)
                     )
                   }</div>;
               default:
