@@ -33,7 +33,7 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
         aria-label={`${name} from ${items[0].faculties?.map(x => getLocalizedName(x)).join(', ') ?? 'CUNI'}`}
         role="listitem"
         >
-        <div aria-hidden={true} className={`flex space-x-4 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
+        <div aria-hidden={true} className={`flex space-x-2 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
           <div 
             className={`p-1 ${skeleton ? 'bg-slate-400' : 'bg-orange-400'} text-white text-xl`}
             style={{

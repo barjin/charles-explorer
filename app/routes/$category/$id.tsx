@@ -147,13 +147,13 @@ export const ErrorBoundary = ({ error }) => {
   )
 };
 
-function IconWithBackground({ icon, background, size }) {
+function IconWithBackground({ icon, background, size, className }) {
   if(!size) size = 12
 
   return (
-    <div className={`rounded-full w-${size} h-${size} flex justify-center items-center p-2`} style={{ background }}>
+    <span className={`rounded-full w-${size} h-${size} justify-center items-center p-2 ${className}`} style={{ background }}>
       {icon}
-    </div>
+    </span>
   )
 }
 
@@ -277,20 +277,33 @@ export default function Index() {
       <div className="flex items-center flex-row">
         <IconWithBackground
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
+          className='hidden xl:flex'
           background={getSteppedGradientCSS(
             data.faculties.length > 0 ?
               data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
           )
           }
         />
-        <div className="p-4">
-          <h2 className="text-stone-800 font-sans font-semibold text-3xl">{getLocalizedName(data)}</h2>
-          <span className="text-stone-600">{capitalize(data.category)} at {
-            data.faculties.length > 0 ?
-              data.faculties.map(x => getLocalizedName(x)).join(', ')
-              : 'CUNI'
-          }</span>
-          <div className="text-sm">
+        <div className="p-0.5 xl:p-4">
+          <div className="flex flex-col-reverse xl:flex-col">
+            <h2 className="text-stone-800 font-sans font-semibold text-3xl my-2 xl:my-0">{getLocalizedName(data)}</h2>
+            <span className="text-stone-600 flex flex-row items-center my-2 xl:my-0">
+            <IconWithBackground
+              icon={CategoryIcons[category!]({ className: "text-sm text-white" })}
+              className='inline-block xl:hidden mr-2'
+              background={getSteppedGradientCSS(
+                data.faculties.length > 0 ?
+                  data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+              )
+              }
+            />  
+            {capitalize(data.category)} at {
+              data.faculties.length > 0 ?
+                data.faculties.map(x => getLocalizedName(x)).join(', ')
+                : 'CUNI'
+            }</span>
+          </div>
+          <div className="text-sm mb-3 xl:m-0">
             <span className="text-stone-600">
               {
                 entities.map(x => {
