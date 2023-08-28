@@ -52,7 +52,7 @@ export function SearchBar() {
     <form 
         ref={form}
         onSubmit={onSubmit}>
-        <div className="bg-white p-2 pl-4 rounded-lg flex flex-row border-b-slate-200 border-b-2">
+        <div className="bg-white p-2 pl-4 rounded-lg rounded-b-none flex flex-row border-b-slate-200 border-b-2">
             <label 
                 htmlFor="searchBar" 
                 className="sr-only">Search</label>
@@ -111,7 +111,7 @@ export function SearchBar() {
             </Link>     
         </div>
         <div 
-            className={`${focus ? 'flex' : 'hidden'} absolute bg-slate-50 flex-col w-full box-border rounded-md drop-shadow-lg overflow-hidden`}
+            className={`${focus ? 'flex' : 'hidden'} absolute bg-slate-50 flex-col w-full box-border rounded-md rounded-t-none drop-shadow-lg overflow-hidden`}
         >
             {
                 query !== '' &&
