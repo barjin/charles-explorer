@@ -27,6 +27,10 @@ export function SearchBar() {
     }, []);
 
     useEffect(() => {
+        setQuery(new URLSearchParams(search).get('query') ?? '');
+    }, [search]);
+
+    useEffect(() => {
         localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
     }, [searchHistory]);
 
