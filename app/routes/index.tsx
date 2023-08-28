@@ -19,14 +19,14 @@ export function meta() {
 export default function Index() {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
-      <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col">
-          <div className="bg-white xl:rounded-md xl:m-4 box-border flex-1 drop-shadow-md">
+      <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen">
+          <div className="bg-white xl:rounded-md xl:m-4 box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
             <SearchTool />
-            <div className="flex justify-start items-start flex-col p-4 overflow-y-scroll overflow-x-hidden">
-              <Outlet/>
+              <div className="flex justify-start items-start flex-col p-4 xl:h-[89%] xl:overflow-y-auto">
+                <Outlet/>
+              </div>
             </div>
           </div>
-      </div>
       <div className="h-full col-span-2 hidden xl:block">
         <WordCloud />
       </div>

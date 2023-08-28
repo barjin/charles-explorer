@@ -274,7 +274,7 @@ export default function Index() {
 
   return (
     <>
-      <div className="flex justify-center items-center flex-row">
+      <div className="flex items-center flex-row">
         <IconWithBackground
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
           background={getSteppedGradientCSS(

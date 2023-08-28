@@ -39,8 +39,6 @@ export function meta() {
 }
 
 export const ErrorBoundary = (e) => {
-    console.log(e);
-
     return (
       <div className="flex flex-col w-full justify-center items-center mt-5">
         <h1 className="text-3xl font-bold mb-4 pb-2 my-3">Oh no!</h1>
