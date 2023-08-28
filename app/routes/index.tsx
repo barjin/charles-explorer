@@ -4,6 +4,7 @@ import { SearchTool } from "~/components/search"
 import { WordCloud } from "~/components/wordcloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
+import { GlobalLoading } from "~/components/GlobalLoading"
 
 export function loader() {
   // TODO - generate redirect randomly
@@ -18,6 +19,8 @@ export function meta() {
 
 export default function Index() {
   return (
+    <>
+    <GlobalLoading />
     <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
       <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen">
           <div className="bg-white xl:rounded-md xl:m-4 box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
@@ -31,5 +34,6 @@ export default function Index() {
         <WordCloud />
       </div>
     </div>
+    </>
   )
 }
