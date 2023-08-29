@@ -1,10 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getSearchUrl } from "~/utils/backend";
-import { Link, useParams, useNavigate, useLocation } from "@remix-run/react";
+import { Link, useParams, useNavigate, useLocation, useFetcher } from "@remix-run/react";
 import { BiSearch } from "react-icons/bi";
 import { RxCounterClockwiseClock } from "react-icons/rx";
 import { capitalize } from "~/utils/lang";
 import { type entityTypes } from "~/utils/entityTypes";
+import { CategoryIcons } from "~/utils/icons";
+
+function SuggestionItem({x, i, activeIndex, setActiveIndex, setEnterSubmitInput}: {x: any, i: number, activeIndex: number, setActiveIndex: (i: number) => void, setEnterSubmitInput: (b: boolean) => void}) {
+    return (
+        <Link 
+            className={`w-full px-3 py-3 flex flex-row items-center cursor-pointer ${activeIndex === i ? 'bg-slate-200': ''}`}
+            to={getSearchUrl(x.mode, x.query)}
+            onMouseOver={() => {
+                setActiveIndex(i);
+                setEnterSubmitInput(true);
+            }}
+        >
+            <x.icon size={28} color={'rgb(150,150,150)'}/>
+            <div className='flex flex-col pl-2 w-11/12'>
+                <span className="text-gray-800 truncate">{x.query}</span>
+                <span className='text-xs text-gray-700'>{capitalize(x.mode)}</span>
+            </div>
+        </Link>
+    )
+}
 
 export function SearchBar() {
     const { search } = useLocation();
@@ -14,7 +34,7 @@ export function SearchBar() {
     
     const form = useRef<HTMLFormElement>(null);
     const [focus, setFocus] = useState(false);
-    const [ query, setQuery ] = useState<string>(new URLSearchParams(search).get('query') ?? '');
+    const [query, setQuery] = useState<string>(new URLSearchParams(search).get('query') ?? '');
 
     const navigate = useNavigate();
     const searchMode = useParams<{ category: entityTypes }>().category!;
@@ -52,6 +72,24 @@ export function SearchBar() {
         }
     }, [query, searchMode, navigate]);
 
+    const suggester = useFetcher();
+    const [currentlySuggested, setCurrentlySuggested] = useState<string>(query);
+
+    useEffect(() => {
+        if(query.length > 0) {
+            if (suggester.state === "idle" && query !== currentlySuggested) {
+                setCurrentlySuggested(query);
+                suggester.load(`./suggest?query=${query}`);
+            }
+        }
+    }, [query, suggester, currentlySuggested]);
+
+    const suggestionsPanel =  [
+        {query, mode: searchMode, icon: BiSearch},
+        ...(suggester.data?.slice(0,4).map((x: any) => ({query: x.term, mode: searchMode, icon: CategoryIcons[searchMode]})) ?? []),
+        ...searchHistory.map(x => ({query: x.query, mode: x.mode, icon:  RxCounterClockwiseClock}))
+    ] as const;
+
     return (
     <form 
         ref={form}
@@ -80,7 +118,7 @@ export function SearchBar() {
                 onKeyDown={(e) => {
                     if(e.key === 'ArrowDown') {
                         e.preventDefault();
-                        if(activeIndex < searchHistory.length) {
+                        if(activeIndex < suggestionsPanel.length) {
                             setActiveIndex(activeIndex + 1);
                             setEnterSubmitInput(false);
                         }
@@ -95,7 +133,7 @@ export function SearchBar() {
                         if(activeIndex === 0 || enterSubmitInput) {
                             onSubmit(e as any);
                         } else {
-                            const historyItem = searchHistory[activeIndex - 1];
+                            const historyItem = suggestionsPanel[activeIndex];
                             setQuery(historyItem.query);
                             navigate(getSearchUrl(historyItem.mode, historyItem.query));
                             setFocus(false);
@@ -119,61 +157,17 @@ export function SearchBar() {
         >
             {
                 query !== '' &&
-                <Link 
-                    className={`px-3 py-3 flex flex-row items-center cursor-pointer ${activeIndex === 0 ? 'bg-slate-200': ''}`}
-                    to={getSearchUrl(searchMode, query)}
-                    onMouseOver={() => {
-                        setActiveIndex(0);
-                        setEnterSubmitInput(true);
-                    }}
-                >
-                    <BiSearch size={28} color='rgb(150,150,150)'/>
-                    <div className='flex flex-col pl-2'>
-                        <span className="text-gray-800">{query}</span>
-                        <span className='text-xs text-gray-700'>{capitalize(searchMode!)}</span>
-                    </div>
-                </Link>
-            }
-            { searchHistory.map((x, i) => (
-                <Link 
-                    key={i+1}
-                    className={`px-3 py-3 flex flex-row items-center cursor-pointer ${activeIndex === i + 1 ? 'bg-slate-200': ''}`}
-                    onMouseOver={() => {
-                        setActiveIndex(i + 1);
-                        setEnterSubmitInput(true);
-                    }}
-                    to={getSearchUrl(x.mode, x.query)}
-                    onClick={() => {
-                        setFocus(false);
-                        setQuery(x.query);
-                    }}
-                >
-                    <RxCounterClockwiseClock size={28} color={'rgb(150,150,150)'}/>
-                    <div className='flex flex-col pl-2'>
-                        <span className="text-gray-800">{x.query}</span>
-                        <span className='text-xs text-gray-700'>{capitalize(x.mode!)}</span>
-                    </div>
-                </Link>
-            ))}
-            {/* {
-                suggestions.map((x) => (
-                    <div className='search-history-item'
-                        onClick={() => {
-                            setFocus(false);
-                            setSearchText(x);
-                            setSearchMode('class');
-                            // runSearch({query: x, mode: 'class'});
-                        }}
-                        key={x}
-                    >
-                        {}
-                        <div style={{display: 'flex', flexDirection: 'column', marginLeft: '10px'}}>
-                        <span>{x}</span>
-                        <span style={{fontSize: '80%'}}>{}</span>
-                        </div>
-                    </div>
+                suggestionsPanel.map((x, i) => (
+                    <SuggestionItem
+                        key={i}
+                        activeIndex={activeIndex}
+                        i={i}
+                        setActiveIndex={setActiveIndex}
+                        setEnterSubmitInput={setEnterSubmitInput}
+                        x={x}
+                    />
                 ))
-            } */}
+            }
         </div>
     </form>);
 }

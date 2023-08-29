@@ -313,34 +313,34 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
     let cursor: string | undefined = undefined;
     let hasMore = true;
 
-    // while (hasMore) {
-    //     const classes: any[] = await outDB.class.findMany({
-    //         include: {
-    //             names: true,
-    //             annotation: true,
-    //             syllabus: true,
-    //         },
-    //         take: batchSize,
-    //         skip: cursor ? 1 : 0,
-    //         cursor: cursor ? { id: cursor } : undefined,
-    //     });
+    while (hasMore) {
+        const classes: any[] = await outDB.class.findMany({
+            include: {
+                names: true,
+                annotation: true,
+                syllabus: true,
+            },
+            take: batchSize,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+        });
 
-    //     await solr.getCollection('class').addDocuments(classes.map(cls => ({
-    //         id: cls.id,
-    //         lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
-    //         lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
-    //         lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
-    //         lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
-    //         lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
-    //         lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
-    //     })));
+        await solr.getCollection('class').addDocuments(classes.map(cls => ({
+            id: cls.id,
+            lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
+            lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
+            lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
+            lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
+            lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
+            lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
+        })));
 
-    //     if (classes.length < batchSize) {
-    //         hasMore = false;
-    //     } else {
-    //         cursor = classes[classes.length - 1].id;
-    //     }
-    // }
+        if (classes.length < batchSize) {
+            hasMore = false;
+        } else {
+            cursor = classes[classes.length - 1].id;
+        }
+    }
     
     await solr.getCollection('publication').createIfNotExists();
 

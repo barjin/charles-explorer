@@ -758,11 +758,11 @@
 
   <searchComponent name="suggest" class="solr.SuggestComponent">
     <lst name="suggester">
-      <str name="name">classNameSuggester</str>
+      <str name="name">cs_suggester</str>
       <str name="lookupImpl">BlendedInfixLookupFactory</str>
       <str name="dictionaryImpl">DocumentDictionaryFactory</str>
       <str name="highlight">false</str>
-      <str name="field">class_name_cs</str>
+      <str name="field">lvl0_cs</str>
       <str name="suggestAnalyzerFieldType">text_cz</str>
       <str name="buildOnStartup">true</str>
     </lst>
@@ -772,7 +772,7 @@
     <lst name="defaults">
       <str name="suggest">true</str>
       <str name="suggest.count">10</str>
-      <str name="suggest.dictionary">classNameSuggester</str>
+      <str name="suggest.dictionary">cs_suggester</str>
     </lst>
     <arr name="components">
       <str>suggest</str>

@@ -20,6 +20,10 @@ abstract class CategorySearchClient {
     async search(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
         return this.searchClient.solr.getCollection(this.category).search(query, { rows });
     }
+    
+    async suggest(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
+        return this.searchClient.solr.getCollection(this.category).suggest(query, { rows });
+    }
 }
 
 class ClassSearchClient extends CategorySearchClient {
@@ -173,6 +177,15 @@ class SearchClient {
     
     async searchIds(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
         return this.categoryClients.get(category)!.searchIds(query, { rows });
+    }
+
+    async suggest(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
+        try {
+            return await this.categoryClients.get(category)!.suggest(query, { rows });
+        } catch (e) {
+            console.error(e);
+            return [];
+        }
     }
 }
 

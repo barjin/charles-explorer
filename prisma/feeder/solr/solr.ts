@@ -118,6 +118,16 @@ class SolrCollection {
             }))
             .sort((a: any, b: any) => b.score - a.score);
     }
+
+    async suggest(query: string, options?: { rows?: number }): Promise<any[]> {
+        const url = new URL(this.getSelfUrl('suggest'))
+        url.searchParams.append('suggest.q', query);
+        url.searchParams.append('suggest.count', String(options?.rows ?? 5));
+
+        return axios.get(url.href).then(res => {
+            return (Object.values(res.data.suggest)[0] as any)[query].suggestions;
+        });
+    }
 }
 
 export class Solr {
