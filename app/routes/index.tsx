@@ -6,7 +6,7 @@ import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 export function loader() {
   // TODO - generate redirect randomly
@@ -23,10 +23,14 @@ export default function Index() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo(0, 0);
-  }, [location]);
+  const [ prevLoc, setPrevLoc ] = useState(location.pathname);
 
+  useEffect(() => {
+    if (prevLoc !== location.pathname) {
+      scrollRef.current?.scrollTo(0, 0);
+    }
+    setPrevLoc(location.pathname);
+  }, [location, setPrevLoc]);
 
   return (
     <>
