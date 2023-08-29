@@ -7,6 +7,7 @@ import { getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
+import { SearchResultsProvider, useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
 
 function parseSearchParam(request: Request, key: string) {
@@ -50,27 +51,9 @@ export const ErrorBoundary = (e) => {
     )
   };  
 
-function SearchResults({ groupedRecords, category }: { groupedRecords: any[], category: entityTypes }) {
-    return (
-        groupedRecords.length > 0 ? 
-        <div role="list" className="w-full flex flex-col">
-        {groupedRecords.map((items, i) => (
-            <RelatedItem key={i} items={items} type={category} />
-        ))}
-        </div> :
-        <div>
-            <span className="text-slate-600">No results found :(</span>
-        </div>
-    )
-}
-
-function SkeletonLoading() {
-    return <SearchResults groupedRecords={Array(10).fill(0).map(x => [{}])} category={"skeleton" as any} />
-}
-
-export default function Category() {
-    const records = useLoaderData();
-    const params = useParams<{ category: entityTypes }>();
+function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
+    const records = useSearchResults();
+    let { category } = useParams<{ category: entityTypes }>();
 
     const groupByName = useCallback((collection: any[]) => {
         return Object.values(collection.reduce((p: Record<string, any>, x) => {
@@ -83,13 +66,41 @@ export default function Category() {
         }, []));
       }, []);
 
-    const groupedCollection = groupByName(records);
+    let groupedRecords = groupByName(records.searchResults ?? []);
+
+    if(skeleton) {
+        groupedRecords = Array(10).fill([{}]) as any;
+        category = 'skeleton' as any;
+    }
+
+    return (
+        groupedRecords.length > 0 ? 
+        <div role="list" className="w-full flex flex-col">
+        {groupedRecords.map((items, i) => (
+            <RelatedItem key={i} items={items} type={category!} />
+        ))}
+        </div> :
+        <div>
+            <span className="text-slate-600">No results found :(</span>
+        </div>
+    )
+}
+
+function SkeletonLoading() {
+    return <SearchResults skeleton />
+}
+
+export default function Category() {
+    const records = useLoaderData();
+    const params = useParams<{ category: entityTypes }>();
     const { state } = useNavigation();
 
     return (
         state === 'loading' ? 
         <SkeletonLoading /> :
-        <SearchResults groupedRecords={groupedCollection} category={params.category!} />
+        <SearchResultsProvider searchResults={records}>
+            <SearchResults />
+        </SearchResultsProvider>
     )
 
 }
