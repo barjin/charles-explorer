@@ -1,7 +1,7 @@
 import { redirect } from "@remix-run/node"
 import { Outlet, useLocation } from "@remix-run/react"
 import { SearchTool } from "~/components/search"
-import { WordCloud } from "~/components/wordcloud"
+import { WordCloud } from "~/components/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
