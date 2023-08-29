@@ -22,7 +22,7 @@ abstract class CategorySearchClient {
     }
     
     async suggest(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
-        return this.searchClient.solr.getCollection(this.category).suggest(query, { rows });
+        return this.searchClient.solr.getCollection(this.category).suggest(query, { rows, lang: 'cs' });
     }
 }
 

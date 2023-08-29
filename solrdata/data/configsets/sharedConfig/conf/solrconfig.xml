@@ -766,12 +766,22 @@
       <str name="suggestAnalyzerFieldType">text_cz</str>
       <str name="buildOnStartup">true</str>
     </lst>
+    <lst name="suggester">
+      <str name="name">en_suggester</str>
+      <str name="lookupImpl">BlendedInfixLookupFactory</str>
+      <str name="dictionaryImpl">DocumentDictionaryFactory</str>
+      <str name="highlight">false</str>
+      <str name="field">lvl0_en</str>
+      <str name="suggestAnalyzerFieldType">text_en</str>
+      <str name="buildOnStartup">true</str>
+    </lst>
   </searchComponent>
 
   <requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
       <str name="suggest">true</str>
       <str name="suggest.count">10</str>
+      <str name="suggest.dictionary">cs_suggester</str>
       <str name="suggest.dictionary">cs_suggester</str>
     </lst>
     <arr name="components">

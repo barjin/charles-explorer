@@ -119,10 +119,11 @@ class SolrCollection {
             .sort((a: any, b: any) => b.score - a.score);
     }
 
-    async suggest(query: string, options?: { rows?: number }): Promise<any[]> {
+    async suggest(query: string, options?: { rows?: number, lang?: 'cs' | 'en' }): Promise<any[]> {
         const url = new URL(this.getSelfUrl('suggest'))
         url.searchParams.append('suggest.q', query);
         url.searchParams.append('suggest.count', String(options?.rows ?? 5));
+        url.searchParams.append('suggest.dictionary', `${options?.lang ?? 'cs'}_suggester`);
 
         return axios.get(url.href).then(res => {
             return (Object.values(res.data.suggest)[0] as any)[query].suggestions;
