@@ -7,7 +7,7 @@ import { getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
-import { SearchResultsProvider, useSearchResults } from "~/providers/SearchResultsContext";
+import { useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
 
 function parseSearchParam(request: Request, key: string) {
@@ -25,7 +25,11 @@ export async function loader({ params, request }: LoaderArgs) {
             return redirect(getSearchUrl(category, 'Machine Learning'));
         }
     
-        return searchClient.search(category, query);
+        return {
+            searchResults: await searchClient.search(category, query),
+            category,
+            query
+        };
     }
 
     return redirect('/');
@@ -92,15 +96,15 @@ function SkeletonLoading() {
 
 export default function Category() {
     const records = useLoaderData();
-    const params = useParams<{ category: entityTypes }>();
     const { state } = useNavigation();
+    const { setContext } = useSearchResults();
+
+    setContext(records);
 
     return (
         state === 'loading' ? 
         <SkeletonLoading /> :
-        <SearchResultsProvider searchResults={records}>
-            <SearchResults />
-        </SearchResultsProvider>
+        <SearchResults />
     )
 
 }

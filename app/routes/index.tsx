@@ -1,12 +1,13 @@
 import { redirect } from "@remix-run/node"
 import { Outlet, useLocation } from "@remix-run/react"
 import { SearchTool } from "~/components/search"
-import { WordCloud } from "~/components/WordCloud"
+import { WordCloud } from "~/components/WordCloud/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
 
 import { useRef, useEffect, useState } from "react"
+import { SearchResultsContextType, SearchResultsProvider } from "~/providers/SearchResultsContext"
 
 export function loader() {
   // TODO - generate redirect randomly
@@ -22,7 +23,6 @@ export function meta() {
 export default function Index() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-
   const [ prevLoc, setPrevLoc ] = useState(location.pathname);
 
   useEffect(() => {
@@ -32,9 +32,23 @@ export default function Index() {
     setPrevLoc(location.pathname);
   }, [location, setPrevLoc]);
 
+  const [searchResults, setSearchResults] = useState<Omit<SearchResultsContextType, 'setContext'>>({
+    searchResults: [],
+    query: "",
+    category: "person",
+  });
+
+  
+
   return (
     <>
     <GlobalLoading />
+    <SearchResultsProvider
+      searchResults={searchResults.searchResults}
+      query={searchResults.query}
+      category={searchResults.category}
+      setContext={setSearchResults}
+    >
     <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
       <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen">
           <div className="bg-white xl:rounded-md xl:m-4 box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
@@ -48,6 +62,7 @@ export default function Index() {
         <WordCloud />
       </div>
     </div>
+    </SearchResultsProvider>
     </>
   )
 }
