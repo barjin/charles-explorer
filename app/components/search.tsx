@@ -1,10 +1,9 @@
-import { useParams, useSearchParams, Link, useLocation } from '@remix-run/react';
-import { useCallback, useEffect, useState } from 'react';
-import { getSearchUrl } from '~/utils/backend';
+import { useParams, Link, useLocation } from '@remix-run/react';
 import { type entityTypes } from '~/utils/entityTypes';
 import { capitalize } from '~/utils/lang';
 import { SearchBar } from './search/searchBar';
 import { CategoryIcons } from '~/utils/icons';
+import { useLocalize } from '~/providers/LangContext';
 
 // todo - random queries
 // function getRandomQuery(language: 'cs'|'en') {
@@ -36,6 +35,8 @@ export function SearchTool() {
     const { search } = useLocation();
     const searchMode = useParams<{ category: entityTypes }>().category!;
 
+    const { localize } = useLocalize();
+
     return (
         <div className='w-full pb-4 bg-slate-50 drop-shadow-md rounded-md'>
             <div className='relative'>
@@ -64,7 +65,7 @@ export function SearchTool() {
                                 className='inline text-xs'
                                 aria-hidden={true}
                             >
-                                {capitalize(mode)}
+                                {capitalize(localize(mode))}
                             </span>
                         </Link>
                     ))

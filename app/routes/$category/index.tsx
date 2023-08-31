@@ -3,7 +3,7 @@ import { searchClient } from "~/connectors/solr";
 import { type entityTypes, isValidEntity } from "~/utils/entityTypes";
 import { getSearchUrl } from "~/utils/backend";
 import { useLoaderData, useNavigation, useParams } from "@remix-run/react";
-import { getLocalized, getLocalizedName } from "~/utils/lang";
+import { getLocalized } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
@@ -11,6 +11,7 @@ import { useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
 import { groupBy } from "~/utils/groupBy";
 import { getTextFields } from "~/utils/retrievers";
+import { useLocalize } from "~/providers/LangContext";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -83,8 +84,9 @@ export const ErrorBoundary = (e) => {
 function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
     const records = useSearchResults();
     let { category } = useParams<{ category: entityTypes }>();
+    const { localize } = useLocalize();
 
-    const groupByName = useCallback((collection: any[]) => groupBy(collection, x => getLocalizedName(x) ?? ''), []);
+    const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
 
     let groupedRecords = Object.values(groupByName(records.searchResults ?? []));
 

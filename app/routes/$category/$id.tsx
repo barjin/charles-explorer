@@ -3,7 +3,7 @@ import { Link, useLoaderData, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { createMetaTitle } from "~/utils/meta";
-import { capitalize, getLocalized, getLocalizedName } from "~/utils/lang";
+import { capitalize, getLocalized, getPluralLang } from "~/utils/lang";
 import { getNames , getJoinableEntities, getTextFields } from "~/utils/retrievers";
 import { isValidEntity, entities, getPlural, type entityTypes }  from "~/utils/entityTypes";
 import { RelatedItem, getSteppedGradientCSS } from "~/components/RelatedItem";
@@ -15,6 +15,7 @@ import icon404 from "./../../img/404.svg";
 import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
+import { useLocalize } from "~/providers/LangContext";
 
 interface URLParams {
   category: entityTypes;
@@ -130,8 +131,8 @@ export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeo
   ];
 
   return [
-    { title: createMetaTitle(getLocalizedName(data) ?? `Unknown ${data.category}`) },
-    { name: "description", content: `"${getLocalizedName(data)}" is a ${data.category} at the Charles University in Prague.` },
+    { title: createMetaTitle(getLocalized(data.names, { lang: 'eng' })) ?? `Unknown ${data.category}` },
+    { name: "description", content: `"${getLocalized(data.names, { lang: 'eng' })}" is a ${data.category} at the Charles University in Prague.` },
     {
         "script:ld+json": getLinkedData(data.category, data),
     }
@@ -162,12 +163,13 @@ function IconWithBackground({ icon, background, size, className }) {
 
 function TextField({field, data}: any) {
   const [collapsed, setCollapsed] = useState<Boolean>(false);
+  const { localize } = useLocalize();
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
   }, [collapsed]);
 
-  return (getLocalized(data[field as keyof typeof data] as any)?.trim()?.length ?? -1) > 0 ?
+  return ((localize(data[field as keyof typeof data] as any))?.trim()?.length ?? -1) > 0 ?
       (<div key={field}>
         <h3 
           className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" 
@@ -180,14 +182,14 @@ function TextField({field, data}: any) {
           }} 
           tabIndex={0}
         >
-          { capitalize(field) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
+          { capitalize(localize(field)) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
         </h3>
         <div className={`text-stone-600 ${collapsed ? 'hidden' : ''} pt-2`}>
         { (() => {
             switch (field) {
               case 'keywords':
                 return <div className="space-x-2">{
-                    getLocalized(data[field as keyof typeof data] as any)
+                    localize(data[field as keyof typeof data] as any)
                     ?.split(';')
                     .filter(x => x.trim().length > 0)
                     .map((x, i) => (
@@ -206,7 +208,7 @@ function TextField({field, data}: any) {
                     )
                   }</div>;
               default:
-                return formatText(getLocalized(data[field as keyof typeof data] as any))
+                return formatText(localize(data[field as keyof typeof data] as any))
                 ?.map((x, i) => <p key={i} className="pb-2 px-3">{x}</p>)
             }
           })()
@@ -217,8 +219,9 @@ function TextField({field, data}: any) {
 
 function RelatedEntities({ category, collection }: { category: entityTypes, collection: any[] }){
   const [collapsed, setCollapsed] = useState<Boolean>(false);
+  const { lang, localize } = useLocalize();
 
-  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => getLocalizedName(x) ?? ''), []);
+  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
@@ -243,7 +246,7 @@ function RelatedEntities({ category, collection }: { category: entityTypes, coll
       }} 
       tabIndex={0}
     >
-      {capitalize(getPlural(category))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
+      {capitalize(getPluralLang(category, 2, {lang}))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
     </h3>
     <div 
       className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}
@@ -266,6 +269,7 @@ export default function Index() {
   const data = useLoaderData<Awaited<ReturnType<typeof loader>>>();
   const { category } = useParams<{ category: entityTypes }>();
   const { textFields } = data;
+  const { localize, lang } = useLocalize();
 
   const getExternalLink = useCallback((data: any) => {
     let url = null;
@@ -303,7 +307,7 @@ export default function Index() {
           <div className="flex flex-col-reverse xl:flex-col">
             <div className='flex flex-row items-center justify-between w-full'>
             <h2 className="text-stone-800 font-sans font-semibold text-3xl my-2 xl:my-0">
-              {getLocalizedName(data)}               
+              {localize(data.names)}               
             </h2>
             {
                 getExternalLink(data) ? 
@@ -328,9 +332,9 @@ export default function Index() {
               )
               }
             />  
-            {capitalize(data.category)} at {
+            {capitalize(localize(data.category))} {localize('at')} {
               data.faculties.length > 0 ?
-                data.faculties.map(x => getLocalizedName(x)).join(', ')
+                data.faculties.map(x => localize(x.names)).join(', ')
                 : 'CUNI'
             }</span>
           </div>
@@ -338,11 +342,11 @@ export default function Index() {
             <span className="text-stone-600">
               {
                 entities.map(x => {
-                  if(data[getPlural(x)]) {
+                  if(data[getPlural(x)] && data[getPlural(x)].length > 0) {
                     return (
                     <span className="pr-3" key={x}>
                       <a href={`#${getPlural(x)}`}>
-                        <FaRegBookmark style={{display: 'inline'}} fontSize={14}/> {data[getPlural(x)].length} {data[getPlural(x)].length !== 1 ? getPlural(x) : x}
+                        <FaRegBookmark style={{display: 'inline'}} fontSize={14}/> {data[getPlural(x)].length} {data[getPlural(x)].length !== 1 ? getPluralLang(x, data[getPlural(x)].length, { lang }) : localize(x)}
                       </a>
                     </span>);
                   }
@@ -354,7 +358,7 @@ export default function Index() {
       </div>
       {
         textFields?.filter((x) => {
-          return (getLocalized(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
+          return (localize(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
         }).map((field: any) => (
           <TextField field={field} data={data} />
         ))

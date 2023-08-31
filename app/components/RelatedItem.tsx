@@ -2,7 +2,8 @@ import { Link, useLocation } from "@remix-run/react";
 import { CategoryIcons } from "~/utils/icons";
 import { type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
-import { capitalize, getLocalizedName } from "~/utils/lang";
+import { capitalize } from "~/utils/lang";
+import { useLocalize } from "~/providers/LangContext";
 
 export function getSteppedGradientCSS(colors: string[] | null) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
@@ -18,8 +19,9 @@ function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
 
 export function RelatedItem({ items, type }: { items: any, type: entityTypes | 'skeleton' }) {
     const { search } = useLocation();
+    const { localize } = useLocalize();
 
-    const name = getLocalizedName(items[0]) ?? '';
+    const name = localize(items[0].names) ?? '';
     const link = `/${type}/${items[0].id}`;
 
     const skeleton = type === 'skeleton';
@@ -30,7 +32,7 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
         disabled={skeleton}
         to={{ pathname: link, search: search }} 
         className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer"
-        aria-label={`${name} from ${items[0].faculties?.map(x => getLocalizedName(x)).join(', ') ?? 'CUNI'}`}
+        aria-label={`${name} from ${items[0].faculties?.map(x => localize(x.names)).join(', ') ?? 'CUNI'}`}
         role="listitem"
         >
         <div aria-hidden={true} className={`flex space-x-2 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
@@ -64,7 +66,7 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
               {
                 skeleton ? <>&nbsp;</> :
                 items[0].faculties.length > 0 ? 
-                  items[0].faculties.map(x => getLocalizedName(x)).join(', ') ?? '' :
+                  items[0].faculties.map(x => localize(x.names)).join(', ') ?? '' :
                   `${capitalize(type)} at CUNI`
               }
             </div>

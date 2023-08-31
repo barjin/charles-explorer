@@ -41,7 +41,8 @@ export default function Index() {
     category: "person",
   });
 
-  const [lang, setLang] = useState<"en" | "cs">(["cs", "sk"].includes(window.navigator.language) ? "cs" : "en");
+  const [lang, setLang] = useState<"eng" | "cze">("cze");
+  //["cs", "sk"].includes(window.navigator.language) ? "cs" : "en"
 
   return (
     <>
