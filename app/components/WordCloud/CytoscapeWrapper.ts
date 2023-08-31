@@ -18,10 +18,11 @@ class RenderingScene {
         return this.lifecycle;
     }
 
-    public addNode(id: string, title: string, options?: { parent?: string, style?: any }) {
+    public addNode(id: string, title: string, options?: { parent?: string, style?: any, data?: any, edgeData?: any }) {
         this.collection.push({
             group: 'nodes',
             data: {
+                ...options?.data,
                 id: id as any,
                 title
             },
@@ -39,6 +40,7 @@ class RenderingScene {
             this.collection?.push({
                 group: 'edges',
                 data: {
+                    ...options?.edgeData,
                     id: `${id}-${options.parent}`,
                     source: id,
                     target: options.parent
@@ -95,7 +97,11 @@ class RenderingScene {
             name: 'fcose',
             animate: true,
             animationDuration: 2000,
-            fit: false,
+            numIter: 10000,
+            nodeRepulsion: (n) => n.data('id').startsWith('query') ? 100000 : 1000,
+            idealEdgeLength: (e: any) => {
+                return e.data('idealEdgeLength') ?? 20;
+            },
             randomize: true,
             animationEasing: 'ease-in-out-quart',
             nodeDimensionsIncludeLabels: true,

@@ -7,7 +7,7 @@ import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
 
 import { useRef, useEffect, useState } from "react"
-import { SearchResultsContextType, SearchResultsProvider } from "~/providers/SearchResultsContext"
+import { type SearchResultsContextType, SearchResultsProvider } from "~/providers/SearchResultsContext"
 
 export function loader() {
   // TODO - generate redirect randomly
@@ -35,10 +35,9 @@ export default function Index() {
   const [searchResults, setSearchResults] = useState<Omit<SearchResultsContextType, 'setContext'>>({
     searchResults: [],
     query: "",
+    keywords: {},
     category: "person",
   });
-
-  
 
   return (
     <>
@@ -46,6 +45,7 @@ export default function Index() {
     <SearchResultsProvider
       searchResults={searchResults.searchResults}
       query={searchResults.query}
+      keywords={searchResults.keywords}
       category={searchResults.category}
       setContext={setSearchResults}
     >

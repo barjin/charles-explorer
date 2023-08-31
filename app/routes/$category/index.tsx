@@ -3,13 +3,14 @@ import { searchClient } from "~/connectors/solr";
 import { type entityTypes, isValidEntity } from "~/utils/entityTypes";
 import { getSearchUrl } from "~/utils/backend";
 import { useLoaderData, useNavigation, useParams } from "@remix-run/react";
-import { getLocalizedName } from "~/utils/lang";
+import { getLocalized, getLocalizedName } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
 import { useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
 import { groupBy } from "~/utils/groupBy";
+import { getTextFields } from "~/utils/retrievers";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -25,9 +26,32 @@ export async function loader({ params, request }: LoaderArgs) {
             // todo - generate redirect randomly?
             return redirect(getSearchUrl(category, 'Machine Learning'));
         }
-    
+
+        const searchResults = await searchClient.search(category, query, { includeTextFields: true });
+        const textFieldNames = getTextFields(category)!;
+
+        const searchResultsPerFaculty = Object.entries(groupBy(searchResults, x => x.faculties[0]?.id));
+
+        let keywords = Object.fromEntries(
+            await Promise.all(
+                searchResultsPerFaculty.map(async ([facultyId, results]) => {
+                    const content = results.map(x => {
+                        return textFieldNames.map(name => getLocalized(x[name])).join(' ');
+                    }).join(' ');
+
+                    const keywords = await searchClient.getKeywords(content, { lang: 'cs' });
+
+                    return [
+                        facultyId,
+                        keywords
+                    ]
+                })
+            )
+        );
+
         return {
-            searchResults: await searchClient.search(category, query),
+            searchResults,
+            keywords,
             category,
             query
         };

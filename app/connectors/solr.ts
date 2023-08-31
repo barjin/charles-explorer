@@ -1,6 +1,7 @@
 import { type entityTypes } from "~/utils/entityTypes";
 import { db } from "./prisma";
 import { Solr } from "prisma/feeder/solr/solr";
+import axios from "axios";
 
 const DEFAULT_ROWS_LIMIT = 30;
 
@@ -17,8 +18,8 @@ abstract class CategorySearchClient {
         return this.searchClient.solr.getCollection(this.category).searchIds(query, { rows });
     }
 
-    async search(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
-        return this.searchClient.solr.getCollection(this.category).search(query, { rows });
+    async search(query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
+        return this.searchClient.solr.getCollection(this.category).search(query, { rows, includeTextFields });
     }
     
     async suggest(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
@@ -38,6 +39,7 @@ class PublicationSearchClient extends CategorySearchClient {
         this.category = 'publication';
     }
 }
+
 class ProgrammeSearchClient extends CategorySearchClient {
     constructor(searchClient: SearchClient) {
         super(searchClient);
@@ -95,8 +97,8 @@ class PersonSearchClient extends CategorySearchClient {
     
     override async search(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
         const [ classes, publications ] = await Promise.all([
-            this.searchClient.categoryClients.get('class')!.searchIds(query, { rows: rows * 2 }),
-            this.searchClient.categoryClients.get('publication')!.searchIds(query, { rows: rows * 2 }),
+            this.searchClient.categoryClients.get('class')!.searchIds(query, { rows }),
+            this.searchClient.categoryClients.get('publication')!.searchIds(query, { rows }),
         ]);
 
         const people = await db.person.findMany({
@@ -163,16 +165,20 @@ class PersonSearchClient extends CategorySearchClient {
 class SearchClient {
     public solr: Solr;
     public categoryClients = new Map<entityTypes, CategorySearchClient>();
-    constructor(url: string) {
-        this.solr = new Solr(url, db);
+    private nanokerUrl: string;
+
+    constructor(solrUrl: string, nanokerUrl: string) {
+        this.solr = new Solr(solrUrl, db);
+        this.nanokerUrl = nanokerUrl;
+
         this.categoryClients.set('class', new ClassSearchClient(this));
         this.categoryClients.set('programme', new ProgrammeSearchClient(this));
         this.categoryClients.set('publication', new PublicationSearchClient(this));
         this.categoryClients.set('person', new PersonSearchClient(this));
     }
 
-    async search(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
-        return this.categoryClients.get(category)!.search(query, { rows });
+    async search(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
+        return this.categoryClients.get(category)!.search(query, { rows, includeTextFields });
     }
     
     async searchIds(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
@@ -187,6 +193,17 @@ class SearchClient {
             return [];
         }
     }
+
+    public async getKeywords(content: string, { lang }: { lang: 'en' | 'cs' }): Promise<{ value: string, score: string }[]> {
+        const requestUrl = new URL(this.nanokerUrl);
+        requestUrl.searchParams.append('lang', lang ?? 'cs');
+
+        const response = await axios.post(requestUrl.href, content);
+        return response.data.map(([value, score]: [string, number]) => ({ value, score }));
+    }
 }
 
-export const searchClient = new SearchClient(process.env.SOLR_URL ?? 'http://localhost:8983');
+export const searchClient = new SearchClient(
+    process.env.SOLR_URL ?? 'http://localhost:8983', 
+    process.env.NANOKER_URL ?? 'http://localhost:8547'
+);

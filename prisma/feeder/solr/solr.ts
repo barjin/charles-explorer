@@ -1,5 +1,6 @@
 import { type PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import { getTextFields } from '~/utils/retrievers';
 
 class SolrCollection {
     private solr: Solr;
@@ -92,7 +93,7 @@ class SolrCollection {
         }
     }
     
-    async search(query: string, options?: { rows?: number }): Promise<any[]> {
+    async search(query: string, options?: { rows?: number, includeTextFields?: boolean }): Promise<any[]> {
         const idsWithScores = await this.searchIds(query, options);
 
         const entities = await (this.solr.db as any)[this.collection].findMany({
@@ -108,6 +109,11 @@ class SolrCollection {
                         names: true,
                     }
                 },
+                ...(options?.includeTextFields ? 
+                    getTextFields(this.collection as any)?.reduce((p: Record<string, any>, x) => ({
+                    ...p,
+                    [x]: true
+                }), {}) : {})
             }
         });
 

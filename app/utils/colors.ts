@@ -28,11 +28,11 @@ const HSLToRGB = (h, s, l) => {
     return [255 * f(0), 255 * f(8), 255 * f(4)];
 };
 
-export function getFacultyColor(facultyId: string) {
+export function getFacultyColor(facultyId: string, s: number = 100, l: number = 30) {
   const faculty = facultyIds.findIndex((faculty) => String(faculty) === facultyId);
   
   const hue = (faculty * 360) / facultyIds.length;
-  const [r, g, b] = HSLToRGB(hue, 100, 30);
+  const [r, g, b] = HSLToRGB(hue, s, l);
   const hex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
   return `#${hex}`;
 }
