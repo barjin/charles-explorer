@@ -18,7 +18,6 @@ set serveroutput on
 set feedback off
 set markup csv on
 spool /sql/$table_name.csv
--- Specify the date format explicitly
 SELECT * FROM $table_name;
 EOF
 ) > /dev/null
