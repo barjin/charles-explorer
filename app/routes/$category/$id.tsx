@@ -14,6 +14,7 @@ import { getLinkedData } from "~/utils/linkedData";
 import icon404 from "./../../img/404.svg";
 import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
+import { RiExternalLinkLine } from "react-icons/ri";
 
 interface URLParams {
   category: entityTypes;
@@ -266,9 +267,29 @@ export default function Index() {
   const { category } = useParams<{ category: entityTypes }>();
   const { textFields } = data;
 
+  const getExternalLink = useCallback((data: any) => {
+    let url = null;
+    switch (data.category) {
+      case 'class':
+        url = new URL('https://is.cuni.cz/studium/predmety/index.php?');
+        url.searchParams.set('kod', data.id);
+        url.searchParams.set('do', 'predmet');
+
+        return url.toString();
+      case 'publication':
+        url = new URL('https://verso.is.cuni.cz/pub/verso.fpl/_TS_/1669118925');
+        url.searchParams.set('id', data.id);
+        url.searchParams.set('fname', 'obd_public_det');
+        return url.toString();
+      default:
+        return null;
+    }
+  }, []);
+
+
   return (
     <>
-      <div className="flex items-center flex-row">
+      <div className="flex items-center flex-row w-full">
         <IconWithBackground
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
           className='hidden xl:flex'
@@ -278,9 +299,25 @@ export default function Index() {
           )
           }
         />
-        <div className="p-0.5 xl:p-4">
+        <div className="p-0.5 xl:p-4 w-full">
           <div className="flex flex-col-reverse xl:flex-col">
-            <h2 className="text-stone-800 font-sans font-semibold text-3xl my-2 xl:my-0">{getLocalizedName(data)}</h2>
+            <div className='flex flex-row items-center justify-between w-full'>
+            <h2 className="text-stone-800 font-sans font-semibold text-3xl my-2 xl:my-0">
+              {getLocalizedName(data)}               
+            </h2>
+            {
+                getExternalLink(data) ? 
+                <a 
+                  href={getExternalLink(data)!} 
+                  className="text-blue-400"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >
+                    <RiExternalLinkLine size={24} />
+                  </a> :
+                null
+            }
+            </div>
             <span className="text-stone-600 flex flex-row items-center my-2 xl:my-0">
             <IconWithBackground
               icon={CategoryIcons[category!]({ className: "text-sm text-white" })}
