@@ -60,7 +60,7 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
               }
               </div>
             <div className={
-              `text-sm text-slate-600 overflow-hidden ${skeleton ? 'bg-slate-300 w-5/12 rounded-sm border-t-2 border-t-white' : ''} text-ellipsis whitespace-nowrap`}>
+              `text-sm text-slate-600 overflow-hidden ${skeleton ? 'bg-slate-300 w-5/12 rounded-sm border-t-2 border-t-white' : 'w-10/12'} text-ellipsis whitespace-nowrap`}>
               {
                 skeleton ? <>&nbsp;</> :
                 items[0].faculties.length > 0 ? 
