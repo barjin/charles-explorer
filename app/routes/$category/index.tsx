@@ -9,6 +9,7 @@ import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
 import { useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
+import { groupBy } from "~/utils/groupBy";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -59,18 +60,9 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
     const records = useSearchResults();
     let { category } = useParams<{ category: entityTypes }>();
 
-    const groupByName = useCallback((collection: any[]) => {
-        return Object.values(collection.reduce((p: Record<string, any>, x) => {
-          const name = getLocalizedName(x) as string;
-          if (!p[name]) {
-            p[name] = [];
-          }
-          p[name].push(x);
-          return p;
-        }, []));
-      }, []);
+    const groupByName = useCallback((collection: any[]) => groupBy(collection, x => getLocalizedName(x) ?? ''), []);
 
-    let groupedRecords = groupByName(records.searchResults ?? []);
+    let groupedRecords = Object.values(groupByName(records.searchResults ?? []));
 
     if(skeleton) {
         groupedRecords = Array(10).fill([{}]) as any;
@@ -78,7 +70,7 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
     }
 
     return (
-        groupedRecords.length > 0 ? 
+        (groupedRecords.length > 0) ? 
         <div role="list" className="w-full flex flex-col">
         {groupedRecords.map((items, i) => (
             <RelatedItem key={i} items={items} type={category!} />

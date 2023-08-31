@@ -13,6 +13,7 @@ import { getFacultyColor } from "~/utils/colors";
 import { getLinkedData } from "~/utils/linkedData";
 import icon404 from "./../../img/404.svg";
 import { getSearchUrl } from "~/utils/backend";
+import { groupBy } from "~/utils/groupBy";
 
 interface URLParams {
   category: entityTypes;
@@ -216,16 +217,7 @@ function TextField({field, data}: any) {
 function RelatedEntities({ category, collection }: { category: entityTypes, collection: any[] }){
   const [collapsed, setCollapsed] = useState<Boolean>(false);
 
-  const groupByName = useCallback((collection: any[]) => {
-    return Object.values(collection.reduce((p: Record<string, any>, x) => {
-      const name = getLocalizedName(x) as string;
-      if (!p[name]) {
-        p[name] = [];
-      }
-      p[name].push(x);
-      return p;
-    }, []));
-  }, {});
+  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => getLocalizedName(x) ?? ''), []);
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
@@ -235,7 +227,7 @@ function RelatedEntities({ category, collection }: { category: entityTypes, coll
     return b.faculties.length - a.faculties.length;
   });
 
-  const groupedCollection = groupByName(collection);
+  const groupedCollection = Object.values(groupByName(collection));
 
   return (<div className="w-full">
     <h3 
