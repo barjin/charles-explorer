@@ -18,7 +18,7 @@ class RenderingScene {
         return this.lifecycle;
     }
 
-    public addNode(id: string, title: string, parent: string | null = null) {
+    public addNode(id: string, title: string, options?: { parent?: string, style?: any }) {
         this.collection.push({
             group: 'nodes',
             data: {
@@ -26,6 +26,7 @@ class RenderingScene {
                 title
             },
             style: {
+                ...options?.style,
                 opacity: 0,
             },
             position: {
@@ -34,13 +35,13 @@ class RenderingScene {
             }
         });
 
-        if (parent) {
+        if (options?.parent) {
             this.collection?.push({
                 group: 'edges',
                 data: {
-                    id: `${id}-${parent}`,
+                    id: `${id}-${options.parent}`,
                     source: id,
-                    target: parent
+                    target: options.parent
                 }
             });
         }
@@ -51,7 +52,6 @@ class RenderingScene {
     }
 
     private appear() {
-        console.log(this.sceneId + ' appearing!');
         this.lifecycle = 'appearing';
 
         const timestamp = Date.now();
@@ -107,7 +107,6 @@ class RenderingScene {
     }
 
     private disappear() {
-        console.log(this.sceneId + ' disappearing!');
         this.lifecycle = 'disappearing';
 
         this.sceneElements?.nodes?.().animate({
@@ -153,7 +152,13 @@ export class CytoscapeWrapper {
                 {
                     selector: 'node',
                     style: {
-                        'label': (element: any) => element?.data('title')?.split(' ').join('\n'),
+                        'label': (element: any) => element?.data('title')?.split(' ').reduce((p,x,_,a) => {
+                            if(p[p.length-1]?.length <= 3) {
+                                p[p.length-1] += ' ' + x;
+                                return p;
+                            }
+                            return [...p, x];
+                        }, []).join('\n'),
                         'text-wrap': 'wrap',
                         'background-opacity': 0,
                         "text-valign" : "center",

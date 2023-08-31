@@ -1,6 +1,7 @@
-import React, { useRef, memo, useEffect } from 'react';
+import React, { useRef, memo, useEffect, useCallback } from 'react';
 import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { useSearchResults } from '~/providers/SearchResultsContext';
+import { getFacultyColor } from '~/utils/colors';
 
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
@@ -13,20 +14,34 @@ export function WordCloud() {
         }
     }, []);
 
+    const getCurrentFaculties = useCallback(() => {
+        return searchResults.searchResults.flatMap(x => x.faculties)
+            .filter((x, i, a) => a.findIndex(b => b.id === x.id) === i);
+    }, [searchResults]);
+
     useEffect(() => {
         if (cy.current) {
             const scene = cy.current.newScene(searchResults.query + searchResults.category);
             scene?.addNode('query', searchResults.query);
 
-            searchResults.searchResults.flatMap(x => x.faculties)
-            .filter((x, i, a) => a.findIndex(b => b.id === x.id) === i)
-            .forEach(x => {
-                scene?.addNode(x.id, x.names[0].value, 'query');
+            const faculties = getCurrentFaculties();
+            const facultySizes = faculties.map(f => {
+                return searchResults.searchResults.filter(y => y.faculties.some(z => z.id === f.id)).length
+            }).map((x, _,a) => {
+                return Math.pow(x / Math.max(...a), 1/5) * 30;
+            })
+
+            faculties.forEach((x, i) => {
+                scene?.addNode(x.id, x.names[1].value, { parent: 'query', style: {
+                    color: getFacultyColor(x.id),
+                    fontWeight: 'bold',
+                    fontSize: facultySizes[i],
+                } });
             });
 
             scene?.finish();
         }
-    }, [searchResults, cy]);
+    }, [searchResults, cy, getCurrentFaculties]);
 
     return <GraphInternal r={graphRef} />;
 }
