@@ -56,8 +56,16 @@ export default function Index() {
     >
     <LangProvider lang={lang} setLang={setLang as any} localize={(token) => localize(token, { lang })}>
       <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
-        <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen">
-            <div className="bg-white xl:rounded-md xl:m-4 box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
+        <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4">
+            <div className="flex-row items-center justify-between hidden xl:flex">
+              <span></span>
+              <div className="flex flex-row items-center space-x-2">
+                <button className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" onClick={() => setLang(lang === "cze" ? "eng" : "cze")}>
+                  {lang === "cze" ? "🇨🇿" : "🇬🇧"}
+                </button>
+              </div>
+            </div>
+            <div className="bg-white xl:rounded-md xl:rounded-tr-none box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
               <SearchTool />
                 <div ref={scrollRef} className="flex justify-start items-start flex-col p-4 xl:h-[89%] xl:overflow-y-auto">
                   <Outlet/>
