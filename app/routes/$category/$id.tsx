@@ -333,20 +333,32 @@ export default function Index() {
             }
             </div>
             <span className="text-stone-600 flex flex-row items-center my-2 xl:my-0">
-            <IconWithBackground
-              icon={CategoryIcons[category!]({ className: "text-sm text-white" })}
-              className='inline-block xl:hidden mr-2'
-              background={getSteppedGradientCSS(
+              <IconWithBackground
+                icon={CategoryIcons[category!]({ className: "text-sm text-white" })}
+                className='inline-block xl:hidden mr-2'
+                background={getSteppedGradientCSS(
+                  data.faculties.length > 0 ?
+                    data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+                )
+                }
+              />  
+              {
+                capitalize(localize(category))} {localize('at')} {
                 data.faculties.length > 0 ?
-                  data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
-              )
+                  data.faculties.map(x => localize(x.names)).join(', ')
+                  : 'CUNI'
               }
-            />  
-            {capitalize(localize(category))} {localize('at')} {
-              data.faculties.length > 0 ?
-                data.faculties.map(x => localize(x.names)).join(', ')
-                : 'CUNI'
-            }</span>
+              {
+                item.getDetail() && (
+                  <span className="text-stone-600 flex flex-row items-center text-sm">
+                    <span className="mx-2"> | </span>
+                    { 
+                      item.getDetail()
+                    }
+                  </span>
+                )
+              }
+            </span>
           </div>
           <div className="text-sm mb-3 xl:m-0">
             <span className="text-stone-600">
