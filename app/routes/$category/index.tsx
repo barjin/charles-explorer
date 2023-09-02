@@ -37,7 +37,7 @@ export async function loader({ params, request }: LoaderArgs) {
             await Promise.all(
                 searchResultsPerFaculty.map(async ([facultyId, results]) => {
                     const content = results.map(x => {
-                        return textFieldNames.map(name => getLocalized(x[name])).join(' ');
+                        return textFieldNames.map(name => getLocalized(x[name], { fallback: false })).join(' ');
                     }).join(' ');
 
                     const keywords = await searchClient.getKeywords(content, { lang: 'cs' });

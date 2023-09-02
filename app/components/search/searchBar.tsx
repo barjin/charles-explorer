@@ -70,7 +70,7 @@ export function SearchBar() {
         if(query.length > 0) {
             const historyItem = {query, mode: searchMode};
             setSearchHistory([historyItem, ...searchHistory.filter(x => x.query !== query)].slice(0,3));
-            navigate(getSearchUrl(searchMode, query));
+            navigate(getSearchUrl(searchMode, query, new URLSearchParams(search)));
             setFocus(false);
         }
     }, [query, searchMode, navigate]);

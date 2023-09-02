@@ -1,5 +1,5 @@
 import { redirect } from "@remix-run/node"
-import { Outlet, useLocation } from "@remix-run/react"
+import { Outlet, useLocation, useNavigate, useNavigation } from "@remix-run/react"
 import { SearchTool } from "~/components/search"
 import { WordCloud } from "~/components/WordCloud/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
@@ -24,15 +24,17 @@ export function meta() {
 
 export default function Index() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
-  const [ prevLoc, setPrevLoc ] = useState(location.pathname);
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+  const [ prevLoc, setPrevLoc ] = useState(pathname);
+  const lang = Array.from(new URLSearchParams(search).entries()).find(([key, value]) => key === "lang" && ["eng", "cze"].includes(value))?.[1] ?? "eng";
 
   useEffect(() => {
-    if (prevLoc !== location.pathname) {
+    if (prevLoc !== pathname) {
       scrollRef.current?.scrollTo(0, 0);
     }
-    setPrevLoc(location.pathname);
-  }, [location, setPrevLoc]);
+    setPrevLoc(pathname);
+  }, [pathname, setPrevLoc]);
 
   const [searchResults, setSearchResults] = useState<Omit<SearchResultsContextType, 'setContext'>>({
     searchResults: [],
@@ -41,8 +43,11 @@ export default function Index() {
     category: "person",
   });
 
-  const [lang, setLang] = useState<"eng" | "cze">("cze");
-  //["cs", "sk"].includes(window.navigator.language) ? "cs" : "en"
+  const replaceQueryParam = (param: string, value: string) => {
+    const searchParams = new URLSearchParams(search);
+    searchParams.set(param, value);
+    navigate(`${pathname}?${searchParams.toString()}`);
+  };
 
   return (
     <>
@@ -54,13 +59,16 @@ export default function Index() {
       category={searchResults.category}
       setContext={setSearchResults}
     >
-    <LangProvider lang={lang} setLang={setLang as any} localize={(token) => localize(token, { lang })}>
+    <LangProvider lang={lang} localize={(token) => localize(token, { lang })}>
       <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
         <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4">
             <div className="flex-row items-center justify-between hidden xl:flex">
               <span></span>
               <div className="flex flex-row items-center space-x-2">
-                <button className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" onClick={() => setLang(lang === "cze" ? "eng" : "cze")}>
+                <button 
+                  className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" 
+                  onClick={() => replaceQueryParam("lang", lang === "cze" ? "eng" : "cze")}
+                >
                   {lang === "cze" ? "🇨🇿" : "🇬🇧"}
                 </button>
               </div>

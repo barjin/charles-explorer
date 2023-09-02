@@ -2,13 +2,11 @@ import React, { createContext, useContext } from "react";
 
 export type LangContextType = {
   lang: string;
-  setLang: (value: string) => void;
   localize: (value: string | any[]) => string;
 };
 
 const LangContext = createContext<LangContextType>({
   lang: "en",
-  setLang: () => {},
   localize: () => "",
 });
 
@@ -20,12 +18,11 @@ type LangProviderProps = LangContextType & {
 
 export const LangProvider = ({
   lang,
-  setLang,
   localize,
   children
 }: LangProviderProps) => {
   return (
-    <LangContext.Provider value={{ lang, setLang, localize }}>
+    <LangContext.Provider value={{ lang, localize }}>
       {children}
     </LangContext.Provider>
   );

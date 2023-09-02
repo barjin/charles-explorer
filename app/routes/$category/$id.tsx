@@ -1,5 +1,5 @@
 import type { V2_MetaFunction } from "@remix-run/node";
-import { Link, useLoaderData, useParams } from "@remix-run/react";
+import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { createMetaTitle } from "~/utils/meta";
@@ -164,6 +164,7 @@ function IconWithBackground({ icon, background, size, className }) {
 function TextField({field, data}: any) {
   const [collapsed, setCollapsed] = useState<Boolean>(false);
   const { localize } = useLocalize();
+  const { search } = useLocation();
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
@@ -195,7 +196,7 @@ function TextField({field, data}: any) {
                     .map((x, i) => (
                       <Link 
                         key={i} 
-                        to={getSearchUrl(data.category, x.trim())}
+                        to={getSearchUrl(data.category, x.trim(), new URLSearchParams(search))}
                         className={`
                           bg-orange-400
                           mb-2 

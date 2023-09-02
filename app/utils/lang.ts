@@ -1,6 +1,9 @@
-export const getLocalized = (object: { value: string; lang: string; }[] | null | undefined, options?: { lang: string }) => {
+export const getLocalized = (object: { value: string; lang: string }[] | null | undefined, options?: { lang?: string, fallback?: boolean }): string | undefined => {
+  if ( !options?.fallback ) {
+    options = { ...options, fallback: true };
+  }
   return object?.find(x => x.lang == options?.lang)?.value ?? 
-    object?.[0]?.value;
+    (options?.fallback ? object?.[0]?.value : undefined);
 }
 
 export function capitalize(str: string) : string {
@@ -78,8 +81,6 @@ export function localize(tokenOrTextObj: string | any[] | undefined, { lang }: {
   if ( Array.isArray(tokenOrTextObj) ) {
     return getLocalized(tokenOrTextObj, { lang }) ?? tokenOrTextObj[0]?.value ?? '';
   }
-
-  console.log(tokenOrTextObj);
 
   if(lang === 'eng') {
     return tokenOrTextObj ?? '';
