@@ -1,3 +1,5 @@
+import { searchClient } from "~/connectors/solr.server";
+
 export const entities = ['person', 'publication', 'programme', 'class'] as const;
 export type entityTypes = typeof entities[number];
 
@@ -35,6 +37,9 @@ abstract class ParsedEntity {
     getDetail(): string | null {
       return null
     }
+    async getRelevantRelatedEntities(query: string): Promise<Record<string, any[]>> {
+      return {};
+    }
   }
   
   export class Class extends ParsedEntity {
@@ -64,8 +69,30 @@ abstract class ParsedEntity {
     }
   }
   
-  export class Person extends ParsedEntity {}
-  export class Programme extends ParsedEntity {}
+  export class Person extends ParsedEntity {
+    override async getRelevantRelatedEntities(query: string): Promise<Record<string, any[]>> {
+      return Promise.all([
+        searchClient.searchIds('class', query, { rows: 256, ids: this.data.classes.map(x => x.id) } ),
+        searchClient.searchIds('publication', query, { rows: 256, ids: this.data.publications.map(x => x.id) } )
+      ]).then(([c, publication]) => (
+        {
+          class: c,
+          publication
+        }
+      ));
+    }
+  }
+  export class Programme extends ParsedEntity {
+    override async getRelevantRelatedEntities(query: string): Promise<Record<string, any[]>> {
+      return Promise.all([
+        searchClient.searchIds('class', query, { rows: 256, ids: this.data.classes.map(x => x.id) } ),
+      ]).then(([c]) => (
+        {
+          class: c,
+        }
+      ));
+    }
+  }
   
   export class EntityParser {
     static parse(data: any, type: entityTypes) {

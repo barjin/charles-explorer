@@ -16,7 +16,6 @@ import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
 import { useLocalize } from "~/providers/LangContext";
-import { searchClient } from "~/connectors/solr";
 
 function getQueryParam(request, key){
   const url = new URL(request.url);
@@ -69,12 +68,8 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     });
   }
 
-  let relatedMatching = {};
-  if (query && getJoinableEntities(category)?.includes('classes')) {
-    relatedMatching = {
-      class: await searchClient.searchIds('class', query, { rows: 256, ids: (loaded as any).classes.map(x => x.id) } )
-    };
-  }
+  const entity = EntityParser.parse(loaded, category as any);
+  const relatedMatching = query ? await entity?.getRelevantRelatedEntities(query) : {};
 
   return { 
     category, 
@@ -270,11 +265,11 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
     {
       groupedCollection
       .sort((a, b) => {
-        return b.some(
+        return (b.some(
           x => matching.map(x => x.id).includes(x.id)
-        ) && 1 - a.some(
+        ) ? 1 : 0) - (a.some(
           x => matching.map(x => x.id).includes(x.id)
-        ) && 1;
+        ) ? 1 : 0);
       })
       .map((item, i) => (
         <RelatedItem 

@@ -15,8 +15,6 @@ export const links: LinksFunction = () => {
 };
 
 export const ErrorBoundary: HandleErrorFunction = (error) => {
-  console.log(error);
-
   return (
     <html lang="cs">
       <head>

@@ -1,5 +1,5 @@
 import { type LoaderArgs, redirect } from "@remix-run/node";
-import { searchClient } from "~/connectors/solr";
+import { searchClient } from "~/connectors/solr.server";
 import { type entityTypes, isValidEntity } from "~/utils/entityTypes";
 import { getSearchUrl } from "~/utils/backend";
 import { useLoaderData, useNavigation, useParams } from "@remix-run/react";
@@ -20,6 +20,7 @@ function parseSearchParam(request: Request, key: string) {
 
 export async function loader({ params, request }: LoaderArgs) {
     const query = parseSearchParam(request, 'query');
+    const lang = parseSearchParam(request, 'lang') ?? 'eng';
     const { category } = params;
 
     if(isValidEntity(category)) {
@@ -37,10 +38,10 @@ export async function loader({ params, request }: LoaderArgs) {
             await Promise.all(
                 searchResultsPerFaculty.map(async ([facultyId, results]) => {
                     const content = results.map(x => {
-                        return textFieldNames.map(name => getLocalized(x[name], { fallback: false })).join(' ');
+                        return textFieldNames.map(name => getLocalized(x[name], { fallback: false, lang })).join(' ');
                     }).join(' ');
 
-                    const keywords = await searchClient.getKeywords(content, { lang: 'cs' });
+                    const keywords = await searchClient.getKeywords(content, { lang: lang === 'eng' ? 'en' : 'cs' });
 
                     return [
                         facultyId,
@@ -124,5 +125,4 @@ export default function Category() {
         <SkeletonLoading /> :
         <SearchResults />
     )
-
 }

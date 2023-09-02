@@ -1,5 +1,5 @@
 import { type LoaderArgs } from "@remix-run/node";
-import { searchClient } from "~/connectors/solr";
+import { searchClient } from "~/connectors/solr.server";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);

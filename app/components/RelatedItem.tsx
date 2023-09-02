@@ -64,8 +64,11 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
               {
                 skeleton ? <>&nbsp;</> : 
                 <div className="flex flex-row items-center">
-                  {matching && (<span class="flex w-3 h-3 bg-green-500 rounded-full mr-2" title='This item matches the query.'></span>)}
-                  {name}
+                  {matching && (
+                    <span className="flex" title='This item matches the query.'>
+                      <span className="flex w-3 h-3 bg-green-500 rounded-full mr-2" />
+                    </span>)}
+                  <span className="overflow-ellipsis w-full overflow-x-hidden">{name}</span>
                 </div>
               }
               {

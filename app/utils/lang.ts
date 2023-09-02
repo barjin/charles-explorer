@@ -1,9 +1,9 @@
 export const getLocalized = (object: { value: string; lang: string }[] | null | undefined, options?: { lang?: string, fallback?: boolean }): string | undefined => {
-  if ( !options?.fallback ) {
+  if ( options?.fallback === undefined ) {
     options = { ...options, fallback: true };
   }
   return object?.find(x => x.lang == options?.lang)?.value ?? 
-    (options?.fallback ? object?.[0]?.value : undefined);
+    (options?.fallback ? object?.[0]?.value : '');
 }
 
 export function capitalize(str: string) : string {

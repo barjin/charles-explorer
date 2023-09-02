@@ -2,11 +2,13 @@ import React, { useRef, memo, useEffect, useCallback } from 'react';
 import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { useSearchResults } from '~/providers/SearchResultsContext';
 import { getFacultyColor } from '~/utils/colors';
+import { useLocalize } from '~/providers/LangContext';
 
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<CytoscapeWrapper | null>(null);
     const { searchResults, query, category, keywords } = useSearchResults();
+    const { localize, lang } = useLocalize();
 
     useEffect(() => {
         if (graphRef.current) {
@@ -21,7 +23,7 @@ export function WordCloud() {
 
     useEffect(() => {
         if (cy.current) {
-            const scene = cy.current.newScene(query + category);
+            const scene = cy.current.newScene(query + category + lang);
             scene?.addNode('query', query, {
                 style: {
                     'font-size': '32px',
@@ -32,7 +34,7 @@ export function WordCloud() {
 
             faculties.forEach((x, i) => {
                 if(!keywords?.[x.id]) return;
-                scene?.addNode(x.id, x.names[1].value, { parent: 'query', style: {
+                scene?.addNode(x.id, localize(x.names), { parent: 'query', style: {
                     color: getFacultyColor(x.id),
                     fontWeight: 'bold',
                     fontSize: '32px',
@@ -51,7 +53,7 @@ export function WordCloud() {
 
             scene?.finish();
         }
-    }, [searchResults, cy, getCurrentFaculties]);
+    }, [cy, getCurrentFaculties, keywords]);
 
     return <GraphInternal r={graphRef} />;
 }

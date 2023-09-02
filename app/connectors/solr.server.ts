@@ -199,7 +199,10 @@ class SearchClient {
         requestUrl.searchParams.append('lang', lang ?? 'cs');
 
         const response = await axios.post(requestUrl.href, content);
-        return response.data.map(([value, score]: [string, number]) => ({ value, score }));
+        return response.data
+            .map(([value, score]: [string, number]) => ({ value, score }))
+            .filter(({ value }) => value.length > 3)
+            .filter(({ value }, i, a) => a.findIndex(({ value: v }) => v.toLowerCase() === value) === i)
     }
 }
 
