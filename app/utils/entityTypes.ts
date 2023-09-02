@@ -81,6 +81,11 @@ abstract class ParsedEntity {
         }
       ));
     }
+
+    override getExternalLinks() : string[] {
+      const url = new URL(this.data.id, 'https://is.cuni.cz/webapps/whois2/osoba/');
+      return [url.toString()];
+    }
   }
   export class Programme extends ParsedEntity {
     override async getRelevantRelatedEntities(query: string): Promise<Record<string, any[]>> {
