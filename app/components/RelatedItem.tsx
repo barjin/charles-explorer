@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@remix-run/react";
 import { CategoryIcons } from "~/utils/icons";
-import { type entityTypes } from "~/utils/entityTypes";
+import { EntityParser, type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
 import { capitalize } from "~/utils/lang";
 import { useLocalize } from "~/providers/LangContext";
@@ -17,13 +17,19 @@ function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
   return <Link {...props} />
 }
 
-export function RelatedItem({ items, type }: { items: any, type: entityTypes | 'skeleton' }) {
+export function RelatedItem({ items, type, matching }: { items: any, type: entityTypes | 'skeleton', matching?: boolean }) {
     const { search } = useLocation();
     const { localize } = useLocalize();
 
-    const name = localize(items[0].names) ?? '';
-    const link = `/${type}/${items[0].id}`;
-
+    const item = EntityParser.parse(items[0], type as any);
+    
+    let name = '';
+    let link = '';
+    
+    if (item) {
+      name = localize(item.getNames()) ?? '';
+      link = `/${type}/${items[0].id}`;
+    }
     const skeleton = type === 'skeleton';
 
     return (
@@ -32,7 +38,11 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
         disabled={skeleton}
         to={{ pathname: link, search: search }} 
         className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer"
-        aria-label={`${name} from ${items[0].faculties?.map(x => localize(x.names)).join(', ') ?? 'CUNI'}`}
+        aria-label={
+          item ?
+          `${name} from ${item.getFaculties().map(x => localize(x.names)).join(', ') ?? 'CUNI'}` :
+          'Loading...'
+        }
         role="listitem"
         >
         <div aria-hidden={true} className={`flex space-x-2 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
@@ -52,7 +62,11 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
           <div className={`flex-1 w-full p-2`}>
             <div className={`h-6 font-medium ${skeleton ? 'bg-slate-300 rounded-sm border-b-2 border-b-white' : ''} text-ellipsis whitespace-nowrap overflow-x-hidden w-11/12 overflow-y-hidden`}>
               {
-                skeleton ? <>&nbsp;</> : name
+                skeleton ? <>&nbsp;</> : 
+                <div className="flex flex-row items-center">
+                  {matching && (<span class="flex w-3 h-3 bg-green-500 rounded-full mr-2" title='This item matches the query.'></span>)}
+                  {name}
+                </div>
               }
               {
                 items.length > 1 ? 
@@ -64,9 +78,17 @@ export function RelatedItem({ items, type }: { items: any, type: entityTypes | '
             <div className={
               `text-sm text-slate-600 overflow-hidden ${skeleton ? 'bg-slate-300 w-5/12 rounded-sm border-t-2 border-t-white' : 'w-10/12'} text-ellipsis whitespace-nowrap`}>
               {
-                skeleton ? <>&nbsp;</> :
-                items[0].faculties.length > 0 ? 
-                  items[0].faculties.map(x => localize(x.names)).join(', ') ?? '' :
+                item?.getDetail() &&
+                (
+                  <span className="inline text-xs">
+                    {item.getDetail()}&nbsp;|&nbsp; 
+                  </span>
+                )
+              }
+              {
+                skeleton || !item ? <>&nbsp;</> :
+                item.getFaculties().length > 0 ? 
+                  item.getFaculties().map(x => localize(x.names)).join(', ') ?? '' :
                   `${capitalize(type)} at CUNI`
               }
             </div>

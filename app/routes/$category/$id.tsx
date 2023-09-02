@@ -1,11 +1,11 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, LoaderFunction, V2_MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { createMetaTitle } from "~/utils/meta";
 import { capitalize, getLocalized, getPluralLang } from "~/utils/lang";
 import { getNames , getJoinableEntities, getTextFields } from "~/utils/retrievers";
-import { isValidEntity, entities, getPlural, type entityTypes }  from "~/utils/entityTypes";
+import { isValidEntity, entities, getPlural, type entityTypes, EntityParser }  from "~/utils/entityTypes";
 import { RelatedItem, getSteppedGradientCSS } from "~/components/RelatedItem";
 import { CategoryIcons } from "~/utils/icons";
 import { useCallback, useState } from "react";
@@ -16,14 +16,16 @@ import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
 import { useLocalize } from "~/providers/LangContext";
+import { searchClient } from "~/connectors/solr";
 
-interface URLParams {
-  category: entityTypes;
-  id: string;
+function getQueryParam(request, key){
+  const url = new URL(request.url);
+  return url.searchParams.get(key);
 }
 
-export const loader = async ({ params }: { params: URLParams }) => {
+export const loader = async ({ request, params }: LoaderArgs) => {
   const { category, id } = params;
+  const query = getQueryParam(request, 'query');
 
   if (!isValidEntity(category)) {
     throw new Response(null, {
@@ -67,7 +69,19 @@ export const loader = async ({ params }: { params: URLParams }) => {
     });
   }
 
-  return { category, textFields: getTextFields(category)?.filter(x => x !== 'names'), ...loaded };
+  let relatedMatching = {};
+  if (query && getJoinableEntities(category)?.includes('classes')) {
+    relatedMatching = {
+      class: await searchClient.searchIds('class', query, { rows: 256, ids: (loaded as any).classes.map(x => x.id) } )
+    };
+  }
+
+  return { 
+    category, 
+    textFields: getTextFields(category)?.filter(x => x !== 'names'), 
+    relatedMatching,
+    ...loaded 
+  };
 }
 
 function stripHTML(html: string) {
@@ -218,7 +232,7 @@ function TextField({field, data}: any) {
       </div>) : null
 }
 
-function RelatedEntities({ category, collection }: { category: entityTypes, collection: any[] }){
+function RelatedEntities({ category, collection, matching }: { category: entityTypes, collection: any[], matching: any[] }){
   const [collapsed, setCollapsed] = useState<Boolean>(false);
   const { lang, localize } = useLocalize();
 
@@ -254,11 +268,22 @@ function RelatedEntities({ category, collection }: { category: entityTypes, coll
       role="list"
     >
     {
-      groupedCollection.map((item, i) => (
+      groupedCollection
+      .sort((a, b) => {
+        return b.some(
+          x => matching.map(x => x.id).includes(x.id)
+        ) && 1 - a.some(
+          x => matching.map(x => x.id).includes(x.id)
+        ) && 1;
+      })
+      .map((item, i) => (
         <RelatedItem 
           key={i}
           items={item}
           type={category}
+          matching={item.some(
+            x => matching.map(x => x.id).includes(x.id)
+          )}
         />
       ))
     }
@@ -272,25 +297,7 @@ export default function Index() {
   const { textFields } = data;
   const { localize, lang } = useLocalize();
 
-  const getExternalLink = useCallback((data: any) => {
-    let url = null;
-    switch (data.category) {
-      case 'class':
-        url = new URL('https://is.cuni.cz/studium/predmety/index.php?');
-        url.searchParams.set('kod', data.id);
-        url.searchParams.set('do', 'predmet');
-
-        return url.toString();
-      case 'publication':
-        url = new URL('https://verso.is.cuni.cz/pub/verso.fpl/_TS_/1669118925');
-        url.searchParams.set('id', data.id);
-        url.searchParams.set('fname', 'obd_public_det');
-        return url.toString();
-      default:
-        return null;
-    }
-  }, []);
-
+  const item = EntityParser.parse(data, category as any)!;
 
   return (
     <>
@@ -299,8 +306,8 @@ export default function Index() {
           icon={CategoryIcons[category!]({ className: "text-2xl text-white" })}
           className='hidden xl:flex'
           background={getSteppedGradientCSS(
-            data.faculties.length > 0 ?
-              data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+            item?.getFaculties().length > 0 ?
+              item?.getFaculties().map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
           )
           }
         />
@@ -308,19 +315,26 @@ export default function Index() {
           <div className="flex flex-col-reverse xl:flex-col">
             <div className='flex flex-row items-center justify-between w-full'>
             <h2 className="text-stone-800 font-sans font-semibold text-3xl my-2 xl:my-0">
-              {localize(data.names)}               
+              {localize(item.getNames())}               
             </h2>
             {
-                getExternalLink(data) ? 
-                <a 
-                  href={getExternalLink(data)!} 
-                  className="text-blue-400"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >
-                    <RiExternalLinkLine size={24} />
-                  </a> :
-                null
+              item.getExternalLinks().length > 0 && (
+                <div>
+                  {
+                    item.getExternalLinks().map((link, i) => (
+                      <a 
+                        key={i}
+                        href={link} 
+                        className="text-blue-400"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >
+                        <RiExternalLinkLine size={24} />
+                      </a>
+                    ))
+                  }
+                </div>
+              )
             }
             </div>
             <span className="text-stone-600 flex flex-row items-center my-2 xl:my-0">
@@ -333,7 +347,7 @@ export default function Index() {
               )
               }
             />  
-            {capitalize(localize(data.category))} {localize('at')} {
+            {capitalize(localize(category))} {localize('at')} {
               data.faculties.length > 0 ?
                 data.faculties.map(x => localize(x.names)).join(', ')
                 : 'CUNI'
@@ -347,7 +361,12 @@ export default function Index() {
                     return (
                     <span className="pr-3" key={x}>
                       <a href={`#${getPlural(x)}`}>
-                        <FaRegBookmark style={{display: 'inline'}} fontSize={14}/> {data[getPlural(x)].length} {data[getPlural(x)].length !== 1 ? getPluralLang(x, data[getPlural(x)].length, { lang }) : localize(x)}
+                        <FaRegBookmark style={{display: 'inline', marginRight: '3px'}} fontSize={14}/> 
+                          {
+                            data[getPlural(x)].length} {data[getPlural(x)].length !== 1
+                            ? getPluralLang(x, data[getPlural(x)].length, { lang })
+                            : localize(x)
+                          }
                       </a>
                     </span>);
                   }
@@ -360,16 +379,20 @@ export default function Index() {
       {
         textFields?.filter((x) => {
           return (localize(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
-        }).map((field: any) => (
-          <TextField field={field} data={data} />
+        }).map((field: any, i: number) => (
+          <TextField key={i} field={field} data={data} />
         ))
       }
       {
-        entities.map((category) => {
+        entities
+          .sort((a, b) => {
+            return data.relatedMatching[b]?.length ?? 0 - data.relatedMatching[a]?.length ?? 0
+          })
+          .map((category, i) => {
           const relatedCollection = data[getPlural(category) as any];
           if(relatedCollection && relatedCollection.length > 0) {
             return (
-              <RelatedEntities category={category} collection={relatedCollection} />
+              <RelatedEntities key={i} category={category} collection={relatedCollection} matching={data.relatedMatching?.[category] ?? []} />
             );
           }
         })

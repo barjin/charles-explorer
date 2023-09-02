@@ -14,7 +14,7 @@ abstract class CategorySearchClient {
         this.category = 'default' as any;
     }
 
-    async searchIds(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<{ id: string, score: number }[]> {
+    async searchIds(query: string, { rows = DEFAULT_ROWS_LIMIT, ids }: { rows?: number, ids?: string[] } = {}): Promise<{ id: string, score: number }[]> {
         return this.searchClient.solr.getCollection(this.category).searchIds(query, { rows });
     }
 
@@ -181,8 +181,8 @@ class SearchClient {
         return this.categoryClients.get(category)!.search(query, { rows, includeTextFields });
     }
     
-    async searchIds(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
-        return this.categoryClients.get(category)!.searchIds(query, { rows });
+    async searchIds(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT, ids } : {rows?: number, ids?: string[] | null} = {}): Promise<any[]> {
+        return this.categoryClients.get(category)!.searchIds(query, { rows, ids });
     }
 
     async suggest(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {

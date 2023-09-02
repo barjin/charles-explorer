@@ -67,7 +67,7 @@ class SolrCollection {
         return specialChars.reduce((acc, char) => acc.replaceAll(char, `\\${char}`), query).split(' ').join(' ');
     }
     
-    async searchIds(query: string, options?: { rows?: number }): Promise<{ id: string, score: number }[]> {
+    async searchIds(query: string, options?: { rows?: number, ids?: string[] }): Promise<{ id: string, score: number }[]> {
         if (!query) {
             return Promise.resolve(this.emptyResponse);
         }
@@ -82,9 +82,11 @@ class SolrCollection {
         });
     
         let solrQuery = queryParts.join(' OR ');
+
+        const filterQuery = options?.ids?.length ? `fq=id:(${options.ids.join(' OR ')})&` : '';
     
         try {
-            const url = `${this.getSelfUrl('select')}?fl=id, score&indent=true&q=(${encodeURIComponent(solrQuery)})&rows=${options?.rows ?? 30}&start=0`;
+            const url = `${this.getSelfUrl('select')}?fl=id, score&indent=true&q=(${encodeURIComponent(solrQuery)})&rows=${options?.rows ?? 30}&${encodeURIComponent(filterQuery)}start=0`;
             return axios.get(url).then(res => res.data.response.docs);
         }
         catch (e) {
