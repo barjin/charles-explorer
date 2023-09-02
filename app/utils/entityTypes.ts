@@ -92,6 +92,36 @@ abstract class ParsedEntity {
         }
       ));
     }
+
+    override getDetail(): string | null {
+      const getDegree = () => {
+        switch ( this.data.type ) {
+          case 'B':
+            return 'Bc.';
+          case 'M':
+            return 'Mgr.';
+          case 'D':
+            return 'Ph.D.';
+          case 'N':
+            return 'Mgr.';
+        }
+      }
+
+      const getLang = () => {
+        switch ( this.data.languages[0] ) {
+          case 'cs':
+            return '🇨🇿';
+          case 'en':
+            return '🇬🇧';
+          case 'de':
+            return '🇩🇪';
+          case 'ru':
+            return '🇷🇺';
+        }
+      }
+
+      return `${getLang()}  ${getDegree()}`;
+    }
   }
   
   export class EntityParser {
