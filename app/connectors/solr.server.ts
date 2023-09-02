@@ -107,7 +107,8 @@ class PersonSearchClient extends CategorySearchClient {
     }
     
     override async search(query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
-        const [ classes, publications ] = await Promise.all([
+        const [ peopleMatches, classes, publications ] = await Promise.all([
+            super.searchIds(query, { rows }),
             this.searchClient.categoryClients.get('class')!.searchIds(query, { rows }),
             this.searchClient.categoryClients.get('publication')!.searchIds(query, { rows }),
         ]);
@@ -115,6 +116,11 @@ class PersonSearchClient extends CategorySearchClient {
         const people = await db.person.findMany({
             where: {
                 OR: [
+                    {
+                        id: {
+                            in: peopleMatches.map(({ id }) => id)
+                        }
+                    },
                     {
                         publications: {
                             some: {
