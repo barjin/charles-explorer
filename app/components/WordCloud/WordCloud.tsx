@@ -3,6 +3,9 @@ import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { useSearchResults } from '~/providers/SearchResultsContext';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/providers/LangContext';
+import { DummyKeywords } from './DummyKeywords';
+
+const NODES_LIMIT = 50;
 
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
@@ -37,16 +40,23 @@ export function WordCloud() {
                 scene?.addNode(x.id, localize(x.names), { parent: 'query', style: {
                     color: getFacultyColor(x.id),
                     fontWeight: 'bold',
-                    fontSize: '32px',
-                } });
-
-                keywords?.[x.id]?.forEach(({ value }, i) => {
+                    fontSize: 32 - faculties.length,
+                }, edgeData: {
+                    idealEdgeLength: faculties.length * 10,
+                },});
+                [
+                    ...keywords?.[x.id], 
+                    ...(DummyKeywords.find(k => k.code == Number(x.id))?.keywords[lang]?.map(x => ({ value: x })) ?? [])
+                ]
+                    ?.slice(0, (NODES_LIMIT - faculties.length) / faculties.length)
+                    .forEach(({ value }, i) => {
+                    
                     if (value === query) return;
                     scene?.addNode(`${value}${x.id}`, value, { parent: x.id, style: {
-                        'font-size': 30 - i * 1.5,
+                        'font-size': Math.max(30 - i * 2.5, 12),
                         'color': getFacultyColor(x.id, 50, 50),
                     }, edgeData: {
-                        idealEdgeLength: i * 10,
+                        idealEdgeLength: i * 2.5,
                     }});
                 });
             });

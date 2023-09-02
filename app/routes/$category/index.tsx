@@ -104,7 +104,7 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
         ))}
         </div> :
         <div>
-            <span className="text-slate-600">No results found :(</span>
+            <span className="text-slate-600">No results found.</span>
         </div>
     )
 }

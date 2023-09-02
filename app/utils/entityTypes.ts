@@ -113,7 +113,7 @@ abstract class ParsedEntity {
       }
 
       const getLang = () => {
-        switch ( this.data.languages[0] ) {
+        switch ( this.data.languages?.[0] ) {
           case 'cs':
             return '🇨🇿';
           case 'en':
@@ -122,6 +122,8 @@ abstract class ParsedEntity {
             return '🇩🇪';
           case 'ru':
             return '🇷🇺';
+          default: 
+            return '';
         }
       }
 
