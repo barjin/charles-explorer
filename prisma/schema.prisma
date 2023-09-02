@@ -94,6 +94,7 @@ model Publication {
 model Programme {
   id                    String                  @id
   names                 Text[]                  @relation("ProgrammeNames")
+  languages             String[]
   type                  String                  
   form                  String
   departments           Department[]

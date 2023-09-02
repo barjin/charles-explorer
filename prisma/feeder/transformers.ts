@@ -1,6 +1,5 @@
-import crypto from 'crypto';
-
 import type { Transformers } from "./types/types";
+import { iso6392BTo1 } from "./utils/lang";
 
 export const transformers: Transformers = {
     faculty: {
@@ -10,17 +9,17 @@ export const transformers: Transformers = {
                 id: data.FACULTY_ID,
                 names: {
                     create: [{
-                        lang: 'eng',
+                        lang: 'en',
                         value: data.FACULTY_NAME_EN,
                     },
                     {
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.FACULTY_NAME_CS,
                     }]
                 },
                 abbreviations: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.ABBR
                     }],
                 },
@@ -43,13 +42,13 @@ export const transformers: Transformers = {
                 },
                 abbreviations: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.ABBR
                     }]
                 },
                 names: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.DEPT_NAME_CS,
                     }]
                 }
@@ -57,17 +56,14 @@ export const transformers: Transformers = {
         }
     },
     person: {
-        query: 'SELECT PERSON.*, CLASS.FACULTY_ID, CLASS.DEPT_ID FROM PERSON LEFT JOIN CLASS ON PERSON.PERSON_ID = CLASS.TEACHER_ID GROUP BY PERSON_ID',
+        query: 'SELECT PERSON.*, CLASS.FACULTY_ID, CLASS.DEPT_ID FROM PERSON LEFT JOIN CLASS ON PERSON.PERSON_ID = CLASS.TEACHER_ID GROUP BY PERSON_WHOIS_ID',
         transform: (data: any) => {
-            const hashedId = crypto.createHash('sha256').update(data.PERSON_ID).digest('hex');
-            const id = parseInt(hashedId.slice(0, 10), 16).toString();
-
             return {
-                id,
+                id: data.PERSON_WHOIS_ID,
                 private_id: data.PERSON_ID,
                 names: {
                     create: [{
-                        lang: 'eng',
+                        lang: 'en',
                         value: data.PERSON_NAME,
                     }]
                 },
@@ -91,32 +87,32 @@ export const transformers: Transformers = {
                 id: data.CLASS_ID,
                 names: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.CLASS_NAME_CS,
                     },
                     {
-                        lang: 'eng',
+                        lang: 'en',
                         value: data.CLASS_NAME_EN,
                     }]
                 },
                 annotation: {
                     create: [
                     {
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.ANNOTATION_CS,
                     },
                     {
-                        lang: 'eng',
+                        lang: 'en',
                         value: data.ANNOTATION_EN,
                     }]
                 },
                 syllabus: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: data.SYLABUS_CS,
                     },
                     {
-                        lang: 'eng',
+                        lang: 'en',
                         value: data.SYLABUS_EN,
                     }]
                 },
@@ -156,11 +152,11 @@ GROUP BY ID`,
                 id: row.ID,
                 names: {
                     create: [{
-                        lang: 'cze',
+                        lang: 'cs',
                         value: row.NAME_CS,
                     },
                     {
-                        lang: 'eng',
+                        lang: 'en',
                         value: row.NAME_EN,
                     }]
                 },
@@ -176,12 +172,23 @@ GROUP BY ID`,
                         id: row.FACULTY_ID,
                     }
                 },
+                languages: [iso6392BTo1[row.JAZYK] ?? 'cs'],
                 programmes: {
                     connect: row.RELATED_PROGRAMMES?.split('/').map((x: any) => ({id: x})),
                 },
                 classes: {
                     connect: row.RELATED_CLASSES?.split('/').map((x: any) => ({id: x})),
-                }
+                },
+                profiles: {
+                    create: [{
+                        lang: 'cs',
+                        value: row.GRADUATE_PROFILE_CS,
+                    },
+                    {
+                        lang: 'en',
+                        value: row.GRADUATE_PROFILE_EN,
+                    }]
+                },
             }
         }
     },
@@ -238,22 +245,23 @@ GROUP BY ID`,
                 },
                 names: {
                     create: localized.map((x: any) => ({
-                        lang: x.lang,
+                        lang: iso6392BTo1[x.lang] ?? 'en',
                         value: x.title,
                     }))
                 },
                 abstract: {
                     create: localized.map((x: any) => ({
-                        lang: x.lang,
+                        lang: iso6392BTo1[x.lang] ?? 'en',
                         value: x.abstract,
                     }))
                 },
                 keywords: {
                     create: localized.map((x: any) => ({
-                        lang: x.lang,
+                        lang: iso6392BTo1[x.lang] ?? 'en',
                         value: x.keywords,
                     }))
-                }
+                },
+                
             }
         }
     },
@@ -268,4 +276,4 @@ CREATE INDEX IF NOT EXISTS "PUBLICATION_KEYWORDS_PUB_ID" ON PUBLICATION_KEYWORDS
 CREATE INDEX IF NOT EXISTS "CLASS_ID" ON "CLASS" ("CLASS_ID");
 CREATE INDEX IF NOT EXISTS "TEACHER_ID" ON "CLASS" ("TEACHER_ID");
 CREATE INDEX IF NOT EXISTS "PERSON_ID" ON "PERSON" ("PERSON_ID");
-`
+`;

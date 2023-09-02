@@ -1,6 +1,6 @@
 /* eslint-disable no-loop-func */
 import { AsyncDatabase } from 'promised-sqlite3';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import cliProgress from 'cli-progress';
 import colors from 'ansi-colors';
 import { getQuerySize } from './sqlite/getQuerySize';
@@ -17,7 +17,7 @@ import {
     getOnlyLiterals, 
     getSchemaFields 
 } from './utils/transformObject';
-import { Solr } from './solr/solr';
+import { Solr, getTextFields } from './solr/solr';
 
 const ordering = [
     'faculty', 
@@ -39,10 +39,61 @@ console.log((colors.bgRed.bold.white(`
 `)));
 
 const totals: Partial<Record<keyof typeof transformers, number>> = {};
+const outDB = new PrismaClient();
+const solr = new Solr('http://localhost:8983', outDB);
+
+async function insertToSolr(coreName: string, transformer: (a: any) => any, options?: { batchSize?: number }){
+    const { batchSize = 1000 } = options ?? {};
+
+    const singleBar = new cliProgress.SingleBar({
+        clearOnComplete: false,
+        format: `${colors.redBright('{bar}')} | {percentage}% | {value}/{total} | ETA: {eta_formatted} | Elapsed time: {duration_formatted} | {spinner} [Solr] Indexing {tableName}`,
+    }, cliProgress.Presets.shades_classic);
+
+    const total = await (outDB[coreName] as any).count();
+
+    singleBar.start(total, 0, { spinner: spinner.next().value, tableName: capitalize(coreName) });
+    
+    await solr.getCollection(coreName).createIfNotExists();
+    let cursor: string | undefined = undefined;
+    let hasMore = true;
+
+    let soFar = 0;
+
+    while (hasMore) {
+        const records: any[] = await (outDB[coreName] as any).findMany({
+            include: {
+                ...getTextFields(coreName as any)?.reduce((p: Record<string, any>, x) => ({
+                    ...p,
+                    [x]: true
+                }), {})
+            },
+            take: batchSize,
+            skip: cursor ? 1 : 0,
+            cursor: cursor ? { id: cursor } : undefined,
+        });
+
+        soFar += records.length;
+
+        singleBar.update(soFar > total! ? total! : soFar, { spinner: spinner.next().value, tableName: capitalize(coreName) });
+
+        await solr.getCollection(coreName).addDocuments(records.map(transformer));
+
+        if (records.length < batchSize) {
+            hasMore = false;
+        } else {
+            cursor = records[records.length - 1].id;
+        }
+    }
+
+    singleBar.update(total, { spinner: spinner.next().value, tableName: capitalize(coreName) + ' (commiting changes).' });
+    await solr.getCollection(coreName).finish();
+
+    singleBar.stop();
+}
 
 (async () => {
-    // const inDB = await AsyncDatabase.open(`${__dirname}/../../charles-explorer.db`);
-    const outDB = new PrismaClient();
+//     const inDB = await AsyncDatabase.open(`${__dirname}/../../charles-explorer.db`);
 
 //     await inDB.exec(indexCreation);
 
@@ -231,150 +282,109 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
 //     inDB.close();
 
 
-    // const c = await outDB['person'].findMany({
-    //     where: {
-    //         OR: [
-    //             {
-    //                 faculties: {
-    //                     none: {}
-    //                 },
-    //             },
-    //             {
-    //                 departments: {
-    //                     none: {}
-    //                 }
-    //             }
-    //         ]
-    //     },
-    //     select: {
-    //         id: true,
-    //     }
-    // });
+//     const c = await outDB['person'].findMany({
+//         where: {
+//             OR: [
+//                 {
+//                     faculties: {
+//                         none: {}
+//                     },
+//                 },
+//                 {
+//                     departments: {
+//                         none: {}
+//                     }
+//                 }
+//             ]
+//         },
+//         select: {
+//             id: true,
+//         }
+//     });
 
-    // let i = 0;
-    // for (const { id } of c) {
-    //     if(i++ % 100 === 0) console.log(i);
-    //     const person = await outDB['person'].findUnique({
-    //         where: {
-    //             id
-    //         },
-    //         include: {
-    //             names: true,
-    //             programmes: {
-    //                 include: {
-    //                     faculties: true,
-    //                 }
-    //             },
-    //             publications: {
-    //                 include: {
-    //                     faculties: true,
-    //                 }
-    //             },
-    //         }
-    //     })!;
+//     let i = 0;
+//     for (const { id } of c) {
+//         if(i++ % 100 === 0) console.log(i);
+//         const person = await outDB['person'].findUnique({
+//             where: {
+//                 id
+//             },
+//             include: {
+//                 names: true,
+//                 programmes: {
+//                     include: {
+//                         faculties: true,
+//                     }
+//                 },
+//                 publications: {
+//                     include: {
+//                         faculties: true,
+//                     }
+//                 },
+//             }
+//         })!;
 
-    //     const faculties = {};
+//         const faculties = {};
 
-    //     for (const programme of person!.programmes) {
-    //         for (const faculty of programme.faculties) {
-    //             faculties[faculty.id] ??= 0;
-    //             faculties[faculty.id]++;
-    //         }
-    //     }
+//         for (const programme of person!.programmes) {
+//             for (const faculty of programme.faculties) {
+//                 faculties[faculty.id] ??= 0;
+//                 faculties[faculty.id]++;
+//             }
+//         }
 
-    //     for (const publication of person!.publications) {
-    //         for (const faculty of publication.faculties) {
-    //             faculties[faculty.id] ??= 0;
-    //             faculties[faculty.id]++;
-    //         }
-    //     }
+//         for (const publication of person!.publications) {
+//             for (const faculty of publication.faculties) {
+//                 faculties[faculty.id] ??= 0;
+//                 faculties[faculty.id]++;
+//             }
+//         }
 
-    //     const facultyIds = Object.entries(faculties).sort((a, b) => b[1] - a[1]).map(x => x[0]).slice(0, 1);
+//         const facultyIds = Object.entries(faculties).sort((a, b) => b[1] - a[1]).map(x => x[0]).slice(0, 1);
 
-    //     await outDB['person'].update({
-    //         where: {
-    //             id
-    //         },
-    //         data: {
-    //             faculties: {
-    //                 connect: facultyIds.map(id => ({ id }))
-    //             }
-    //         }
-    //     });
+//         await outDB['person'].update({
+//             where: {
+//                 id
+//             },
+//             data: {
+//                 faculties: {
+//                     connect: facultyIds.map(id => ({ id }))
+//                 }
+//             }
+//         });
     // }
-
-    const solr = new Solr('http://localhost:8983', outDB);
-
-    await solr.getCollection('class').createIfNotExists();
-
-    // console.log(JSON.stringify(await solr.getCollection('class').search('RDF'),null, 2));
-
-    const batchSize = 1000;
-    let cursor: string | undefined = undefined;
-    let hasMore = true;
-
-    while (hasMore) {
-        const classes: any[] = await outDB.class.findMany({
-            include: {
-                names: true,
-                annotation: true,
-                syllabus: true,
-            },
-            take: batchSize,
-            skip: cursor ? 1 : 0,
-            cursor: cursor ? { id: cursor } : undefined,
-        });
-
-        await solr.getCollection('class').addDocuments(classes.map(cls => ({
-            id: cls.id,
-            lvl0_cs: cls.names.find(x => x.lang === 'cze')?.value,
-            lvl0_en: cls.names.find(x => x.lang === 'eng')?.value,
-            lvl1_cs: cls.annotation?.find(x => x.lang === 'cze')?.value,
-            lvl1_en: cls.annotation?.find(x => x.lang === 'eng')?.value,
-            lvl2_cs: cls.syllabus?.find(x => x.lang === 'cze')?.value,
-            lvl2_en: cls.syllabus?.find(x => x.lang === 'eng')?.value
-        })));
-
-        if (classes.length < batchSize) {
-            hasMore = false;
-        } else {
-            cursor = classes[classes.length - 1].id;
-        }
-    }
+})().then(async () => {
+    await insertToSolr('class', cls => ({
+        id: cls.id,
+        lvl0_cs: cls.names.find(x => x.lang === 'cs')?.value,
+        lvl0_en: cls.names.find(x => x.lang === 'en')?.value,
+        lvl1_cs: cls.annotation?.find(x => x.lang === 'cs')?.value,
+        lvl1_en: cls.annotation?.find(x => x.lang === 'en')?.value,
+        lvl2_cs: cls.syllabus?.find(x => x.lang === 'cs')?.value,
+        lvl2_en: cls.syllabus?.find(x => x.lang === 'en')?.value
+    }));
     
-    await solr.getCollection('publication').createIfNotExists();
+    await insertToSolr('person', cls => ({
+        id: cls.id,
+        lvl0_cs: cls.names[0]?.value,
+        lvl0_en: cls.names[0]?.value,
+    }));
 
-    // console.log(JSON.stringify(await solr.getCollection('class').search('RDF'),null, 2));
+    await insertToSolr('publication', (pub: any) => ({
+        id: pub.id,
+        lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
+        lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
+        lvl1_cs: pub.keywords.find(x => x.lang === 'cs')?.value,
+        lvl1_en: pub.keywords.find(x => x.lang === 'en')?.value,
+        lvl2_cs: pub.abstract?.find(x => x.lang === 'cs')?.value,
+        lvl2_en: pub.abstract?.find(x => x.lang === 'en')?.value
+    }));
 
-    cursor = undefined;
-    hasMore = true;
-
-    while (hasMore) {
-        const publications: any = await outDB.publication.findMany({
-            include: {
-                names: true,
-                abstract: true,
-                keywords: true,
-            },
-            take: batchSize,
-            skip: cursor ? 1 : 0,
-            cursor: cursor ? { id: cursor } : undefined,
-        });
-
-        await solr.getCollection('publication').addDocuments(publications.map((pub: any) => ({
-            id: pub.id,
-            lvl0_cs: pub.names.find(x => x.lang === 'cze')?.value,
-            lvl0_en: pub.names.find(x => x.lang === 'eng')?.value,
-            lvl1_cs: pub.keywords.find(x => x.lang === 'cze')?.value,
-            lvl1_en: pub.keywords.find(x => x.lang === 'eng')?.value,
-            lvl2_cs: pub.abstract?.find(x => x.lang === 'cze')?.value,
-            lvl2_en: pub.abstract?.find(x => x.lang === 'eng')?.value
-        })));
-
-        if (publications.length < batchSize) {
-            hasMore = false;
-        } else {
-            cursor = publications[publications.length - 1].id;
-        }
-    }
-})();
+    await insertToSolr('programme', (pub: any) => ({
+        id: pub.id,
+        lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
+        lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
+        lvl1_cs: pub.profiles?.find(x => x.lang === 'cs')?.value,
+        lvl1_en: pub.profiles?.find(x => x.lang === 'en')?.value,
+    }));
+});

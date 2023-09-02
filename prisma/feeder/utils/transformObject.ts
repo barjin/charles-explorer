@@ -1,11 +1,11 @@
-import { type  PrismaClient, Prisma } from '@prisma/client';
+import { type PrismaClient, Prisma } from '@prisma/client';
 
 function containsNullishLiterals(obj: any) {
     return Object.values(obj).some(x => !x);
 }
 
 export function getOnlyLiterals(obj: Record<string, string>, tableName: string) {
-    const literalFields = getSchemaFields(tableName)
+    const literalFields = Object.values(getSchemaFields(tableName))
     ?.filter(x => x.kind === 'scalar')
     .map(x => x.name);
 
@@ -20,10 +20,12 @@ export function getOnlyLiterals(obj: Record<string, string>, tableName: string) 
 }
 
 export function getSchemaFields(tableName: string) {
-    return Object.fromEntries(Prisma.dmmf.datamodel.models
-    .find(x => x.name.toLowerCase() === tableName.toLowerCase())
-    ?.fields
-    .map(x => [x.name, x]) ?? []);
+    return Object.fromEntries(
+        Prisma.dmmf.datamodel.models
+        .find(x => x.name.toLowerCase() === tableName.toLowerCase())
+        ?.fields
+        .map(x => [x.name, x]) ?? []
+    );
 }
 
 export async function addIdsToTextCreators(prismaDb: PrismaClient){

@@ -1,6 +1,15 @@
-import { type PrismaClient } from '@prisma/client';
+import { type PrismaClient, Prisma } from '@prisma/client';
 import axios from 'axios';
-import { getTextFields } from '~/utils/retrievers';
+import { capitalize } from '../utils/lang';
+
+export const getTextFields = (entity) => {
+    return Prisma.dmmf.datamodel
+        .models
+        .find(x => x.name === capitalize(entity))
+        ?.fields
+        .filter(x => x.type === "Text")
+        .map(x => x.name)
+  };
 
 class SolrCollection {
     private solr: Solr;
@@ -57,8 +66,11 @@ class SolrCollection {
                 'Content-Type': 'application/json'
             }
         });
-        
+    }
+
+    async finish() {
         await axios.get(this.getSelfUrl('update?commit=true'));
+        await axios.get(this.getSelfUrl('suggest?suggest.buildAll=true'));
     }
     
     private escapeSolrQuery(query: string){

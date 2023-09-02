@@ -20,7 +20,7 @@ function parseSearchParam(request: Request, key: string) {
 
 export async function loader({ params, request }: LoaderArgs) {
     const query = parseSearchParam(request, 'query');
-    const lang = parseSearchParam(request, 'lang') ?? 'eng';
+    const lang = parseSearchParam(request, 'lang') ?? 'en';
     const { category } = params;
 
     if(isValidEntity(category)) {
@@ -41,7 +41,7 @@ export async function loader({ params, request }: LoaderArgs) {
                         return textFieldNames.map(name => getLocalized(x[name], { fallback: false, lang })).join(' ');
                     }).join(' ');
 
-                    const keywords = await searchClient.getKeywords(content, { lang: lang === 'eng' ? 'en' : 'cs' });
+                    const keywords = await searchClient.getKeywords(content, { lang: 'en' });
 
                     return [
                         facultyId,

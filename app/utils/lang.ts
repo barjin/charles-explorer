@@ -11,21 +11,22 @@ export function capitalize(str: string) : string {
 }
 
 const localizations = {
-  cze: {
+  cs: {
     'class': 'předmět',
     'person': 'osoba',
     'publication': 'publikace',
-    'programme': 'studium',
+    'programme': 'studijní program',
     'syllabus': 'sylabus',
     'annotation': 'anotace',
     'abstract': 'abstrakt',
+    'profiles': 'Profil absolventa',
     'keywords': 'klíčová slova',
     'at': 'na',
   },
 } as const;
 
 const plurals = {
-  eng: {
+  en: {
     'class': {
       2: 'classes',
     },
@@ -39,7 +40,7 @@ const plurals = {
       2: 'programmes',
     },
   },
-  cze: {
+  cs: {
     'class': {
       2: 'předměty',
       5: 'předmětů',
@@ -56,6 +57,10 @@ const plurals = {
       2: 'studijní programy',
       5: 'studijních programů',
     },
+    'profile': {
+      2: 'absolventské profily',
+      5: 'absolventských profilů',
+    }
   },
 }
 
@@ -70,7 +75,7 @@ export function getPluralLang(entity: string, count: number, { lang }: { lang: s
     count = 5;
   }
 
-  if(lang === 'eng') {
+  if(lang === 'en') {
     return plurals[lang][entity]?.[2] ?? entity + 's';
   }
 
@@ -82,7 +87,7 @@ export function localize(tokenOrTextObj: string | any[] | undefined, { lang }: {
     return getLocalized(tokenOrTextObj, { lang }) ?? tokenOrTextObj[0]?.value ?? '';
   }
 
-  if(lang === 'eng') {
+  if(lang === 'en') {
     return tokenOrTextObj ?? '';
   }
   return tokenOrTextObj ? localizations[lang]?.[tokenOrTextObj] ?? '' : '';

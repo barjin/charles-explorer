@@ -27,7 +27,7 @@ export default function Index() {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [ prevLoc, setPrevLoc ] = useState(pathname);
-  const lang = Array.from(new URLSearchParams(search).entries()).find(([key, value]) => key === "lang" && ["eng", "cze"].includes(value))?.[1] ?? "eng";
+  const lang = Array.from(new URLSearchParams(search).entries()).find(([key, value]) => key === "lang" && ["en", "cs"].includes(value))?.[1] ?? "en";
 
   useEffect(() => {
     if (prevLoc !== pathname) {
@@ -67,9 +67,9 @@ export default function Index() {
               <div className="flex flex-row items-center space-x-2">
                 <button 
                   className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" 
-                  onClick={() => replaceQueryParam("lang", lang === "cze" ? "eng" : "cze")}
+                  onClick={() => replaceQueryParam("lang", lang === "cs" ? "en" : "cs")}
                 >
-                  {lang === "cze" ? "🇨🇿" : "🇬🇧"}
+                  {lang === "cs" ? "🇨🇿" : "🇬🇧"}
                 </button>
               </div>
             </div>
