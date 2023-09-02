@@ -46,18 +46,28 @@ class ProgrammeSearchClient extends CategorySearchClient {
         this.category = 'programme';
     }
 
-    override async search(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
+    override async search(query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
+        const programmeMatches = await super.searchIds(query, { rows });
         const classes = await this.searchClient.categoryClients.get('class')!.searchIds(query, { rows: rows * 2 });
 
         const programmes = await db.programme.findMany({
             where: {
-                classes: {
-                    some: {
+                OR: [
+                    {
+                        classes: {
+                            some: {
+                                id: {
+                                    in: classes.map(({ id }) => id)
+                                }
+                            }
+                        }
+                    },
+                    {
                         id: {
-                            in: classes.map(({ id }) => id)
+                            in: programmeMatches.map(({ id }) => id)
                         }
                     }
-                }
+                ]
             },
             include: {
                 names: true,
@@ -70,7 +80,8 @@ class ProgrammeSearchClient extends CategorySearchClient {
                     select: {
                         id: true,
                     }
-                }
+                },
+                profiles: includeTextFields
             }
         });
 
@@ -95,7 +106,7 @@ class PersonSearchClient extends CategorySearchClient {
         this.category = 'person';
     }
     
-    override async search(query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
+    override async search(query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
         const [ classes, publications ] = await Promise.all([
             this.searchClient.categoryClients.get('class')!.searchIds(query, { rows }),
             this.searchClient.categoryClients.get('publication')!.searchIds(query, { rows }),
@@ -134,11 +145,13 @@ class PersonSearchClient extends CategorySearchClient {
                 classes: {
                     select: {
                         id: true,
+                        names: includeTextFields
                     }
                 },
                 publications: {
                     select: {
                         id: true,
+                        names: includeTextFields
                     }
                 }
             }
@@ -147,6 +160,21 @@ class PersonSearchClient extends CategorySearchClient {
         return people
             .map(person => ({ 
                 ...person,
+                text: includeTextFields ? [{
+                    lang: 'cs',
+                    value: [
+                        ...person.classes.flatMap(x => x.names?.find(x => x.lang === 'cs')?.value),
+                        ...person.publications.flatMap(x => x.names?.find(x => x.lang === 'cs')?.value),
+                    ].join(' ')
+                },
+                {
+                    lang: 'en',
+                    value: [
+                        ...person.classes.flatMap(x => x.names?.find(x => x.lang === 'en')?.value),
+                        ...person.publications.flatMap(x => x.names?.find(x => x.lang === 'en')?.value),
+                    ].join(' ')
+                }
+                ] : undefined,
                 score: 
                     classes.filter(({ id }) => person.classes.some(({ id: classId }) => classId === id)).reduce((acc, { score }) => acc + score, 0)
                     +
@@ -202,7 +230,8 @@ class SearchClient {
         return response.data
             .map(([value, score]: [string, number]) => ({ value, score }))
             .filter(({ value }) => value.length > 3)
-            .filter(({ value }, i, a) => a.findIndex(({ value: v }) => v.toLowerCase() === value) === i)
+            .filter(({ value }) => !value.includes('-'))
+            .filter(({ value }, i, a) => a.findIndex(({ value: v }) => v.toLowerCase() === value.toLowerCase()) === i)
     }
 }
 

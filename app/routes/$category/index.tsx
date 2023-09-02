@@ -30,7 +30,7 @@ export async function loader({ params, request }: LoaderArgs) {
         }
 
         const searchResults = await searchClient.search(category, query, { includeTextFields: true });
-        const textFieldNames = getTextFields(category)!;
+        const textFieldNames = [...getTextFields(category)!, 'text'];
 
         const searchResultsPerFaculty = Object.entries(groupBy(searchResults, x => x.faculties[0]?.id));
 
@@ -38,10 +38,10 @@ export async function loader({ params, request }: LoaderArgs) {
             await Promise.all(
                 searchResultsPerFaculty.map(async ([facultyId, results]) => {
                     const content = results.map(x => {
-                        return textFieldNames.map(name => getLocalized(x[name], { fallback: false, lang })).join(' ');
+                        return (textFieldNames.map(name => getLocalized(x[name], { fallback: false, lang })) ?? []).join(' ');
                     }).join(' ');
 
-                    const keywords = await searchClient.getKeywords(content, { lang: 'en' });
+                    const keywords = await searchClient.getKeywords(content, { lang });
 
                     return [
                         facultyId,
