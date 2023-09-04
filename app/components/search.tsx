@@ -3,7 +3,7 @@ import { type entityTypes } from '~/utils/entityTypes';
 import { capitalize } from '~/utils/lang';
 import { SearchBar } from './search/searchBar';
 import { CategoryIcons } from '~/utils/icons';
-import { useLocalize } from '~/providers/LangContext';
+import { useTranslation } from 'react-i18next';
 
 // todo - random queries
 // function getRandomQuery(language: 'cs'|'en') {
@@ -34,8 +34,9 @@ import { useLocalize } from '~/providers/LangContext';
 export function SearchTool() {
     const { search } = useLocation();
     const searchMode = useParams<{ category: entityTypes }>().category!;
+    const { t } = useTranslation();
 
-    const { localize } = useLocalize();
+    const query = new URLSearchParams(search).get('query');
 
     return (
         <div className='w-full pb-4 bg-slate-50 drop-shadow-md rounded-md'>
@@ -46,13 +47,14 @@ export function SearchTool() {
                 {
                     Object.entries(
                         CategoryIcons
-                    ).map(([mode, icon]) => (
+                    ).map(([mode, icon]) => {
+                        return (
                         <Link 
                             to={{ pathname: `/${mode}`, search: search.toString() }}
                             key={mode} 
-                            title={`Search for a ${mode}`}
+                            title={t('search.searchFor', { mode: t(`search.${mode}`), query })}
                             role='button'
-                            aria-label={`Search for a ${mode}`}
+                            aria-label={t('search.searchFor', { mode: t(`search.${mode}` ), query })}
                             className='flex flex-1 flex-col items-center'
                         >
                             {icon({
@@ -65,10 +67,11 @@ export function SearchTool() {
                                 className='inline text-xs'
                                 aria-hidden={true}
                             >
-                                {capitalize(localize(mode))}
+                                {capitalize(t(`search.${mode}`))}
                             </span>
                         </Link>
-                    ))
+                    )}
+                    )
                 }
             </div>
         </div>

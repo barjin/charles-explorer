@@ -2,7 +2,7 @@ import { type LoaderArgs, redirect } from "@remix-run/node";
 import { searchClient } from "~/connectors/solr.server";
 import { type entityTypes, isValidEntity } from "~/utils/entityTypes";
 import { getSearchUrl } from "~/utils/backend";
-import { useLoaderData, useNavigation, useParams } from "@remix-run/react";
+import { useLoaderData, useLocation, useNavigation, useParams } from "@remix-run/react";
 import { getLocalized } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
@@ -12,6 +12,7 @@ import icon404 from "./../../img/404.svg";
 import { groupBy } from "~/utils/groupBy";
 import { getTextFields } from "~/utils/retrievers";
 import { useLocalize } from "~/providers/LangContext";
+import { useTranslation } from "react-i18next";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -85,7 +86,11 @@ export const ErrorBoundary = (e) => {
 function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
     const records = useSearchResults();
     let { category } = useParams<{ category: entityTypes }>();
+    const { search } = useLocation();
     const { localize } = useLocalize();
+
+    const query = new URLSearchParams(search).get('query');
+    const { t } = useTranslation();
 
     const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
 
@@ -104,7 +109,7 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
         ))}
         </div> :
         <div>
-            <span className="text-slate-600">No results found.</span>
+            <span className="text-slate-600">{t('noResults', { query, mode: t(category!, { count: 2 }) })}</span>
         </div>
     )
 }

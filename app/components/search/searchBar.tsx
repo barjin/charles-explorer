@@ -7,6 +7,7 @@ import { capitalize } from "~/utils/lang";
 import { type entityTypes } from "~/utils/entityTypes";
 import { CategoryIcons } from "~/utils/icons";
 import { useLocalize } from "~/providers/LangContext";
+import { useTranslation } from "react-i18next";
 
 function SuggestionItem({x, i, activeIndex, setActiveIndex, setEnterSubmitInput}: {x: any, i: number, activeIndex: number, setActiveIndex: (i: number) => void, setEnterSubmitInput: (b: boolean) => void}) {
     const { localize } = useLocalize();
@@ -93,6 +94,8 @@ export function SearchBar() {
         ...searchHistory.map(x => ({query: x.query, mode: x.mode, icon:  RxCounterClockwiseClock}))
     ] as const;
 
+    const { t } = useTranslation();
+
     return (
     <form 
         ref={form}
@@ -100,7 +103,7 @@ export function SearchBar() {
         <div className="bg-white p-2 pl-4 rounded-lg rounded-b-none flex flex-row border-b-slate-200 border-b-2">
             <label 
                 htmlFor="searchBar" 
-                className="sr-only">Search</label>
+                className="sr-only">{t('search.search')}</label>
             <input 
                 id="searchBar"
                 onFocus={() => setFocus(true)}
@@ -109,8 +112,8 @@ export function SearchBar() {
                 }}
                 type="text" 
                 className='w-full border-none outline-none bg-white'
-                placeholder="Search for a topic" 
-                title="Search for a topic"
+                placeholder={t('search.searchCTA', { query: t(`search.topic`) })}
+                title={t('search.searchCTA', { query: t(`search.topic`) })}
                 defaultValue="Default"
                 value={query}
                 tabIndex={0}
@@ -150,9 +153,9 @@ export function SearchBar() {
             <Link 
                 to={getSearchUrl(searchMode, query)}
                 className="border-l-slate-200 border-l-2 pl-2 cursor-pointer"
-                title={`Search for ${query}`}
+                title={t('search.searchFor', { mode: query })}
             >
-                <BiSearch size={28} color='gray' title={`Search for ${query}`}/>
+                <BiSearch size={28} color='gray' title={t('search.searchFor', { mode: searchMode, query })}/>
             </Link>     
         </div>
         <div 

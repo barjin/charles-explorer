@@ -1,4 +1,4 @@
-import type { LinksFunction, HandleErrorFunction } from "@remix-run/node";
+import { type LinksFunction, type HandleErrorFunction, json } from "@remix-run/node";
 import styles from './styles/app.css';
 
 import {
@@ -8,11 +8,21 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+
+import { useChangeLanguage } from "remix-i18next";
+import { useTranslation } from "react-i18next";
+import i18next from "~/i18next.server";
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 };
+
+export const loader = async ({ request }) => {
+  let locale = await i18next.getLocale(request);
+  return json({ locale });
+}
 
 export const ErrorBoundary: HandleErrorFunction = (error) => {
   return (
@@ -45,8 +55,17 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
 }
 
 export default function App() {
+  let { locale } = useLoaderData<typeof loader>();
+  let { i18n } = useTranslation();
+
+  // This hook will change the i18n instance language to the current locale
+  // detected by the loader, this way, when we do something to change the
+  // language, this locale will change and i18next will load the correct
+  // translation files
+  useChangeLanguage(locale);
+
   return (
-    <html lang="cs">
+    <html lang={locale} dir={i18n.dir()}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />

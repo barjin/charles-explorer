@@ -16,6 +16,7 @@ import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
 import { useLocalize } from "~/providers/LangContext";
+import { useTranslation } from "react-i18next";
 
 function getQueryParam(request, key){
   const url = new URL(request.url);
@@ -229,7 +230,8 @@ function TextField({field, data}: any) {
 
 function RelatedEntities({ category, collection, matching }: { category: entityTypes, collection: any[], matching: any[] }){
   const [collapsed, setCollapsed] = useState<Boolean>(false);
-  const { lang, localize } = useLocalize();
+  const { localize } = useLocalize();
+  const { t } = useTranslation();
 
   const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
 
@@ -256,7 +258,7 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
       }} 
       tabIndex={0}
     >
-      {capitalize(getPluralLang(category, 2, {lang}))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
+      {capitalize(t(category, {count: Math.min(groupedCollection.length, 2)}))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
     </h3>
     <div 
       className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}
@@ -290,7 +292,9 @@ export default function Index() {
   const data = useLoaderData<Awaited<ReturnType<typeof loader>>>();
   const { category } = useParams<{ category: entityTypes }>();
   const { textFields } = data;
-  const { localize, lang } = useLocalize();
+  const { localize } = useLocalize();
+
+  const { t } = useTranslation();
 
   const item = EntityParser.parse(data, category as any)!;
 
@@ -370,9 +374,11 @@ export default function Index() {
                       <a href={`#${getPlural(x)}`}>
                         <FaRegBookmark style={{display: 'inline', marginRight: '3px'}} fontSize={14}/> 
                           {
-                            data[getPlural(x)].length} {data[getPlural(x)].length !== 1
-                            ? getPluralLang(x, data[getPlural(x)].length, { lang })
-                            : localize(x)
+                            data[getPlural(x)].length
+                          }
+                          &nbsp;
+                          {
+                            t(`${x}`, { count: data[getPlural(x)].length })
                           }
                       </a>
                     </span>);
@@ -393,7 +399,7 @@ export default function Index() {
       {
         entities
           .sort((a, b) => {
-            return data.relatedMatching[b]?.length ?? 0 - data.relatedMatching[a]?.length ?? 0
+            return (data.relatedMatching[b]?.length ?? 0) - (data.relatedMatching[a]?.length ?? 0)
           })
           .map((category, i) => {
           const relatedCollection = data[getPlural(category) as any];

@@ -1,0 +1,25 @@
+{
+    "greeting": "Hello",
+    "search": {
+        "class": "class",
+        "person": "person",
+        "publication": "publication",
+        "programme": "programmes",
+        "searchFor": "Search for {{mode}} relevant for \"{{query}}\"",
+        "search": "Search",
+        "searchCTA": "Search for {{query}}",
+        "topic": "a topic"
+    },
+    "class_one": "class",
+    "class_other": "classes",
+    "person_one": "person",
+    "person_other": "people",
+    "publication_one": "publication",
+    "publication_other": "publications",
+    "programme_one": "study programme",
+    "programme_other": "study programmes",
+    "relevant_one": "relevant",
+    "relevant_other": "relevant",
+    "matches": "This item matches the query \"{{query}}\"",
+    "noResults": "No {{mode}} found for query \"{{query}}\""
+}

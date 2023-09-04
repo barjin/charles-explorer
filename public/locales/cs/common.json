@@ -1,0 +1,30 @@
+{
+    "greeting": "Ahoj!",
+    "search": {
+        "class": "předměty",
+        "person": "osoby",
+        "publication": "publikace",
+        "programme": "studium",
+        "searchFor": "Hledat {{mode}} relevantní k dotazu \"{{query}}\"",
+        "search": "Hledání",
+        "searchCTA": "Hledejte {{query}}",
+        "topic": "témata"
+    },
+    "class_one": "předmět",
+    "class_few": "předměty",
+    "class_other": "předmětů",
+    "person_one": "osoba",
+    "person_few": "osoby",
+    "person_other": "osob",
+    "publication_one": "publikace",
+    "publication_few": "publikace",
+    "publication_other": "publikací",
+    "programme_one": "studijní program",
+    "programme_few": "studijní programy",
+    "programme_other": "studijních programů",
+    "relevant_one": "relevantní",
+    "relevant_few": "relevantní",
+    "relevant_other": "relevantních",
+    "matches": "Tento výsledek je relevantní k dotazu \"{{query}}\".",
+    "noResults": "Pro dotaz \"{{query}}\" nebyly nalezeny žádné {{mode}}."
+}

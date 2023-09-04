@@ -4,6 +4,7 @@ import { EntityParser, type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
 import { capitalize } from "~/utils/lang";
 import { useLocalize } from "~/providers/LangContext";
+import { useTranslation } from "react-i18next";
 
 export function getSteppedGradientCSS(colors: string[] | null) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
@@ -20,6 +21,9 @@ function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
 export function RelatedItem({ items, type, matching }: { items: any, type: entityTypes | 'skeleton', matching?: boolean }) {
     const { search } = useLocation();
     const { localize } = useLocalize();
+    const { t } = useTranslation();
+
+    const query = new URLSearchParams(search).get('query') ?? '';
 
     const item = EntityParser.parse(items[0], type as any);
     
@@ -65,7 +69,7 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
                 skeleton ? <>&nbsp;</> : 
                 <div className="flex flex-row items-center">
                   {matching && (
-                    <span className="flex" title='This item matches the query.'>
+                    <span className="flex" title={t('matches', { query })}>
                       <span className="flex w-3 h-3 bg-green-500 rounded-full mr-2" />
                     </span>)}
                   <span className="overflow-ellipsis w-full overflow-x-hidden">{name}</span>
