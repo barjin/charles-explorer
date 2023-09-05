@@ -7,7 +7,6 @@ import { getLocalized } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
-import { useSearchResults } from "~/providers/SearchResultsContext";
 import icon404 from "./../../img/404.svg";
 import { groupBy } from "~/utils/groupBy";
 import { getTextFields } from "~/utils/retrievers";
@@ -83,8 +82,7 @@ export const ErrorBoundary = (e) => {
     )
   };  
 
-function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
-    const records = useSearchResults();
+function SearchResults({ records, skeleton = false } : { records: any[], skeleton?: boolean }) {
     let { category } = useParams<{ category: entityTypes }>();
     const { search } = useLocation();
     const { localize } = useLocalize();
@@ -94,7 +92,7 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
 
     const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
 
-    let groupedRecords = Object.values(groupByName(records.searchResults ?? []));
+    let groupedRecords = Object.values(groupByName(records ?? []));
 
     if(skeleton) {
         groupedRecords = Array(10).fill([{}]) as any;
@@ -115,19 +113,18 @@ function SearchResults({ skeleton = false } : { skeleton?: boolean }) {
 }
 
 function SkeletonLoading() {
-    return <SearchResults skeleton />
+    return <SearchResults records={[]} skeleton />
 }
 
 export default function Category() {
     const records = useLoaderData();
     const { state } = useNavigation();
-    const { setContext } = useSearchResults();
 
-    setContext(records);
+
 
     return (
         state === 'loading' ? 
         <SkeletonLoading /> :
-        <SearchResults />
+        <SearchResults {...{ records: records.searchResults }} />
     )
 }

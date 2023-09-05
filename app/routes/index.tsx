@@ -1,18 +1,15 @@
 import { redirect } from "@remix-run/node"
-import { Link, Outlet, useLocation, useNavigate, useNavigation } from "@remix-run/react"
+import { Link, Outlet, useLocation } from "@remix-run/react"
 import { SearchTool } from "~/components/search"
 import { WordCloud } from "~/components/WordCloud/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
 
-import { useRef, useEffect, useState, useCallback } from "react"
-import { type SearchResultsContextType, SearchResultsProvider } from "~/providers/SearchResultsContext"
+import { useRef, useEffect, useState } from "react"
 import { LangProvider } from "~/providers/LangContext"
 import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
-import i18next from "i18next";
-
 
 export function loader() {
   // TODO - generate redirect randomly
@@ -40,25 +37,11 @@ export default function Index() {
     setPrevLoc(pathname);
   }, [pathname, setPrevLoc]);
 
-  const [searchResults, setSearchResults] = useState<Omit<SearchResultsContextType, 'setContext'>>({
-    searchResults: [],
-    query: "",
-    keywords: {},
-    category: "person",
-  });
-
   const queryParams = new URLSearchParams(search);
 
   return (
     <>
     <GlobalLoading />
-    <SearchResultsProvider
-      searchResults={searchResults.searchResults}
-      query={searchResults.query}
-      keywords={searchResults.keywords}
-      category={searchResults.category}
-      setContext={setSearchResults}
-    >
     <LangProvider lang={lang} localize={(token) => localize(token, { lang })}>
       <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
         <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4">
@@ -88,7 +71,6 @@ export default function Index() {
         </div>
       </div>
     </LangProvider>
-    </SearchResultsProvider>
     </>
   )
 }

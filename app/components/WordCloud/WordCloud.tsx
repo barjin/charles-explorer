@@ -1,16 +1,16 @@
 import React, { useRef, memo, useEffect, useCallback } from 'react';
 import { CytoscapeWrapper } from './CytoscapeWrapper';
-import { useSearchResults } from '~/providers/SearchResultsContext';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
+import { useMatches } from '@remix-run/react';
 
 const NODES_LIMIT = 50;
 
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<CytoscapeWrapper | null>(null);
-    const { searchResults, query, category, keywords } = useSearchResults();
+    const { searchResults = [], query = '', category = '', keywords = {} } = useMatches()?.[2]?.data;
     const { localize, lang } = useLocalize();
 
     useEffect(() => {
@@ -63,7 +63,7 @@ export function WordCloud() {
 
             scene?.finish();
         }
-    }, [cy, getCurrentFaculties, keywords]);
+    }, [cy, getCurrentFaculties, keywords, lang]);
 
     return <GraphInternal r={graphRef} />;
 }
