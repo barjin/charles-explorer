@@ -1,9 +1,9 @@
-import type { LoaderArgs, LoaderFunction, V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { createMetaTitle } from "~/utils/meta";
-import { capitalize, getLocalized, getPluralLang } from "~/utils/lang";
+import { capitalize, getLocalized } from "~/utils/lang";
 import { getNames , getJoinableEntities, getTextFields } from "~/utils/retrievers";
 import { isValidEntity, entities, getPlural, type entityTypes, EntityParser }  from "~/utils/entityTypes";
 import { RelatedItem, getSteppedGradientCSS } from "~/components/RelatedItem";
@@ -293,7 +293,6 @@ export default function Index() {
   const { category } = useParams<{ category: entityTypes }>();
   const { textFields } = data;
   const { localize } = useLocalize();
-
   const { t } = useTranslation();
 
   const item = EntityParser.parse(data, category as any)!;

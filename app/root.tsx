@@ -11,7 +11,7 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 
-import { useChangeLanguage } from "remix-i18next";
+import { useChangeLanguage } from "~/utils/useChangeLanguage";
 import { useTranslation } from "react-i18next";
 import i18next from "~/i18next.server";
 

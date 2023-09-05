@@ -1,12 +1,12 @@
 import { redirect } from "@remix-run/node"
-import { Outlet, useLocation } from "@remix-run/react"
+import { Link, Outlet, useLocation, useNavigate, useNavigation } from "@remix-run/react"
 import { SearchTool } from "~/components/search"
 import { WordCloud } from "~/components/WordCloud/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
 
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, useCallback } from "react"
 import { type SearchResultsContextType, SearchResultsProvider } from "~/providers/SearchResultsContext"
 import { LangProvider } from "~/providers/LangContext"
 import { localize } from "~/utils/lang"
@@ -27,10 +27,11 @@ export function meta() {
 
 export default function Index() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const [ prevLoc, setPrevLoc ] = useState(pathname);
   const { i18n } = useTranslation();
-  const lang = i18next.language as 'cs'|'en';
+
+  const lang = i18n.language as 'cs'|'en';
 
   useEffect(() => {
     if (prevLoc !== pathname) {
@@ -45,6 +46,8 @@ export default function Index() {
     keywords: {},
     category: "person",
   });
+
+  const queryParams = new URLSearchParams(search);
 
   return (
     <>
@@ -62,12 +65,15 @@ export default function Index() {
             <div className="flex-row items-center justify-between hidden xl:flex">
               <span></span>
               <div className="flex flex-row items-center space-x-2">
-                <button 
+                <Link
+                  to={{ search: (() => {
+                    queryParams.set('lang', lang === "cs" ? "en" : "cs");
+                    return queryParams.toString();
+                  })() }}
                   className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" 
-                  onClick={() => i18n.changeLanguage(lang === "cs" ? "en" : "cs")}
-                >
+                  >
                   {lang === "cs" ? "🇨🇿" : "🇬🇧"}
-                </button>
+                </Link>
               </div>
             </div>
             <div className="bg-white xl:rounded-md xl:rounded-tr-none box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">

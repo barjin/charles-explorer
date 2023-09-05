@@ -95,11 +95,20 @@ class SolrCollection {
     
         let solrQuery = queryParts.join(' OR ');
 
-        const filterQuery = options?.ids?.length ? `fq=id:(${options.ids.join(' OR ')})&` : '';
-    
+        const filterQuery = ((options?.ids?.length ?? 0) > 0) ? `id:(${options!.ids!.join(' OR ')})&` : '';
+
         try {
-            const url = `${this.getSelfUrl('select')}?fl=id, score&indent=true&q=(${encodeURIComponent(solrQuery)})&rows=${options?.rows ?? 30}&${encodeURIComponent(filterQuery)}start=0`;
-            return axios.get(url).then(res => res.data.response.docs);
+            const url = new URL(this.getSelfUrl('select'));
+
+            url.searchParams.append('fl', 'id, score');
+            url.searchParams.append('indent', 'true');
+            url.searchParams.append('q', solrQuery);
+            url.searchParams.append('rows', String(options?.rows ?? 30));
+            url.searchParams.append('start', '0');
+            url.searchParams.append('wt', 'json');
+            url.searchParams.append('fq', filterQuery);
+
+            return axios.get(url.toString()).then(res => res.data.response.docs);
         }
         catch (e) {
             console.error(e);

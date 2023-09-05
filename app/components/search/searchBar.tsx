@@ -155,7 +155,7 @@ export function SearchBar() {
                 className="border-l-slate-200 border-l-2 pl-2 cursor-pointer"
                 title={t('search.searchFor', { mode: query })}
             >
-                <BiSearch size={28} color='gray' title={t('search.searchFor', { mode: searchMode, query })}/>
+                <BiSearch size={28} color='gray' title={t('search.searchFor', { mode: t(searchMode, {count: 2}), query })}/>
             </Link>     
         </div>
         <div 
