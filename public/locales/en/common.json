@@ -26,5 +26,7 @@
     "relevant_other": "relevant",
     "matches": "{{ thisType }} is also relevant to the query \"{{query}}\"",
     "noResults": "No {{mode}} found for query \"{{query}}\"",
-    "missingTranslation": "This text is not available in the current language. Showing version \"{{lang}}\"."
+    "missingTranslation": "This text is not available in the current language. Showing version \"{{lang}}\".",
+    "notFound": "Page not found.",
+    "entityDescription": "{{ name }} is a {{ mode }} on the Charles University in Prague."
 }

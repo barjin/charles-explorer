@@ -12,6 +12,7 @@ import { groupBy } from "~/utils/groupBy";
 import { getTextFields } from "~/utils/retrievers";
 import { useLocalize } from "~/providers/LangContext";
 import { useTranslation } from "react-i18next";
+import remixi18n from '~/i18next.server';
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -19,13 +20,14 @@ function parseSearchParam(request: Request, key: string) {
 }
 
 export async function loader({ params, request }: LoaderArgs) {
+    const lang = await remixi18n.getLocale(request);
+    const t = await remixi18n.getFixedT(request, 'common');
+
     const query = parseSearchParam(request, 'query');
-    const lang = parseSearchParam(request, 'lang') ?? 'en';
     const { category } = params;
 
     if(isValidEntity(category)) {
         if(!query) {
-            // todo - generate redirect randomly?
             return redirect(getSearchUrl(category, 'Machine Learning'));
         }
 
@@ -55,17 +57,18 @@ export async function loader({ params, request }: LoaderArgs) {
             searchResults,
             keywords,
             category,
-            query
+            query,
+            title: t('search.search'),
         };
     }
 
     return redirect('/');
 }
 
-export function meta() {
+export function meta({ data }) {
     return [
         {
-            title: createMetaTitle('Search'),
+            title: createMetaTitle(data?.title),
         }
     ];
 }

@@ -1,4 +1,4 @@
-import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs } from "@remix-run/node";
 import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
@@ -11,13 +11,15 @@ import { RelatedItem, getSteppedGradientCSS } from "~/components/RelatedItem";
 import { CategoryIcons } from "~/utils/icons";
 import { useCallback, useState } from "react";
 import { getFacultyColor } from "~/utils/colors";
-import { getLinkedData } from "~/utils/linkedData";
+import { LinkedDataProcessor } from "~/utils/linkedData";
 import icon404 from "./../../img/404.svg";
 import { getSearchUrl } from "~/utils/backend";
 import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
 import { useLocalize } from "~/providers/LangContext";
 import { useTranslation } from "react-i18next";
+
+import remixi18n from '~/i18next.server';
 
 function getQueryParam(request, key){
   const url = new URL(request.url);
@@ -27,6 +29,9 @@ function getQueryParam(request, key){
 export const loader = async ({ request, params }: LoaderArgs) => {
   const { category, id } = params;
   const query = getQueryParam(request, 'query');
+  const lang = await remixi18n.getLocale(request);
+
+  const t = await remixi18n.getFixedT(request, 'common');
 
   if (!isValidEntity(category)) {
     throw new Response(null, {
@@ -63,17 +68,13 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     },
   });
 
-  if (!loaded) {
-    throw new Response(null, {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
-
   const entity = EntityParser.parse(loaded, category as any);
   const relatedMatching = query ? await entity?.getRelevantRelatedEntities(query) : {};
 
   return { 
+    title: !loaded ? t('notFound') : getLocalized(loaded.names, { lang }),
+    description: !loaded ? t('notFoundDesc') : t('entityDescription', { name: getLocalized(loaded.names, { lang }), mode: t(category, { count: 1 }) }),
+    baseUrl: request.url,
     category, 
     textFields: getTextFields(category)?.filter(x => x !== 'names'), 
     relatedMatching,
@@ -130,22 +131,12 @@ function formatText(text: string | null | undefined) {
   return base;
 }
 
-export const meta: V2_MetaFunction = ({ data }: { data: Awaited<ReturnType<typeof loader>> }) => {
-  if (!data) return [
-    {
-      title: createMetaTitle('Not found')
-    },
-    {
-        name: "description",
-        content: `${capitalize(data?.category ?? 'entity') } with this id does not exist.`
-    },
-  ];
-
+export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
   return [
-    { title: createMetaTitle(getLocalized(data.names, { lang: 'eng' })) ?? `Unknown ${data.category}` },
-    { name: "description", content: `"${getLocalized(data.names, { lang: 'eng' })}" is a ${data.category} at the Charles University in Prague.` },
+    { title: data.title },
+    { name: "description", content: data.description },
     {
-        "script:ld+json": getLinkedData(data.category, data),
+      "script:ld+json": new LinkedDataProcessor((new URL(data.baseUrl)).origin).getTransformer(data.category)?.transform(data as any),
     }
   ];
 };

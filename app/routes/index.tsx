@@ -12,7 +12,6 @@ import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 
 export function loader() {
-  // TODO - generate redirect randomly
   return redirect(getSearchUrl('person', 'Machine Learning'));
 }
 

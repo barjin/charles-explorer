@@ -39,17 +39,22 @@ const commonContext = {
         }
     } };
 
-interface LinkedDataTransformer {
-    transform(data: Record<string, any>): Record<string, any>;
+abstract class LinkedDataTransformer {
+    protected url: string;
+    transform (data: Record<string, any>): Record<string, any> {
+        return {}
+    }
+
+    constructor(url: string) {
+        this.url = url;
+    }
 }
 
-const url = 'http://localhost:3000/'
-
-class PersonTransformer implements LinkedDataTransformer {
+class PersonTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
             ...commonContext,
-            '@id': new URL(`/person/${data.id}`, url).href,
+            '@id': new URL(`/person/${data.id}`, this.url).href,
             '@type': categoryToClass.person,
             'name': data.names.map((x: { lang: string, value: string }) => ({
                 "@language": x.lang,
@@ -58,28 +63,28 @@ class PersonTransformer implements LinkedDataTransformer {
             'sponsor': [
                 ...data.programmes.map((x: { id: string }) => ({
                     "@type": categoryToClass.programme,
-                    "@id": new URL(`/programme/${x.id}`, url).href
+                    "@id": new URL(`/programme/${x.id}`, this.url).href
                 })),
                 ...data.classes.map((x: { id: string }) => ({
                     "@type": categoryToClass.class,
-                    "@id": new URL(`/class/${x.id}`, url).href,
+                    "@id": new URL(`/class/${x.id}`, this.url).href,
                 })),
             ],
             'authorOf': [
                 ...data.publications.map((x: { id: string }) => ({ 
                     "@type": categoryToClass.publication,
-                    "@id": new URL(`/publication/${x.id}`, url).href 
+                    "@id": new URL(`/publication/${x.id}`, this.url).href 
                 })),
             ]
         }
     }
 }
 
-class ClassTransformer implements LinkedDataTransformer {
+class ClassTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
             ...commonContext,
-            '@id': new URL(`/class/${data.id}`, url).href,
+            '@id': new URL(`/class/${data.id}`, this.url).href,
             '@type': categoryToClass.class,
             'name': data.names.map((x: { lang: string, value: string }) => ({
                 "@language": x.lang,
@@ -93,13 +98,13 @@ class ClassTransformer implements LinkedDataTransformer {
             'sponsor': [
                 ...data.people.map((x: { id: string }) => ({
                     "@type": categoryToClass.person,
-                    "@id": new URL(`/person/${x.id}`, url).href
+                    "@id": new URL(`/person/${x.id}`, this.url).href
                 })),
             ],
             'isCourseOf': [
                 ...data.programmes.map((x: { id: string }) => ({
                     "@type": categoryToClass.programme,
-                    "@id": new URL(`/programme/${x.id}`, url).href
+                    "@id": new URL(`/programme/${x.id}`, this.url).href
                 })),
             ],
             'syllabusSections': [
@@ -113,11 +118,11 @@ class ClassTransformer implements LinkedDataTransformer {
     }
 }
 
-class PublicationTransformer implements LinkedDataTransformer {
+class PublicationTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
             ...commonContext,
-            '@id': new URL(`/publication/${data.id}`, url).href,
+            '@id': new URL(`/publication/${data.id}`, this.url).href,
             '@type': categoryToClass.publication,
             'name': data.names.map((x: { lang: string, value: string }) => ({
                 "@language": x.lang,
@@ -125,7 +130,7 @@ class PublicationTransformer implements LinkedDataTransformer {
             })),
             'author': data.people.map((x: { id: string }) => ({
                     "@type": categoryToClass.person,
-                    "@id": new URL(`/person/${x.id}`, url).href
+                    "@id": new URL(`/person/${x.id}`, this.url).href
                 })),
             'datePublished': {
                 "@type": "schema:Date",
@@ -139,11 +144,11 @@ class PublicationTransformer implements LinkedDataTransformer {
     }
 }
 
-class ProgrammeTransformer implements LinkedDataTransformer {
+class ProgrammeTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
             ...commonContext,
-            '@id': new URL(`/publication/${data.id}`, url).href,
+            '@id': new URL(`/publication/${data.id}`, this.url).href,
             '@type': categoryToClass.publication,
             'name': data.names.map((x: { lang: string, value: string }) => ({
                 "@language": x.lang,
@@ -151,31 +156,31 @@ class ProgrammeTransformer implements LinkedDataTransformer {
             })),
             'sponsoredBy': data.people.map((x: { id: string }) => ({
                 "@type": categoryToClass.person,
-                "@id": new URL(`/person/${x.id}`, url).href
+                "@id": new URL(`/person/${x.id}`, this.url).href
             })),
             'hasCourse': data.classes.map((x: { id: string }) => ({
                 "@type": categoryToClass.class,
-                "@id": new URL(`/class/${x.id}`, url).href
+                "@id": new URL(`/class/${x.id}`, this.url).href
             })),
         }
     }
 }
 
-class LinkedDataProcessor {
-    private transformers: Partial<Record<entityTypes, LinkedDataTransformer>> = {
-        person: new PersonTransformer(),
-        class: new ClassTransformer(),
-        publication: new PublicationTransformer(),
-        programme: new ProgrammeTransformer(),
+export class LinkedDataProcessor {
+    private baseUrl: string;
+
+    private transformers: Record<entityTypes, any> = {
+        person: PersonTransformer,
+        class: ClassTransformer,
+        publication: PublicationTransformer,
+        programme: ProgrammeTransformer,
     };
 
     public getTransformer(category: entityTypes) {
-        return this.transformers[category];
+        return new this.transformers[category](this.baseUrl);
     }
-}
 
-const linkedDataProcessor = new LinkedDataProcessor();
-
-export function getLinkedData(category: entityTypes, data: Record<string, any>) {
-    return linkedDataProcessor.getTransformer(category)?.transform(data);
+    constructor(url: string) {
+        this.baseUrl = url;
+    }
 }
