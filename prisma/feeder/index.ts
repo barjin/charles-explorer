@@ -1,7 +1,7 @@
 /* eslint-disable no-loop-func */
 import { AsyncDatabase } from 'promised-sqlite3';
-import { PrismaClient } from '@prisma/client';
-import cliProgress from 'cli-progress';
+import { PrismaClient, Prisma } from '@prisma/client';
+import cliProgress, { SingleBar } from 'cli-progress';
 import colors from 'ansi-colors';
 import { getQuerySize } from './sqlite/getQuerySize';
 import { getQuery } from './sqlite/templateQuery';
@@ -19,6 +19,16 @@ import {
 } from './utils/transformObject';
 import { Solr, getTextFields } from './solr/solr';
 
+export const entities = ['person', 'publication', 'programme', 'class'] as const;
+export const getJoinableEntities = (entity: string) => {
+    return Prisma.dmmf.datamodel
+        .models
+        .find(x => x.name === capitalize(entity))
+        ?.fields
+        .filter(x => entities.includes(x.type.toLowerCase() as any))
+        .map(x => ({ name: x.name, type: x.type }));
+  };
+
 const ordering = [
     'faculty', 
     'department', 
@@ -28,7 +38,7 @@ const ordering = [
     'publication'
 ] as const;
 
-const batchSize = 1000;
+const batchSize = 5000;
 
 console.log((colors.bgRed.bold.white(`
   ███╗                                                                                         
@@ -42,7 +52,7 @@ const totals: Partial<Record<keyof typeof transformers, number>> = {};
 const outDB = new PrismaClient();
 const solr = new Solr('http://localhost:8983', outDB);
 
-async function insertToSolr(coreName: string, transformer: (a: any) => any, options?: { batchSize?: number }){
+async function insertToSolr(coreName: string, transformer: (a: any) => any, options?: { batchSize?: number, loadConnected?: boolean }){
     const { batchSize = 1000 } = options ?? {};
 
     const singleBar = new cliProgress.SingleBar({
@@ -52,7 +62,7 @@ async function insertToSolr(coreName: string, transformer: (a: any) => any, opti
 
     const total = await (outDB[coreName] as any).count();
 
-    singleBar.start(total, 0, { spinner: spinner.next().value, tableName: capitalize(coreName) });
+    // singleBar.start(total, 0, { spinner: spinner.next().value, tableName: capitalize(coreName) });
     
     await solr.getCollection(coreName).createIfNotExists();
     let cursor: string | undefined = undefined;
@@ -61,17 +71,30 @@ async function insertToSolr(coreName: string, transformer: (a: any) => any, opti
     let soFar = 0;
 
     while (hasMore) {
-        const records: any[] = await (outDB[coreName] as any).findMany({
+        const t = {
             include: {
                 ...getTextFields(coreName as any)?.reduce((p: Record<string, any>, x) => ({
                     ...p,
                     [x]: true
-                }), {})
+                }), {}),
+                ...(options?.loadConnected ? 
+                    getJoinableEntities(coreName as any)?.reduce((p: Record<string, any>, x) => ({
+                        ...p,
+                        [x.name]: {
+                            include: getTextFields(x.type as any)?.reduce((p: Record<string, any>, x) => ({
+                                ...p,
+                                [x]: true
+                            }), {})
+                        }
+                    }), {})
+                : {})
             },
             take: batchSize,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
-        });
+        };
+
+        const records: any[] = await (outDB[coreName] as any).findMany(t);
 
         soFar += records.length;
 
@@ -200,6 +223,8 @@ async function insertToSolr(coreName: string, transformer: (a: any) => any, opti
 //             polling();
 //         });
 
+//         singleBar.update(total, { spinner: spinner.next().value, tableName: table.toUpperCase() });
+
 //         singleBar.stop();
 //     }
 
@@ -276,115 +301,121 @@ async function insertToSolr(coreName: string, transformer: (a: any) => any, opti
 //             singleBar.update(offset > total! ? total! : offset, { spinner: '⌚️', tableName: `${table.toUpperCase()}, waiting for idle DB state` });
 //             await waitUntilDbIdle(outDB);
 //         }
+
+//         singleBar.update(total, { spinner: spinner.next().value, tableName: table.toUpperCase() });
 //         singleBar.stop();
 //     }
 
 //     inDB.close();
 
 
-//     const c = await outDB['person'].findMany({
-//         where: {
-//             OR: [
-//                 {
-//                     faculties: {
-//                         none: {}
-//                     },
-//                 },
-//                 {
-//                     departments: {
-//                         none: {}
-//                     }
-//                 }
-//             ]
-//         },
-//         select: {
-//             id: true,
-//         }
-//     });
+    // const c = await outDB['person'].findMany({
+    //     where: {
+    //         OR: [
+    //             {
+    //                 faculties: {
+    //                     none: {}
+    //                 },
+    //             },
+    //             {
+    //                 departments: {
+    //                     none: {}
+    //                 }
+    //             }
+    //         ]
+    //     },
+    //     select: {
+    //         id: true,
+    //     }
+    // });
 
-//     let i = 0;
-//     for (const { id } of c) {
-//         if(i++ % 100 === 0) console.log(i);
-//         const person = await outDB['person'].findUnique({
-//             where: {
-//                 id
-//             },
-//             include: {
-//                 names: true,
-//                 programmes: {
-//                     include: {
-//                         faculties: true,
-//                     }
-//                 },
-//                 publications: {
-//                     include: {
-//                         faculties: true,
-//                     }
-//                 },
-//             }
-//         })!;
+    // let i = 0;
+    // for (const { id } of c) {
+    //     if(i++ % 100 === 0) console.log(i);
+    //     const person = await outDB['person'].findUnique({
+    //         where: {
+    //             id
+    //         },
+    //         include: {
+    //             names: true,
+    //             programmes: {
+    //                 include: {
+    //                     faculties: true,
+    //                 }
+    //             },
+    //             classes: {
+    //                 include: {
+    //                     faculties: true,
+    //                 }
+    //             },
+    //         }
+    //     })!;
 
-//         const faculties = {};
+    //     const faculties = {};
 
-//         for (const programme of person!.programmes) {
-//             for (const faculty of programme.faculties) {
-//                 faculties[faculty.id] ??= 0;
-//                 faculties[faculty.id]++;
-//             }
-//         }
+    //     for (const programme of person!.programmes) {
+    //         for (const faculty of programme.faculties) {
+    //             faculties[faculty.id] ??= 0;
+    //             faculties[faculty.id]++;
+    //         }
+    //     }
 
-//         for (const publication of person!.publications) {
-//             for (const faculty of publication.faculties) {
-//                 faculties[faculty.id] ??= 0;
-//                 faculties[faculty.id]++;
-//             }
-//         }
+    //     for (const c of person!.classes) {
+    //         for (const faculty of c.faculties) {
+    //             faculties[faculty.id] ??= 0;
+    //             faculties[faculty.id]++;
+    //         }
+    //     }
 
-//         const facultyIds = Object.entries(faculties).sort((a, b) => b[1] - a[1]).map(x => x[0]).slice(0, 1);
+    //     const facultyIds = Object.entries(faculties).sort((a, b) => b[1] - a[1]).map(x => x[0]);
 
-//         await outDB['person'].update({
-//             where: {
-//                 id
-//             },
-//             data: {
-//                 faculties: {
-//                     connect: facultyIds.map(id => ({ id }))
-//                 }
-//             }
-//         });
+    //     await outDB['person'].update({
+    //         where: {
+    //             id
+    //         },
+    //         data: {
+    //             faculties: {
+    //                 connect: facultyIds.map(id => ({ id }))
+    //             }
+    //         }
+    //     });
     // }
 })().then(async () => {
-    await insertToSolr('class', cls => ({
-        id: cls.id,
-        lvl0_cs: cls.names.find(x => x.lang === 'cs')?.value,
-        lvl0_en: cls.names.find(x => x.lang === 'en')?.value,
-        lvl1_cs: cls.annotation?.find(x => x.lang === 'cs')?.value,
-        lvl1_en: cls.annotation?.find(x => x.lang === 'en')?.value,
-        lvl2_cs: cls.syllabus?.find(x => x.lang === 'cs')?.value,
-        lvl2_en: cls.syllabus?.find(x => x.lang === 'en')?.value
-    }));
+    // await insertToSolr('class', cls => ({
+    //     id: cls.id,
+    //     lvl0_cs: cls.names.find(x => x.lang === 'cs')?.value,
+    //     lvl0_en: cls.names.find(x => x.lang === 'en')?.value,
+    //     lvl1_cs: cls.annotation?.find(x => x.lang === 'cs')?.value,
+    //     lvl1_en: cls.annotation?.find(x => x.lang === 'en')?.value,
+    //     lvl2_cs: cls.syllabus?.find(x => x.lang === 'cs')?.value,
+    //     lvl2_en: cls.syllabus?.find(x => x.lang === 'en')?.value
+    // }));
     
-    await insertToSolr('person', cls => ({
-        id: cls.id,
-        lvl0_cs: cls.names[0]?.value,
-        lvl0_en: cls.names[0]?.value,
-    }));
+    await insertToSolr('person', p => ({
+        id: p.id,
+        lvl0_cs: p.names[0]?.value,
+        lvl0_en: p.names[0]?.value,
+        lvl1_cs: [ ...p.classes.map(x => x.names.find(x => x.lang === 'cs')?.value), ...p.publications.map(x => x.names.find(x => x.lang === 'cs')?.value) ].join(' '),
+        lvl1_en: [ ...p.classes.map(x => x.names.find(x => x.lang === 'en')?.value), ...p.publications.map(x => x.names.find(x => x.lang === 'en')?.value) ].join(' '),
+        lvl2_cs: [ ...p.classes.map(x => x.annotation.find(x => x.lang === 'cs')?.value), ...p.publications.map(x => x.abstract.find(x => x.lang === 'cs')?.value) ].join(' '),
+        lvl2_en: [ ...p.classes.map(x => x.annotation.find(x => x.lang === 'en')?.value), ...p.publications.map(x => x.abstract.find(x => x.lang === 'en')?.value) ].join(' ')
+    }), { loadConnected: true });
 
-    await insertToSolr('publication', (pub: any) => ({
-        id: pub.id,
-        lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
-        lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
-        lvl1_cs: pub.keywords.find(x => x.lang === 'cs')?.value,
-        lvl1_en: pub.keywords.find(x => x.lang === 'en')?.value,
-        lvl2_cs: pub.abstract?.find(x => x.lang === 'cs')?.value,
-        lvl2_en: pub.abstract?.find(x => x.lang === 'en')?.value
-    }));
+    // await insertToSolr('publication', (pub: any) => ({
+    //     id: pub.id,
+    //     lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
+    //     lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
+    //     lvl1_cs: pub.keywords.find(x => x.lang === 'cs')?.value,
+    //     lvl1_en: pub.keywords.find(x => x.lang === 'en')?.value,
+    //     lvl2_cs: pub.abstract?.find(x => x.lang === 'cs')?.value,
+    //     lvl2_en: pub.abstract?.find(x => x.lang === 'en')?.value
+    // }));
 
-    await insertToSolr('programme', (pub: any) => ({
-        id: pub.id,
-        lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
-        lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
-        lvl1_cs: pub.profiles?.find(x => x.lang === 'cs')?.value,
-        lvl1_en: pub.profiles?.find(x => x.lang === 'en')?.value,
-    }));
+    // await insertToSolr('programme', (pub: any) => ({
+    //     id: pub.id,
+    //     lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
+    //     lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
+    //     lvl1_cs: pub.profiles?.find(x => x.lang === 'cs')?.value,
+    //     lvl1_en: pub.profiles?.find(x => x.lang === 'en')?.value,
+    // }));
 });
