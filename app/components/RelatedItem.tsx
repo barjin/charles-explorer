@@ -37,11 +37,11 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
     const skeleton = type === 'skeleton';
 
     return (
+      <li className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer">
       <Linkv2
         title={name} 
         disabled={skeleton}
         to={{ pathname: link, search: search }} 
-        className="border border-slate-300 shadow rounded-md mb-4 w-full hover:bg-slate-50 hover:cursor-pointer"
         aria-label={
           item ?
           `${name} from ${item.getFaculties().map(x => localize(x.names)).join(', ') ?? 'CUNI'}` :
@@ -102,5 +102,6 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
           </div>
         </div>
       </Linkv2>
+      </li>
     )
   }

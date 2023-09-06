@@ -2,6 +2,7 @@ import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { FaRegBookmark,  FaChevronDown, FaChevronRight } from 'react-icons/fa';
+import { PiWarningFill } from 'react-icons/pi';
 import { createMetaTitle } from "~/utils/meta";
 import { capitalize, getLocalized } from "~/utils/lang";
 import { getNames , getJoinableEntities, getTextFields } from "~/utils/retrievers";
@@ -176,6 +177,8 @@ function TextField({field, data}: any) {
   const { localize } = useLocalize();
   const { search } = useLocation();
 
+  const { i18n, t } = useTranslation();
+
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
   }, [collapsed]);
@@ -193,6 +196,11 @@ function TextField({field, data}: any) {
           }} 
           tabIndex={0}
         >
+          {
+            !data[field].find(x => x.lang === i18n.language) && field !== 'keywords' ?
+              <PiWarningFill style={{ display: 'inline', marginRight: '7px'}} size={18} color="orange" title={t('missingTranslation', { lang: data[field][0].lang })}/> : 
+              null 
+          }
           { capitalize(localize(field)) } { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
         </h3>
         <div className={`text-stone-600 ${collapsed ? 'hidden' : ''} pt-2`}>
@@ -260,9 +268,8 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
     >
       {capitalize(t(category, {count: Math.min(groupedCollection.length, 2)}))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
     </h3>
-    <div 
+    <ul 
       className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}
-      role="list"
     >
     {
       groupedCollection
@@ -284,7 +291,7 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
         />
       ))
     }
-    </div>
+    </ul>
   </div>);
 }
 

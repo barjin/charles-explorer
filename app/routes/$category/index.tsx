@@ -101,11 +101,11 @@ function SearchResults({ records, skeleton = false } : { records: any[], skeleto
 
     return (
         (groupedRecords.length > 0) ? 
-        <div role="list" className="w-full flex flex-col">
+        <ul className="w-full flex flex-col">
         {groupedRecords.map((items, i) => (
             <RelatedItem key={i} items={items} type={category!} />
         ))}
-        </div> :
+        </ul> :
         <div>
             <span className="text-slate-600">{t('noResults', { query, mode: t(category!, { count: 2 }) })}</span>
         </div>
