@@ -82,8 +82,8 @@ export function SearchBar() {
     useEffect(() => {
         if(query.length > 0) {
             if (suggester.state === "idle" && query !== currentlySuggested) {
-                setCurrentlySuggested(query);
-                suggester.load(`./suggest?query=${query}`);
+                setCurrentlySuggested(query.slice(0, 50));
+                suggester.load(`./suggest?query=${query.slice(0, 50)}`);
             }
         }
     }, [query, suggester, currentlySuggested]);
@@ -114,7 +114,6 @@ export function SearchBar() {
                 className='w-full border-none outline-none bg-white'
                 placeholder={t('search.searchCTA', { query: t(`search.topic`) })}
                 title={t('search.searchCTA', { query: t(`search.topic`) })}
-                defaultValue="Default"
                 value={query}
                 tabIndex={0}
                 onChange={(x) => {

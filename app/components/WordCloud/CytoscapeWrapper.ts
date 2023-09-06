@@ -73,7 +73,6 @@ class RenderingScene {
             this.zooming = true;
 
             if (currentTarget !== this.currentZoomedTarget) {
-                console.log('zooming towards ' + currentTarget);
                 const zoomingAnimation = this.manager.cytoscape.animation({
                     fit: {
                         eles: !currentTarget ? this.manager.cytoscape.nodes() : this.getNodeById(currentTarget),

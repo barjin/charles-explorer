@@ -33,5 +33,8 @@
     "noResults": "Pro dotaz \"{{query}}\" nebyly nalezeny žádné {{mode}}.",
     "missingTranslation": "Tento text není v aktuálním jazyce dostupný. Zobrazuje se verze \"{{lang}}\".",
     "notFound": "Stránka nenalezena.",
-    "entityDescription": "{{ name }} je {{ mode }} na Univerzitě Karlově."
+    "entityDescription": "{{ name }} je {{ mode }} na Univerzitě Karlově.",
+    "ohno": "Ale ne!",
+    "ohnoDescription": "Během načítání této stránky se něco pokazilo. Zkuste to prosím znovu později.",
+    "notFoundDesc": "Stránka, kterou hledáte, nebyla nalezena."
 }

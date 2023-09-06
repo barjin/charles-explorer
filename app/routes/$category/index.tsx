@@ -24,6 +24,11 @@ export async function loader({ params, request }: LoaderArgs) {
     const t = await remixi18n.getFixedT(request, 'common');
 
     const query = parseSearchParam(request, 'query');
+
+    if(query?.length > 100) {
+        return redirect('/');
+    }
+
     const { category } = params;
 
     if(isValidEntity(category)) {
@@ -74,12 +79,14 @@ export function meta({ data }) {
 }
 
 export const ErrorBoundary = (e) => {
+    const { t } = useTranslation();
+
     return (
       <div className="flex flex-col w-full justify-center items-center mt-5">
-        <h1 className="text-3xl font-bold mb-4 pb-2 my-3">Oh no!</h1>
+        <h1 className="text-3xl font-bold mb-4 pb-2 my-3">{t('ohno')}</h1>
         <img src={icon404} className="w-1/3 mx-auto my-5" alt="Not found."/>
-        <p>
-          There was an error loading this page.
+        <p className="text-center">
+            {t('ohnoDescription')}
         </p>
       </div>
     )

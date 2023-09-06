@@ -25,6 +25,8 @@ export const loader = async ({ request }) => {
 }
 
 export const ErrorBoundary: HandleErrorFunction = (error) => {
+  const { t } = useTranslation();
+
   return (
     <html lang="cs">
       <head>
@@ -38,9 +40,9 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
       <body className="w-screen h-screen">
         <div className="w-full h-full grid grid-cols-1 xl:grid-cols-3 gap-4 text-slate-800">
           <div className="xl:col-start-2 xl:col-end-3 rounded-md bg-slate-100 p-4 drop-shadow-md m-5">
-            <h1 className="text-2xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2">Oh no!</h1>
+            <h1 className="text-2xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2">{t('ohno')}</h1>
             <p>
-              Charles Explorer seems to be down. Please try again later.
+              {t('ohnoDescription')}
             </p>
             <pre
               className="text-xs font-mono text-white bg-slate-500 mt-4 py-4 rounded-md px-4 overflow-auto"

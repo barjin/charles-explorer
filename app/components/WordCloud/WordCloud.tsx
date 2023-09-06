@@ -30,7 +30,7 @@ export function WordCloud() {
 
     useEffect(() => {
         if (cy.current) {
-            if(matches[2].id === 'routes/$category/index') {
+            if(matches[2]?.id === 'routes/$category/index') {
                 const scene = cy.current.newScene(query + category + lang);
 
                 if(!scene) {
@@ -72,7 +72,6 @@ export function WordCloud() {
                         }, edgeData: {
                             idealEdgeLength: 1.5,
                         }, onClick: () => {
-                            console.log(value);
                             navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
                         }});
                     });
@@ -85,7 +84,7 @@ export function WordCloud() {
                 scene?.finish();
             }
 
-            if(matches[2].id === 'routes/$category/$id' && matches[2].data.faculties[0]?.id) {
+            if(matches[2]?.id === 'routes/$category/$id' && matches[2]?.data?.faculties?.[0]?.id) {
                 cy.current.getCurrentScene()?.zoomTowards(matches[2].data.faculties[0].id);
             }
         }

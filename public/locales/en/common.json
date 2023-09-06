@@ -28,5 +28,8 @@
     "noResults": "No {{mode}} found for query \"{{query}}\"",
     "missingTranslation": "This text is not available in the current language. Showing version \"{{lang}}\".",
     "notFound": "Page not found.",
-    "entityDescription": "{{ name }} is a {{ mode }} on the Charles University in Prague."
+    "entityDescription": "{{ name }} is a {{ mode }} on the Charles University in Prague.",
+    "ohno": "Oh no!",
+    "ohnoDescription": "Something went wrong. Please try again later.",
+    "notFoundDesc": "The page you are looking for does not exist."
 }

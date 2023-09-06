@@ -61,7 +61,7 @@ export function SearchTool() {
                                 className: `${searchMode === mode ? 'text-orange-400' : 'text-slate-400'} pb-1`,
                                 size: 25,
                                 cursor: 'pointer',
-                                ariaHidden: true,
+                                'aria-hidden': true,
                             } as any)}
                             <span 
                                 className='inline text-xs'

@@ -68,6 +68,13 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     },
   });
 
+  if (!loaded) {
+    throw new Response(null, {
+      status: 404,
+      statusText: "Not Found",
+    });
+  }
+
   const entity = EntityParser.parse(loaded, category as any);
   const relatedMatching = query ? await entity?.getRelevantRelatedEntities(query) : {};
 
@@ -132,6 +139,14 @@ function formatText(text: string | null | undefined) {
 }
 
 export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
+  if (!data) {
+    return [
+      {
+        title: createMetaTitle('404')
+      }
+    ]
+  }
+
   return [
     { title: data.title },
     { name: "description", content: data.description },
@@ -142,12 +157,14 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
 };
 
 export const ErrorBoundary = ({ error }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col w-full justify-center items-center mt-5">
       <img src={icon404} className="w-1/3 mx-auto" alt="Not found."/>
-      <h1 className="text-3xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2 mt-5">Oh no!</h1>
+      <h1 className="text-3xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2 mt-5">{t('ohno')}</h1>
       <p>
-        The entity you are looking for does not exist.
+          {t('notFoundDesc')}
       </p>
     </div>
   )
