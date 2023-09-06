@@ -95,7 +95,7 @@ class SolrCollection {
     
         let solrQuery = queryParts.join(' OR ');
 
-        const filterQuery = ((options?.ids?.length ?? 0) > 0) ? `id:(${options!.ids!.join(' OR ')})&` : '';
+        const filterQuery = ((options?.ids?.length ?? 0) > 0) ? `id:(${options!.ids!.slice(0,50)!.join(' OR ')})&` : '';
 
         try {
             const url = new URL(this.getSelfUrl('select'));
