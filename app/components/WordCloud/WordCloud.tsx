@@ -5,7 +5,7 @@ import { useLocalize } from '~/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
 import { useMatches, useNavigate } from '@remix-run/react';
 
-const NODES_LIMIT = 50;
+const NODES_LIMIT = 40;
 
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
@@ -47,36 +47,40 @@ export function WordCloud() {
                 const faculties = getCurrentFaculties();
     
                 faculties.forEach((x, i) => {
-                    if(!keywords?.[x.id]) return;
-                        scene?.addNode(x.id, localize(x.names), { 
-                            parent: 'query', 
-                                style: {
-                                    color: getFacultyColor(x.id),
-                                    fontWeight: 'bold',
-                                    fontSize: 32 - faculties.length,
-                                }, edgeData: {
-                            idealEdgeLength: faculties.length * 10,
-                        },});
-
-                        [
-                            ...keywords?.[x.id], 
-                            ...(DummyKeywords.find(k => k.code == Number(x.id))?.keywords[lang]?.map(x => ({ value: x })) ?? [])
-                        ]
-                            ?.slice(0, (NODES_LIMIT - faculties.length) / faculties.length)
-                            .forEach(({ value }, i) => {
-                            
-                            if (value === query) return;
-                            scene?.addNode(`${value}${x.id}`, value, { parent: x.id, style: {
-                                'font-size': Math.max(30 - i * 2.5, 12),
-                                'color': getFacultyColor(x.id, 50, 50),
+                    scene?.addNode(x.id, localize(x.names), { 
+                        parent: 'query', 
+                            style: {
+                                color: getFacultyColor(x.id),
+                                fontWeight: 'bold',
+                                fontSize: 32 - faculties.length,
                             }, edgeData: {
-                                idealEdgeLength: i * 2.5,
-                            }, onClick: () => {
-                                console.log(value);
-                                navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
-                            }});
+                                idealEdgeLength: 50
+                            },
+                        });
+
+                    [
+                        ...(keywords?.[x.id] ?? []), 
+                        ...(DummyKeywords.find(k => k.code == Number(x.id))?.keywords[lang]?.map(x => ({ value: x })) ?? [])
+                    ]
+                        ?.slice(0, (NODES_LIMIT - faculties.length) / faculties.length)
+                        .forEach(({ value }, i) => {
+                        
+                        if (value === query) return;
+                        scene?.addNode(`${value}${x.id}`, value, { parent: x.id, style: {
+                            'font-size': Math.max(30 - i * 2.5, 12),
+                            'color': getFacultyColor(x.id, 50, 50),
+                        }, edgeData: {
+                            idealEdgeLength: 1.5,
+                        }, onClick: () => {
+                            console.log(value);
+                            navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
+                        }});
                     });
                 });
+
+                for(let i = 0; i < faculties.length; i++) {
+                    scene?.addEdge(faculties[i].id, faculties[(i+1) % faculties.length].id);
+                }
     
                 scene?.finish();
             }

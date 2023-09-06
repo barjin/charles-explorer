@@ -53,6 +53,19 @@ class RenderingScene {
         }
     }
 
+    public addEdge(source: string, target: string, options?: { style?: any, data?: any }) {
+        this.collection?.push({
+            group: 'edges',
+            data: {
+                ...options?.data,
+                id: `${source}-${target}` as any,
+                source,
+                target,
+                idealEdgeLength: 50,
+            },
+        });
+    }
+
     private async _zoomTowardsNextTarget() {
         const currentTarget = this.zoomingTargets.shift();
         
@@ -146,10 +159,10 @@ class RenderingScene {
             name: 'fcose',
             animate: true,
             animationDuration: 2000,
-            numIter: 10000,
+            numIter: 2000,
             nodeRepulsion: (n) => n.data('id').startsWith('query') ? 100000 : 1000,
             idealEdgeLength: (e: any) => {
-                return e.data('idealEdgeLength') ?? 20;
+                return e.data('idealEdgeLength') ?? 25;
             },
             randomize: true,
             animationEasing: 'ease-in-out-quart',
