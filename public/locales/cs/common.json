@@ -30,5 +30,6 @@
     "relevant_few": "relevantní",
     "relevant_other": "relevantních",
     "matches": "{{ thisType }} je také relevantní k dotazu \"{{query}}\".",
-    "noResults": "Pro dotaz \"{{query}}\" nebyly nalezeny žádné {{mode}}."
+    "noResults": "Pro dotaz \"{{query}}\" nebyly nalezeny žádné {{mode}}.",
+    "missingTranslation": "Tento text není v aktuálním jazyce dostupný. Zobrazuje se verze \"{{lang}}\"."
 }

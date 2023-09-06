@@ -25,5 +25,6 @@
     "relevant_one": "relevant",
     "relevant_other": "relevant",
     "matches": "{{ thisType }} is also relevant to the query \"{{query}}\"",
-    "noResults": "No {{mode}} found for query \"{{query}}\""
+    "noResults": "No {{mode}} found for query \"{{query}}\"",
+    "missingTranslation": "This text is not available in the current language. Showing version \"{{lang}}\"."
 }
