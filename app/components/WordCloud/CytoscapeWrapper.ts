@@ -7,6 +7,9 @@ class RenderingScene {
     private collection: any[] = [];
     private sceneElements: any = [];
     private lifecycle: 'appearing' | 'disappearing' | 'idle' = 'idle';
+    private zoomingTargets: (string | null)[] = [];
+    private currentZoomedTarget: (string | null) = null;
+    private zooming: boolean = false;
     public sceneId;
 
     constructor(manager: CytoscapeWrapper, id:string) {
@@ -49,6 +52,45 @@ class RenderingScene {
         }
     }
 
+    private async _zoomTowardsNextTarget() {
+        const currentTarget = this.zoomingTargets.shift();
+        
+        if(currentTarget !== undefined) {
+            this.zooming = true;
+
+            if (currentTarget !== this.currentZoomedTarget) {
+                console.log('zooming towards ' + currentTarget);
+                const zoomingAnimation = this.manager.cytoscape.animation({
+                    fit: {
+                        eles: !currentTarget ? this.manager.cytoscape.nodes() : this.getNodeById(currentTarget),
+                        padding: currentTarget ? 200 : 0,
+                    },
+                    easing: 'ease-in-out-cubic',
+                    duration: 1500
+                })
+
+                await zoomingAnimation.play().promise();
+
+                this.currentZoomedTarget = currentTarget;
+    
+                await this._zoomTowardsNextTarget();
+            }
+        }
+
+        this.zooming = false;
+    }
+
+    public zoomTowards(id: string | null) {
+        this.zoomingTargets.push(id);
+        if (this.zooming) return;
+
+        this._zoomTowardsNextTarget();
+    }
+
+    public getNodeById(id: string) {
+        return this.manager.cytoscape.$id(`${id}-${this.sceneId}`);
+    }
+
     public finish() {
         this.manager['publishScene'](this);
     }
@@ -56,15 +98,13 @@ class RenderingScene {
     private appear() {
         this.lifecycle = 'appearing';
 
-        const timestamp = Date.now();
-
         const nodes = this.collection
             .filter((element) => element.group === 'nodes')
             .map(x => (
                 {...x, 
                     data: {
                         ...x.data, 
-                        id: `${x.data.id}-${this.sceneId}-${timestamp}`,
+                        id: `${x.data.id}-${this.sceneId}`,
                     }
                 }
             ));
@@ -75,9 +115,9 @@ class RenderingScene {
                 {...x, 
                     data: 
                         {...x.data, 
-                            id: `${x.data.id}-${this.sceneId}-${timestamp}`, 
-                            source: `${x.data.source}-${this.sceneId}-${timestamp}`, 
-                            target: `${x.data.target}-${this.sceneId}-${timestamp}`
+                            id: `${x.data.id}-${this.sceneId}`, 
+                            source: `${x.data.source}-${this.sceneId}`, 
+                            target: `${x.data.target}-${this.sceneId}`
                         }
                     }
                 )
@@ -201,5 +241,9 @@ export class CytoscapeWrapper {
 
     private publishScene(scene: RenderingScene) {
         this.switchToScene(scene);
+    }
+
+    public getCurrentScene() {
+        return this.scenes[0];
     }
 }
