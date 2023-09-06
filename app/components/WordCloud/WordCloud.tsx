@@ -3,7 +3,7 @@ import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
-import { useMatches } from '@remix-run/react';
+import { useMatches, useNavigate } from '@remix-run/react';
 
 const NODES_LIMIT = 50;
 
@@ -12,6 +12,7 @@ export function WordCloud() {
     const cy = useRef<CytoscapeWrapper | null>(null);
 
     const matches = useMatches();
+    const navigate = useNavigate();
 
     const { searchResults = [], query = '', category = '', keywords = {} } = matches?.[2]?.data ?? {};
     const { localize, lang } = useLocalize();
@@ -47,11 +48,13 @@ export function WordCloud() {
     
                 faculties.forEach((x, i) => {
                     if(!keywords?.[x.id]) return;
-                        scene?.addNode(x.id, localize(x.names), { parent: 'query', style: {
-                            color: getFacultyColor(x.id),
-                            fontWeight: 'bold',
-                            fontSize: 32 - faculties.length,
-                        }, edgeData: {
+                        scene?.addNode(x.id, localize(x.names), { 
+                            parent: 'query', 
+                                style: {
+                                    color: getFacultyColor(x.id),
+                                    fontWeight: 'bold',
+                                    fontSize: 32 - faculties.length,
+                                }, edgeData: {
                             idealEdgeLength: faculties.length * 10,
                         },});
 
@@ -68,6 +71,9 @@ export function WordCloud() {
                                 'color': getFacultyColor(x.id, 50, 50),
                             }, edgeData: {
                                 idealEdgeLength: i * 2.5,
+                            }, onClick: () => {
+                                console.log(value);
+                                navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
                             }});
                     });
                 });
@@ -90,7 +96,7 @@ const GraphInternal = memo(
             <div
                 ref={props.r}
                 id="cy" 
-                className='w-full h-full background-slate-50'
+                className='w-full h-full background-slate-50 cursor-pointer'
             >
             </div>
         );

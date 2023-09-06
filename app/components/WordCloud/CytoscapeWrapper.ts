@@ -21,13 +21,14 @@ class RenderingScene {
         return this.lifecycle;
     }
 
-    public addNode(id: string, title: string, options?: { parent?: string, style?: any, data?: any, edgeData?: any }) {
+    public addNode(id: string, title: string, options?: { parent?: string, style?: any, data?: any, edgeData?: any, onClick?: any }) {
         this.collection.push({
             group: 'nodes',
             data: {
                 ...options?.data,
                 id: id as any,
-                title
+                title,
+                onclick: options?.onClick ?? undefined,
             },
             style: {
                 ...options?.style,
@@ -36,7 +37,7 @@ class RenderingScene {
             position: {
                 x: this.manager.cytoscape?.width() as number / 2,
                 y: this.manager.cytoscape?.height() as number / 2
-            }
+            },
         });
 
         if (options?.parent) {
@@ -124,6 +125,14 @@ class RenderingScene {
             );
 
         this.sceneElements = this.manager.cytoscape.collection([...nodes, ...edges]);
+
+        this.sceneElements.nodes().forEach((node: any) => {
+            node.on('click', (e: any) => {
+                if (node.data('onclick')) {
+                    node.data('onclick')(e);
+                }
+            });
+        });
 
         this.sceneElements.nodes().animate({
             style: {
