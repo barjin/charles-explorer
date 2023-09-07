@@ -14,4 +14,9 @@ module.exports = {
     v2_normalizeFormMethod: true,
     v2_routeConvention: false,
   },
+  serverDependenciesToBundle: [
+    '@charles-explorer/prisma',
+    '@charles-explorer/solr-client',
+    'axios'
+  ]
 };

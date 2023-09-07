@@ -1,7 +1,3 @@
-export function capitalize(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1)
-}
-
 /**
  * Map of ISO 639-2 bibliographic codes (`dut`) to ISO 639-1 codes (`nl`).
  *
@@ -192,5 +188,4 @@ export const iso6392BTo1 = {
     yor: 'yo',
     zha: 'za',
     zul: 'zu'
-  }
-  
+}  

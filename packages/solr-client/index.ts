@@ -1,15 +1,5 @@
-import { type PrismaClient, Prisma } from '@prisma/client';
+import { getTextFields, db } from '@charles-explorer/prisma';
 import axios from 'axios';
-import { capitalize } from '../utils/lang';
-
-export const getTextFields = (entity) => {
-    return Prisma.dmmf.datamodel
-        .models
-        .find(x => x.name === capitalize(entity))
-        ?.fields
-        .filter(x => x.type === "Text")
-        .map(x => x.name)
-  };
 
 class SolrCollection {
     private solr: Solr;
@@ -119,7 +109,7 @@ class SolrCollection {
     async search(query: string, options?: { rows?: number, includeTextFields?: boolean }): Promise<any[]> {
         const idsWithScores = await this.searchIds(query, options);
 
-        const entities = await (this.solr.db as any)[this.collection].findMany({
+        const entities = await (db as any)[this.collection].findMany({
             where: {
                 id: {
                     in: idsWithScores.map(({ id }) => id)
@@ -162,10 +152,10 @@ class SolrCollection {
 
 export class Solr {
     public url: string;
-    public db: PrismaClient;
-    constructor(url: string, db: PrismaClient) {
+    public database: typeof db;
+    constructor(url: string, database: typeof db) {
         this.url = url;
-        this.db = db;
+        this.database = database;
     }
 
     getCollection(collection: string) {

@@ -1,22 +1,22 @@
 {
-  "include": ["remix.env.d.ts", "**/*.ts", "**/*.tsx"],
-  "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2019"],
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "target": "ES2019",
-    "strict": true,
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "~/*": ["./app/*"]
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@charles-explorer/prisma": ["packages/prisma"],
+            "@charles-explorer/solr-client": ["packages/solr-client"],
+        },
+        "esModuleInterop": true,
+        "lib": ["ES2023"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": false,
+        "emitDecoratorMetadata": false
     },
-
-    // Remix takes care of building everything in `remix build`.
-    "noEmit": true
-  }
+    "include": [
+        "./packages/*/src/**/*"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/dist"
+    ],
 }

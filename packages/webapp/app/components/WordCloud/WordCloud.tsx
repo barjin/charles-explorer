@@ -70,7 +70,7 @@ export function WordCloud() {
                             'font-size': Math.max(30 - i * 2.5, 12),
                             'color': getFacultyColor(x.id, 50, 50),
                         }, edgeData: {
-                            idealEdgeLength: 1.5,
+                            idealEdgeLength: 20,
                         }, onClick: () => {
                             navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
                         }});

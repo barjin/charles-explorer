@@ -1,6 +1,6 @@
 import { type entityTypes } from "~/utils/entityTypes";
-import { db } from "./prisma";
-import { Solr } from "prisma/feeder/solr/solr";
+import { db } from "@charles-explorer/prisma";
+import { Solr } from "@charles-explorer/solr-client";
 import axios from "axios";
 
 const DEFAULT_ROWS_LIMIT = 30;

@@ -25,6 +25,8 @@ export async function loader({ params, request }: LoaderArgs) {
 
     const query = parseSearchParam(request, 'query');
 
+    console.log('params parsed');
+
     if(query?.length > 100) {
         return redirect('/');
     }
@@ -35,10 +37,9 @@ export async function loader({ params, request }: LoaderArgs) {
         if(!query) {
             return redirect(getSearchUrl(category, 'Machine Learning'));
         }
-
+        
         const searchResults = await searchClient.search(category, query, { includeTextFields: true });
         const textFieldNames = [...getTextFields(category)!, 'text'];
-
         const searchResultsPerFaculty = Object.entries(groupBy(searchResults, x => x.faculties[0]?.id));
 
         let keywords = Object.fromEntries(

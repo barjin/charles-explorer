@@ -159,7 +159,7 @@ class RenderingScene {
             animate: true,
             animationDuration: 2000,
             numIter: 2000,
-            nodeRepulsion: (n) => n.data('id').startsWith('query') ? 100000 : 1000,
+            nodeRepulsion: (n) => n.data('id').startsWith('query') ? 100000 : 20000,
             idealEdgeLength: (e: any) => {
                 return e.data('idealEdgeLength') ?? 25;
             },

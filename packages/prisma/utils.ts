@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client";
-import { capitalize } from "~/utils/lang";
+import { db } from ".";
+
+export function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 /**
  * Returns a schema object for a given table name as an object
@@ -16,4 +20,19 @@ export function getTableSchema(tableName: string): Record<string, any> {
     }
 
     return Object.fromEntries(entries);
+}
+
+/**
+ * Using the Prisma experimental Metrics API, this function waits until the database is idle (has less than 5 busy connections).
+ */
+export function waitUntilDbIdle() {
+    new Promise<void>(resolve => {
+        const interval = setInterval(async () => {
+            const metrics = await db.$metrics.json();
+            if(metrics.gauges.find((x: any) => x.key === 'prisma_pool_connections_busy').value <= 5) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, 1e3);
+    })
 }
