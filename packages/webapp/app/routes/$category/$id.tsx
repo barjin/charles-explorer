@@ -155,9 +155,9 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
       "script:ld+json": new LinkedDataProcessor((new URL(data.baseUrl)).origin).getTransformer(data.category)?.transform(data as any),
     }
   ];
-};
+}
 
-export const ErrorBoundary = ({ error }) => {
+export const ErrorBoundary = () => {
   const { t } = useTranslation();
 
   return (
@@ -171,7 +171,7 @@ export const ErrorBoundary = ({ error }) => {
   )
 };
 
-function IconWithBackground({ icon, background, size, className }) {
+function IconWithBackground({ icon, background, size, className }: { icon: React.ReactNode, background: string, size?: number, className?: string }) {
   if(!size) size = 12
 
   return (
@@ -250,7 +250,7 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
   const { localize } = useLocalize();
   const { t } = useTranslation();
 
-  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), []);
+  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => localize(x.names) ?? ''), [localize]);
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);
@@ -398,6 +398,7 @@ export default function Index() {
                       </a>
                     </span>);
                   }
+                  return null;
                 })
               }
             </span>
@@ -423,6 +424,7 @@ export default function Index() {
               <RelatedEntities key={i} category={category} collection={relatedCollection} matching={data.relatedMatching?.[category] ?? []} />
             );
           }
+          return null;
         })
       }
     </>

@@ -1,5 +1,3 @@
-import { db } from '~/connectors/prisma';
-
 const facultyIds = [11140,
 11240,
 11320,

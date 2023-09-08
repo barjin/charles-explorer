@@ -11,11 +11,12 @@ import { useTranslation } from "react-i18next";
 
 function SuggestionItem({x, i, activeIndex, setActiveIndex, setEnterSubmitInput}: {x: any, i: number, activeIndex: number, setActiveIndex: (i: number) => void, setEnterSubmitInput: (b: boolean) => void}) {
     const { localize } = useLocalize();
+    const { search } = useLocation();
     
     return (
         <Link 
             className={`w-full px-3 py-3 flex flex-row items-center cursor-pointer ${activeIndex === i ? 'bg-slate-200': ''}`}
-            to={getSearchUrl(x.mode, x.query)}
+            to={getSearchUrl(x.mode, x.query, search)}
             onMouseOver={() => {
                 setActiveIndex(i);
                 setEnterSubmitInput(true);
@@ -150,7 +151,7 @@ export function SearchBar() {
                 }}
             />
             <Link 
-                to={getSearchUrl(searchMode, query)}
+                to={getSearchUrl(searchMode, query, search)}
                 className="border-l-slate-200 border-l-2 pl-2 cursor-pointer"
                 title={t('search.searchFor', { mode: query })}
             >

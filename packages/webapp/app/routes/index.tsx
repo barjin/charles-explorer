@@ -66,7 +66,11 @@ export default function Index() {
             </div>
             <div className="bg-white xl:rounded-md xl:rounded-tr-none box-border flex-1 drop-shadow-md xl:h-screen overflow-hidden">
               <SearchTool />
-                <div ref={scrollRef} className="flex justify-start items-start flex-col p-4 xl:h-[89%] xl:overflow-y-auto overflow-x-hidden">
+                <div 
+                  ref={scrollRef} 
+                  className="flex justify-start items-start flex-col p-4 xl:h-[89%] xl:overflow-y-auto overflow-x-hidden"
+                  tabIndex={-1}
+                >
                   <Outlet/>
                 </div>
               </div>
