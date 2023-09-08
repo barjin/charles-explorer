@@ -34,7 +34,7 @@ class SolrCollection {
         this.exists = true;
     }
 
-    private getSelfUrl(slug: string = '') {
+    private getSelfUrl(slug = '') {
         return new URL(`/solr/${this.collection}/${slug}`, this.solr.url).href;
     }
 
@@ -76,14 +76,14 @@ class SolrCollection {
     
         const escapedQuery = this.escapeSolrQuery(query);
         
-        let queryParts: string[] = [];
+        const queryParts: string[] = [];
         const fields = ["lvl0_cs", "lvl0_en", "lvl1_cs", "lvl1_en", "lvl2_cs", "lvl2_en"];
 
         fields.forEach((field, i) => {
             queryParts.push(`${field}:"${escapedQuery}"^${fields.length - i}`);
         });
     
-        let solrQuery = queryParts.join(' OR ');
+        const solrQuery = queryParts.join(' OR ');
 
         const filterQuery = ((options?.ids?.length ?? 0) > 0) ? `id:(${options!.ids!.slice(0,50)!.join(' OR ')})&` : '';
 

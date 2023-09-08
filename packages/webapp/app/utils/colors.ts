@@ -26,7 +26,7 @@ const HSLToRGB = (h, s, l) => {
     return [255 * f(0), 255 * f(8), 255 * f(4)];
 };
 
-export function getFacultyColor(facultyId: string, s: number = 100, l: number = 30) {
+export function getFacultyColor(facultyId: string, s = 100, l = 30) {
   const faculty = facultyIds.findIndex((faculty) => String(faculty) === facultyId);
   
   const hue = (faculty * 360) / facultyIds.length;

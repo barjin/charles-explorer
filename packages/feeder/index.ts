@@ -29,24 +29,24 @@ function main() {
       const inDB = await AsyncDatabase.open(`${__dirname}/../../charles-explorer.db`);
       await inDB.exec(indexCreation);
   
-    //   // Creation task - create all the tables without joining the data
-    //   for (const table of ordering) {
-    //       await migrateSqliteToPrisma(inDB, db, table, transformers[table], { batchSize })
-    //   }
+      // Creation task - create all the tables without joining the data
+      for (const table of ordering) {
+          await migrateSqliteToPrisma(inDB, db, table, transformers[table], { batchSize })
+      }
   
-    //         console.log(`
+            console.log(`
         
-    //     ✅ ${colors.greenBright('Importing data complete!')}
-    //     ${colors.white('Running data joining task')}
+        ✅ ${colors.greenBright('Importing data complete!')}
+        ${colors.white('Running data joining task')}
         
-    //         `);
+            `);
   
-    //   // Joining task - join the data and insert it into Solr
-    //   for (const table of ordering) {
-    //       await connectPrismaEntities(inDB, db, table, transformers[table], { batchSize })
-    //   }
+      // Joining task - join the data and insert it into Solr
+      for (const table of ordering) {
+          await connectPrismaEntities(inDB, db, table, transformers[table], { batchSize })
+      }
   
-    //   await fixPeopleFaculties(db);
+      await fixPeopleFaculties(db);
   
       inDB.close();
   })().then(async () => {
@@ -57,15 +57,15 @@ function main() {
     
         `);
 
-    //   await insertToSolr('class', db, cls => ({
-    //       id: cls.id,
-    //       lvl0_cs: cls.names.find(x => x.lang === 'cs')?.value,
-    //       lvl0_en: cls.names.find(x => x.lang === 'en')?.value,
-    //       lvl1_cs: cls.annotation?.find(x => x.lang === 'cs')?.value,
-    //       lvl1_en: cls.annotation?.find(x => x.lang === 'en')?.value,
-    //       lvl2_cs: cls.syllabus?.find(x => x.lang === 'cs')?.value,
-    //       lvl2_en: cls.syllabus?.find(x => x.lang === 'en')?.value
-    //   }));
+      await insertToSolr('class', db, cls => ({
+          id: cls.id,
+          lvl0_cs: cls.names.find(x => x.lang === 'cs')?.value,
+          lvl0_en: cls.names.find(x => x.lang === 'en')?.value,
+          lvl1_cs: cls.annotation?.find(x => x.lang === 'cs')?.value,
+          lvl1_en: cls.annotation?.find(x => x.lang === 'en')?.value,
+          lvl2_cs: cls.syllabus?.find(x => x.lang === 'cs')?.value,
+          lvl2_en: cls.syllabus?.find(x => x.lang === 'en')?.value
+      }));
       
       await insertToSolr('person',db, p => ({
           id: p.id,
@@ -77,7 +77,7 @@ function main() {
           lvl2_en: [ ...p.classes.map(x => x.annotation.find(x => x.lang === 'en')?.value), ...p.publications.map(x => x.abstract.find(x => x.lang === 'en')?.value) ].join(' ')
       }), { loadConnected: true, batchSize: 1000 });
   
-      await insertToSolr('publication',db, (pub: any) => ({
+      await insertToSolr('publication',db, (pub) => ({
           id: pub.id,
           lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
           lvl0_en: pub.names.find(x => x.lang === 'en')?.value,
@@ -87,7 +87,7 @@ function main() {
           lvl2_en: pub.abstract?.find(x => x.lang === 'en')?.value
       }));
   
-      await insertToSolr('programme', db, (pub: any) => ({
+      await insertToSolr('programme', db, (pub) => ({
           id: pub.id,
           lvl0_cs: pub.names.find(x => x.lang === 'cs')?.value,
           lvl0_en: pub.names.find(x => x.lang === 'en')?.value,

@@ -1,5 +1,6 @@
 import cytoscape from 'cytoscape';
-//@ts-ignore 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore 
 import fcose from 'cytoscape-fcose';
 
 class RenderingScene {
@@ -9,7 +10,7 @@ class RenderingScene {
     private lifecycle: 'appearing' | 'disappearing' | 'idle' = 'idle';
     private zoomingTargets: (string | null)[] = [];
     private currentZoomedTarget: (string | null) = null;
-    private zooming: boolean = false;
+    private zooming = false;
     public sceneId;
 
     constructor(manager: CytoscapeWrapper, id:string) {

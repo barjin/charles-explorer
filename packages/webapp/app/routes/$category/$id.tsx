@@ -182,7 +182,7 @@ function IconWithBackground({ icon, background, size, className }: { icon: React
 }
 
 function TextField({field, data}: any) {
-  const [collapsed, setCollapsed] = useState<Boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   const { localize } = useLocalize();
   const { search } = useLocation();
 
@@ -246,7 +246,7 @@ function TextField({field, data}: any) {
 }
 
 function RelatedEntities({ category, collection, matching }: { category: entityTypes, collection: any[], matching: any[] }){
-  const [collapsed, setCollapsed] = useState<Boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   const { localize } = useLocalize();
   const { t } = useTranslation();
 

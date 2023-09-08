@@ -11,7 +11,7 @@ import { getOnlyLiterals, removeNullishLiterals, addIdsToTextCreators, getCreato
 
 import { spinner } from "./utils/spinner";
 import colors from "ansi-colors";
-import cliProgress, { SingleBar } from "cli-progress";
+import cliProgress from "cli-progress";
 import { Solr } from "@charles-explorer/solr-client";
 
 let x = 0;
@@ -35,13 +35,13 @@ export async function migrateSqliteToPrisma(inDB: AsyncDatabase, outDB: typeof d
 
     x++;
     
-    const totalCount = await getQuerySize(inDB, getQuery(transformer.query));
+    const totalCount = await getQuerySize(inDB, getQuery(transformer.query)) as number;
     
     singleBar.start(totalCount, 0, { spinner: spinner.next().value, tableName: capitalize(tableName) });
 
     for (let offset = 0; offset < totalCount; offset += batchSize) {
         const rows = await inDB.all(getQuery(transformer?.query as string, batchSize, offset));
-        const transformedRows: any[] = rows.map(transformer!.transform as any);
+        const transformedRows: any[] = rows.map(transformer.transform);
 
         const existingIds = (await (outDB[tableName] as any)
             .findMany({ 
@@ -71,7 +71,7 @@ export async function migrateSqliteToPrisma(inDB: AsyncDatabase, outDB: typeof d
             await (outDB.text).createMany({ 
                 data: creators
                     .flatMap(x => Object.entries(x)
-                        .filter(([_,v]) => v.create)
+                        .filter(([,v]) => v.create)
                         .flatMap(x => x[1].create)
                     ), 
                 skipDuplicates: true 
@@ -110,10 +110,10 @@ export async function migrateSqliteToPrisma(inDB: AsyncDatabase, outDB: typeof d
                 }
             }
 
-            singleBar.update(offset > totalCount! ? totalCount! : offset, { spinner: spinner.next().value, tableName: tableName.toUpperCase() });
+            singleBar.update(offset > totalCount ? totalCount : offset, { spinner: spinner.next().value, tableName: tableName.toUpperCase() });
     }
 
-    await new Promise<void>(async (r) => {
+    await new Promise<void>((r) => {
         const polling = async () => {
             const count = await (outDB[tableName] as any).count(); 
 
@@ -189,36 +189,38 @@ export async function fixPeopleFaculties(prisma: typeof db) {
                     }
                 },
             }
-        })!;
+        });
 
-        const faculties = {};
+        if(person) {
+            const faculties = {};
 
-        for (const programme of person!.programmes) {
-            for (const faculty of programme.faculties) {
-                faculties[faculty.id] ??= 0;
-                faculties[faculty.id]++;
-            }
-        }
-
-        for (const c of person!.classes) {
-            for (const faculty of c.faculties) {
-                faculties[faculty.id] ??= 0;
-                faculties[faculty.id]++;
-            }
-        }
-
-        const facultyIds = Object.entries(faculties).sort((a, b) => Number(b[1]) - Number(a[1])).map(x => x[0]);
-
-        await prisma['person'].update({
-            where: {
-                id
-            },
-            data: {
-                faculties: {
-                    connect: facultyIds.map(id => ({ id }))
+            for (const programme of person.programmes) {
+                for (const faculty of programme.faculties) {
+                    faculties[faculty.id] ??= 0;
+                    faculties[faculty.id]++;
                 }
             }
-        });
+    
+            for (const c of person.classes) {
+                for (const faculty of c.faculties) {
+                    faculties[faculty.id] ??= 0;
+                    faculties[faculty.id]++;
+                }
+            }
+    
+            const facultyIds = Object.entries(faculties).sort((a, b) => Number(b[1]) - Number(a[1])).map(x => x[0]);
+    
+            await prisma['person'].update({
+                where: {
+                    id
+                },
+                data: {
+                    faculties: {
+                        connect: facultyIds.map(id => ({ id }))
+                    }
+                }
+            });
+        }
     }
 
     singleBar.update(c.length, { spinner: spinner.next().value, tableName: 'people\'s faculties...' });
@@ -321,7 +323,7 @@ export async function insertToSolr(coreName: string, inDB: typeof db, transforme
         format: `${colors.redBright('{bar}')} | {percentage}% | {value}/{total} | ETA: {eta_formatted} | Elapsed time: {duration_formatted} | {spinner} [Solr] Indexing {tableName}`,
     }, cliProgress.Presets.shades_classic);
 
-    const total = await (inDB[coreName] as any).count();
+    const total = await (inDB[coreName] as any).count() as number;
     singleBar.start(total, 0, { spinner: spinner.next().value, tableName: capitalize(coreName) });
     
     await solr.getCollection(coreName).createIfNotExists();
@@ -358,7 +360,7 @@ export async function insertToSolr(coreName: string, inDB: typeof db, transforme
 
         soFar += records.length;
 
-        singleBar.update(soFar > total! ? total! : soFar, { spinner: spinner.next().value, tableName: capitalize(coreName) });
+        singleBar.update((soFar > total) ? total : soFar, { spinner: spinner.next().value, tableName: capitalize(coreName) });
 
         await solr.getCollection(coreName).addDocuments(records.map(transformer));
 

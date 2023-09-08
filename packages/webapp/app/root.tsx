@@ -20,7 +20,7 @@ export const links: LinksFunction = () => {
 };
 
 export const loader = async ({ request }) => {
-  let locale = await i18next.getLocale(request);
+  const locale = await i18next.getLocale(request);
   return json({ locale });
 }
 
@@ -57,8 +57,8 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
 }
 
 export default function App() {
-  let { locale } = useLoaderData<typeof loader>();
-  let { i18n } = useTranslation();
+  const { locale } = useLoaderData<typeof loader>();
+  const { i18n } = useTranslation();
 
   // This hook will change the i18n instance language to the current locale
   // detected by the loader, this way, when we do something to change the

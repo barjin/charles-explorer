@@ -5,7 +5,8 @@ module.exports = {
         "node": true
     },
     "extends": [
-        "plugin:react/recommended"
+        "eslint:recommended",
+        'plugin:@typescript-eslint/recommended'
     ],
     "overrides": [
         {
@@ -24,8 +25,9 @@ module.exports = {
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "plugins": [
-        "react"
+    parser: '@typescript-eslint/parser',
+    plugins: [
+        '@typescript-eslint'
     ],
     "rules": {
     }

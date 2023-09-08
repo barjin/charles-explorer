@@ -42,7 +42,7 @@ export async function loader({ params, request }: LoaderArgs) {
         const textFieldNames = [...getTextFields(category)!, 'text'];
         const searchResultsPerFaculty = Object.entries(groupBy(searchResults, x => x.faculties[0]?.id));
 
-        let keywords = Object.fromEntries(
+        const keywords = Object.fromEntries(
             await Promise.all(
                 searchResultsPerFaculty.map(async ([facultyId, results]) => {
                     const content = results.map(x => {

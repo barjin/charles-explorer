@@ -12,7 +12,7 @@ export const loader = async ({ params, request }) => {
       });
   }
 
-  const page: number = Number(url.searchParams.get('p') ?? 1);
+  const page = Number(url.searchParams.get('p') ?? 1);
   const domain = url.origin;
 
   const ids = await db[category].findMany({

@@ -19,13 +19,13 @@ export default async function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  let callbackName = isbot(request.headers.get("user-agent"))
+  const callbackName = isbot(request.headers.get("user-agent"))
     ? "onAllReady"
     : "onShellReady";
 
-  let instance = createInstance();
-  let lng = await i18next.getLocale(request);
-  let ns = i18next.getRouteNamespaces(remixContext);
+  const instance = createInstance();
+  const lng = await i18next.getLocale(request);
+  const ns = i18next.getRouteNamespaces(remixContext);
 
   await instance
     .use(initReactI18next) // Tell our instance to use react-i18next
@@ -40,13 +40,13 @@ export default async function handleRequest(
   return new Promise((resolve, reject) => {
     let didError = false;
 
-    let { pipe, abort } = renderToPipeableStream(
+    const { pipe, abort } = renderToPipeableStream(
       <I18nextProvider i18n={instance}>
         <RemixServer context={remixContext} url={request.url} />
       </I18nextProvider>,
       {
         [callbackName]: () => {
-          let body = new PassThrough();
+          const body = new PassThrough();
 
           responseHeaders.set("Content-Type", "text/html");
 

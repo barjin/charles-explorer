@@ -1,5 +1,4 @@
-import type React from 'react';
-import { useRef, memo, useEffect, useCallback } from 'react';
+import React, { useRef, memo, useEffect, useCallback } from 'react';
 import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/providers/LangContext';
