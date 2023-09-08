@@ -72,14 +72,14 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
                     <span className="flex" title={capitalize(t('matches', { thisType: t(`this${capitalize(type)}`), query }))}>
                       <span className="flex w-3 h-3 bg-green-500 rounded-full mr-2" />
                     </span>)}
-                  <span className="overflow-ellipsis w-full overflow-x-hidden">{name}</span>
+                  <span className="overflow-ellipsis overflow-x-hidden">{name}</span>
+                  {
+                    items.length > 1 ? 
+                    <span className="text-xs text-slate-400 pb-3" title={
+                      'Also includes: ' + items.slice(1).map(x => x.id).join(', ')
+                    }> +{items.length - 1}</span> : null
+                  }
                 </div>
-              }
-              {
-                items.length > 1 ? 
-                <span className="text-xs text-slate-400 pb-3" title={
-                  'Also includes: ' + items.slice(1).map(x => x.id).join(', ')
-                }> +{items.length - 1}</span> : null
               }
               </div>
             <div className={
