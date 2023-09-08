@@ -23,12 +23,10 @@ export async function loader({ params, request }: LoaderArgs) {
     const lang = await remixi18n.getLocale(request);
     const t = await remixi18n.getFixedT(request, 'common');
 
-    const query = parseSearchParam(request, 'query');
-
-    console.log('params parsed');
+    let query = parseSearchParam(request, 'query');
 
     if(query?.length > 100) {
-        return redirect('/');
+        query = query?.slice(0, 100) ?? '';
     }
 
     const { category } = params;
@@ -48,8 +46,11 @@ export async function loader({ params, request }: LoaderArgs) {
                     const content = results.map(x => {
                         return (textFieldNames.map(name => getLocalized(x[name], { fallback: false, lang })) ?? []).join(' ');
                     }).join(' ');
-
-                    const keywords = await searchClient.getKeywords(content, { lang });
+                    
+                    let keywords: any[] = [];
+                    if ( category !== 'person' ) {
+                        keywords = await searchClient.getKeywords(content, { lang });
+                    }
 
                     return [
                         facultyId,
