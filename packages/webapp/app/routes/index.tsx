@@ -11,6 +11,8 @@ import { LangProvider } from "~/providers/LangContext"
 import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 
+import Twemoji from 'react-twemoji';
+
 export function loader() {
   return redirect(getSearchUrl('person', 'Machine Learning'));
 }
@@ -54,7 +56,11 @@ export default function Index() {
                   })() }}
                   className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" 
                   >
-                  {lang === "cs" ? "🇨🇿" : "🇬🇧"}
+                  {
+                    <Twemoji options={{ className: 'twemoji' }}>
+                          { lang === "cs" ? '🇨🇿' : '🇬🇧' }
+                    </Twemoji>
+                  }
                 </Link>
               </div>
             </div>

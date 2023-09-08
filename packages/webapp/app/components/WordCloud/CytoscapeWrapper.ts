@@ -208,7 +208,6 @@ export class CytoscapeWrapper {
 
         this.cytoscape = cytoscape({
             container,
-            wheelSensitivity: 0.1,
             autoungrabify: true,
             userPanningEnabled: false,
             elements: {

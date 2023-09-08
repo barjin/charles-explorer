@@ -18,6 +18,7 @@ import { groupBy } from "~/utils/groupBy";
 import { RiExternalLinkLine } from "react-icons/ri";
 import { useLocalize } from "~/providers/LangContext";
 import { useTranslation } from "react-i18next";
+import Twemoji from 'react-twemoji';
 
 import remixi18n from '~/i18next.server';
 
@@ -370,9 +371,9 @@ export default function Index() {
                 item.getDetail() && (
                   <span className="text-stone-600 flex flex-row items-center text-sm">
                     <span className="mx-2"> | </span>
-                    { 
-                      item.getDetail()
-                    }
+                      <Twemoji options={{ className: 'twemoji' }}>
+                        {item.getDetail()}
+                      </Twemoji>
                   </span>
                 )
               }
