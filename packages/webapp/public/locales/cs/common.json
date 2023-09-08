@@ -10,6 +10,18 @@
         "searchCTA": "Hledejte {{query}}",
         "topic": "témata"
     },
+    "modal": {
+        "descriptionHeading": "Co je Charles Explorer?",
+        "description": "Charles Explorer je nástroj pro hledání odborných témat pěstovaných na Univerzitě Karlově v rámci výuky a vědy. Objevujte napříč univerzitou studijní programy, předměty, odborníky, vědecké výstupy a identifikujte komplementarity a mezioborová témata s průnikem na více fakultách.",
+        "versionTag": "Aktuálně je projekt v beta testování. Pokud narazíte na chyby, nebojte se nám napsat!",
+        "authors": "Autoři",
+        "development": "Vývoj, design a data transformation tooling",
+        "teamleader": "Vedoucí projektu, odborný dohled",
+        "dataIntegration": "Integrace dat ze SIS UK",
+        "inCollaborationWith": "Ve spolupráci s",
+        "inCollaborationWithOther": "a dalšími",
+        "contact": "Našli jste chybu? Máte nápad na zlepšení? Napište nám na "
+    },
     "class_one": "předmět",
     "thisClass": "tento předmět",
     "class_few": "předměty",

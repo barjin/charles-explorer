@@ -10,6 +10,18 @@
         "searchCTA": "Search for {{query}}",
         "topic": "a topic"
     },
+    "modal": {
+        "descriptionHeading": "What is Charles Explorer?",
+        "description": "Charles Explorer is a tool for searching academic topics cultivated at Charles University in teaching and research. Discover study programmes, courses, experts, scientific outputs across the university and identify complementarities and interdisciplinary topics with intersections across multiple faculties.",
+        "versionTag": "The project is currently in beta testing. If you encounter any errors, don't hesitate to contact us!",
+        "authors": "Authors",
+        "development": "Development, design and data transformation tooling",
+        "teamleader": "Project leader, expert supervision",
+        "dataIntegration": "Integration of data from SIS UK",
+        "inCollaborationWith": "In collaboration with",
+        "inCollaborationWithOther": "and others",
+        "contact": "Did you find a mistake? Do you have an idea for improvement? Contact us at "
+    },
     "class_one": "class",
     "class_other": "classes",
     "thisClass": "this class",

@@ -12,6 +12,7 @@ import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 
 import Twemoji from 'react-twemoji';
+import { Modal } from "~/components/Modal/Modal"
 
 export function loader() {
   return redirect(getSearchUrl('person', 'Machine Learning'));
@@ -29,6 +30,8 @@ export default function Index() {
   const [ prevLoc, setPrevLoc ] = useState(pathname);
   const { i18n } = useTranslation();
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const lang = i18n.language as 'cs'|'en';
 
   useEffect(() => {
@@ -44,21 +47,32 @@ export default function Index() {
     <>
     <GlobalLoading />
     <LangProvider lang={lang} localize={(token) => localize(token, { lang })}>
+      <Modal isOpen={isModalOpen} setIsOpen={setIsModalOpen}  />
       <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
         <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4">
-            <div className="flex-row items-center justify-between hidden xl:flex">
+            <div className="flex-row items-center justify-between flex">
               <span></span>
-              <div className="flex flex-row items-center space-x-2">
+              <div className="flex flex-row items-center space-x-1">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2" 
+                  >
+                  {
+                    <Twemoji options={{ className: 'twemoji' }}>
+                      ℹ️
+                    </Twemoji>
+                  }
+                </button>
                 <Link
                   to={{ search: (() => {
                     queryParams.set('lang', lang === "cs" ? "en" : "cs");
                     return queryParams.toString();
                   })() }}
-                  className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500" 
+                  className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2" 
                   >
                   {
                     <Twemoji options={{ className: 'twemoji' }}>
-                          { lang === "cs" ? '🇨🇿' : '🇬🇧' }
+                      { lang === "cs" ? '🇨🇿' : '🇬🇧' }
                     </Twemoji>
                   }
                 </Link>
