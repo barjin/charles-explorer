@@ -18,7 +18,7 @@ export function WordCloud() {
     const { localize, lang } = useLocalize();
 
     useEffect(() => {
-        if (graphRef.current) {
+        if (graphRef.current && window.screen.width > 1280) {
             cy.current = new CytoscapeWrapper(graphRef.current);
         }
     }, []);

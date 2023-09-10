@@ -68,6 +68,7 @@ services:
       context: .
       dockerfile: ./dockerfiles/Dockerfile.importer
     restart: "no"
+    tty: true
     volumes:
       - type: bind
         source: ./explorer.db
