@@ -1,0 +1,98 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.app
+    ports:
+      - "8080:3000"
+    networks: 
+      - interhub
+    profiles: ['app']
+    depends_on:
+      solr:
+        condition: service_started
+      db:
+        condition: service_started
+    restart: unless-stopped
+
+  solr:
+    image: solr
+    volumes:
+      - type: bind
+        source: ./solr-data
+        target: /var/solr/
+    ports:
+      - "8983:8983"
+    environment:
+      - SOLR_HEAP=4g
+    hostname: solr
+    restart: unless-stopped
+    profiles: ['app']
+    networks:
+       interhub:    
+          aliases:
+            - solr.charles
+  
+  ker:
+    build: ./packages/nanoker
+    hostname: ker
+    ports:
+      - "8547:8547"
+    restart: unless-stopped
+    profiles: ['app']
+    networks:
+       interhub:    
+          aliases:
+            - ker.charles
+  db:
+    image: postgres
+    restart: unless-stopped
+    hostname: db
+    volumes:
+      - type: bind
+        source: ./postgres-data
+        target: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    profiles: ['app']
+    environment:
+      POSTGRES_PASSWORD: charles_explorer_db_password
+    networks:
+        interhub:    
+            aliases:
+              - postgres.charles
+
+  seed-data:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.importer
+    restart: "no"
+    volumes:
+      - type: bind
+        source: ./explorer.db
+        target: /app/explorer.db
+      - type: bind
+        source: ./packages/feeder/src/transformers.ts
+        target: /app/packages/feeder/src/transformers.ts
+      - type: bind
+        source: ./.env
+        target: /app/.env
+    profiles: ['seeder']
+    networks:
+        interhub:    
+            aliases:
+              - seeder.charles
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cp /app/.env /app/packages/prisma
+        cd /app/packages/prisma
+        npx prisma migrate deploy
+        cd /app/packages/feeder
+        npx ts-node src/index.ts
+
+networks:
+  interhub:
+    driver: bridge

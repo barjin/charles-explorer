@@ -1,6 +1,19 @@
 import type { Transformers } from "./types/types";
 import { iso6392BTo1 } from "./utils/lang";
 
+/**
+ * The following transformers are used to transform the data from the SQLite database export into the Prisma schema.
+ * 
+ * The transformers are used in the following way:
+ *  - The query is used to select the data from the SQLite database.
+ *  - The transform function is used to transform each row of the result into the Prisma schema.
+ *  - The Prisma schema is then used to insert the data into the Prisma database.
+ * 
+ * First, all the inserts are done without joining the data. This is done to ensure that all the data is inserted into the database.
+ * Only then, the data is joined. This way, we can import the data in any order.
+ * 
+ * Below is the list of transformers used to transform the example explorer.db file. Use it as a reference.
+ */
 export const transformers: Transformers = {
     faculty: {
         query: 'SELECT * FROM FACULTY',

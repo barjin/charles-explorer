@@ -1,0 +1,10 @@
+**/node_modules/
+**/solr-data/
+**/scripts/
+
+**/packages/nanoker
+
+**/.git
+**/explorer.db
+
+!**/.env

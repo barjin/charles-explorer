@@ -250,7 +250,7 @@ function RelatedEntities({ category, collection, matching }: { category: entityT
   const { localize } = useLocalize();
   const { t } = useTranslation();
 
-  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => `${x.faculties.length}-${x.faculties[0].id}-${localize(x.names)}` ?? ''), [localize]);
+  const groupByName = useCallback((collection: any[]) => groupBy(collection, x => `${x.faculties.length}-${x.faculties?.[0]?.id ?? ''}-${localize(x.names)}` ?? ''), [localize]);
 
   const collapse = useCallback(() => {  
     setCollapsed(!collapsed);

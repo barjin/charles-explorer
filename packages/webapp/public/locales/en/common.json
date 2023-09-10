@@ -43,5 +43,7 @@
     "entityDescription": "{{ name }} is a {{ mode }} on the Charles University in Prague.",
     "ohno": "Oh no!",
     "ohnoDescription": "Something went wrong. Please try again later.",
-    "notFoundDesc": "The page you are looking for does not exist."
+    "notFoundDesc": "The page you are looking for does not exist.",
+    "takingTooLong": "Taking too long?",
+    "contactUsAt": "Contact us at"
 }

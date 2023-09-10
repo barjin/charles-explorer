@@ -4,12 +4,13 @@ node_modules
 **/build
 **/public/build
 .env
+**/dist
 
-solrdata/*
-!solrdata/data
+solr-data/*
+!solr-data/data
 
-solrdata/data/*
-!solrdata/data/configsets
+solr-data/data/*
+!solr-data/data/configsets
 
 charles-explorer.db
 *.AppImage

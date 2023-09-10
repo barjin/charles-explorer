@@ -102,7 +102,7 @@ function SearchResults({ records, skeleton = false } : { records: any[], skeleto
     const query = new URLSearchParams(search).get('query');
     const { t } = useTranslation();
 
-    const groupByName = useCallback((collection: any[]) => groupBy(collection, x => `${x.faculties.length}-${x.faculties[0].id}-${localize(x.names)}` ?? ''), [localize]);
+    const groupByName = useCallback((collection: any[]) => groupBy(collection, x => `${x.faculties.length}-${x.faculties?.[0]?.id ?? ''}-${localize(x.names)}` ?? ''), [localize]);
 
     let groupedRecords = Object.values(groupByName(records ?? []));
 

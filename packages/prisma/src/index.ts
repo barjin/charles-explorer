@@ -22,3 +22,7 @@ export const getTextFields = (entity: string) => {
         .filter(x => x.type === "Text")
         .map(x => x.name)
   };
+
+import * as utils from './utils';
+
+export { utils };

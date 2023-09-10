@@ -3,13 +3,13 @@ import { entities } from "~/utils/entityTypes";
 
 export const sitemapPageSize = 1000;
 
-export const loader = async () => {
+export const loader = async ({ request }) => {
     const counts = await Promise.all(entities.map(async (entity) => {
       const count = await db[entity].count();
       return { entity, count };
     }));
 
-    const domain = process.env.DOMAIN ?? 'http://localhost:3000';
+    const domain = request.origin;
     // handle "GET" request
   // separating xml content from Response to keep clean code. 
       const content = `<?xml version="1.0" encoding="UTF-8"?>
@@ -18,9 +18,12 @@ export const loader = async () => {
     const pages = Math.ceil(count / sitemapPageSize);
     let content = '';
     for (let i = 0; i < pages; i++) {
+      const url = new URL(`${entity}/sitemap.xml`, domain);
+      url.searchParams.set('p', (i + 1).toString());
+
       content += `
       <sitemap>
-        <loc>${domain}/${entity}/sitemap.xml?p=${i + 1}</loc>
+        <loc>${url.toString()}</loc>
       </sitemap>
       `;
     }

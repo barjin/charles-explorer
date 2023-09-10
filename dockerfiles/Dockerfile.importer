@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+COPY ./package.json /app/package.json
+COPY ./yarn.lock /app/yarn.lock
+WORKDIR /app
+
+RUN yarn --immutable
+RUN yarn global add ts-node
+
+COPY ./packages/solr-client /app/packages/solr-client
+COPY ./packages/prisma /app/packages/prisma
+COPY ./packages/feeder /app/packages/feeder
+COPY ./tsconfig.json /app/tsconfig.json
+
+RUN yarn --immutable
+
+COPY ./.env /app/.env
+
+CMD ["ts-node", "-T", "./packages/feeder/src/index.ts"]

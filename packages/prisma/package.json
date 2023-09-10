@@ -2,9 +2,12 @@
   "name": "@charles-explorer/prisma",
   "version": "1.0.0",
   "description": "The Prisma-generated ORM for the Charles Explorer project.",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "author": "Jindřich Bär",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc -P tsconfig.json"
+  },
   "dependencies": {
     "@prisma/client": "^5.2.0",
     "prisma": "^5.2.0"

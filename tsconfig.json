@@ -10,11 +10,9 @@
         "allowJs": true,
         "skipLibCheck": true,
         "resolveJsonModule": false,
-        "emitDecoratorMetadata": false
+        "emitDecoratorMetadata": false,
+        "declaration": true,
     },
-    "include": [
-        "./packages/*/src/**/*"
-    ],
     "exclude": [
         "**/node_modules",
         "**/dist"

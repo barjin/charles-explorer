@@ -1,8 +1,6 @@
 import type { AsyncDatabase } from "promised-sqlite3";
 
-import { db, getJoinableEntities, getTextFields } from "@charles-explorer/prisma";
-import { capitalize, waitUntilDbIdle, getTableSchema } from "@charles-explorer/prisma/utils";
-
+import { db, getJoinableEntities, getTextFields, utils } from "@charles-explorer/prisma";
 import type { Transformers } from "./types/types";
 
 import { getQuerySize } from "./sqlite/getQuerySize";
@@ -13,6 +11,8 @@ import { spinner } from "./utils/spinner";
 import colors from "ansi-colors";
 import cliProgress from "cli-progress";
 import { Solr } from "@charles-explorer/solr-client";
+
+const { capitalize, waitUntilDbIdle, getTableSchema } = utils;
 
 let x = 0;
 
@@ -314,7 +314,7 @@ export async function connectPrismaEntities(inDB: AsyncDatabase, outDB: typeof d
  * @param options Options object
  */
 export async function insertToSolr(coreName: string, inDB: typeof db, transformer: (a: any) => any, options?: { batchSize?: number, loadConnected?: boolean }){
-    const solr = new Solr('http://localhost:8983', inDB);
+    const solr = new Solr(process.env.SOLR_URL ?? 'http://localhost:8983', inDB);
 
     const { batchSize = 5000 } = options ?? {};
 

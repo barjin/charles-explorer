@@ -99,7 +99,15 @@ const GraphInternal = memo(
             <div
                 ref={props.r}
                 id="cy" 
-                className='w-full h-full background-slate-50 cursor-pointer'
+                className={`
+                    w-full 
+                    h-full 
+                    background-slate-50 
+                    cursor-pointer
+                    bg-no-repeat
+                    bg-logo-aux
+                `}
+                style={{backgroundSize: '150px', backgroundPosition: '98% 98%'}}
             >
             </div>
         );

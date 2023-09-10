@@ -15,6 +15,8 @@ import { useChangeLanguage } from "~/utils/useChangeLanguage";
 import { useTranslation } from "react-i18next";
 import i18next from "~/i18next.server";
 
+import logo from '~/components/Modal/logo.svg';
+
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]
 };
@@ -38,15 +40,18 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
       </head>
 
       <body className="w-screen h-screen">
-        <div className="w-full h-full grid grid-cols-1 xl:grid-cols-3 gap-4 text-slate-800">
-          <div className="xl:col-start-2 xl:col-end-3 rounded-md bg-slate-100 p-4 drop-shadow-md m-5">
-            <h1 className="text-2xl font-bold mb-4 border-b-2 border-b-slate-300 pb-2">{t('ohno')}</h1>
-            <p>
+        <div className="w-full h-full grid grid-cols-1 grid-rows-3 xl:grid-cols-3 gap-4 text-slate-800">
+          <div className="xl:col-start-2 xl:col-end-3 row-start-2 row-end-3 text-center px-4">
+            <img src={logo} />
+            <p className="mt-3">
               {t('ohnoDescription')}
             </p>
-            <pre
-              className="text-xs font-mono text-white bg-slate-500 mt-4 py-4 rounded-md px-4 overflow-auto"
-            >{JSON.stringify(error, null, 2)}</pre>
+            <p className="mt-3 border-t border-t-slate-400 pt-3">
+              {t('takingTooLong')}
+              </p><p>
+              {t('contactUsAt')}&nbsp;
+              <a className="font-semibold" href="mailto:explorer@jindrich.bar">explorer@jindrich.bar</a>
+            </p>
           </div>
         </div>
         <Scripts />

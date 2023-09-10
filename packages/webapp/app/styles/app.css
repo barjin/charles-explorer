@@ -600,6 +600,10 @@ video {
   position: relative;
 }
 
+.inset-0 {
+  inset: 0px;
+}
+
 .inset-x-0 {
   left: 0px;
   right: 0px;
@@ -625,8 +629,12 @@ video {
   grid-column: span 2 / span 2;
 }
 
-.m-5 {
-  margin: 1.25rem;
+.row-start-2 {
+  grid-row-start: 2;
+}
+
+.row-end-3 {
+  grid-row-end: 3;
 }
 
 .mx-2 {
@@ -668,6 +676,14 @@ video {
 
 .mr-2 {
   margin-right: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-3 {
+  margin-top: 0.75rem;
 }
 
 .mt-4 {
@@ -750,6 +766,10 @@ video {
   width: 41.666667%;
 }
 
+.w-80 {
+  width: 20rem;
+}
+
 .w-fit {
   width: -moz-fit-content;
   width: fit-content;
@@ -761,6 +781,10 @@ video {
 
 .w-screen {
   width: 100vw;
+}
+
+.max-w-xl {
+  max-width: 36rem;
 }
 
 .flex-1 {
@@ -793,6 +817,10 @@ video {
 
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-rows-3 {
+  grid-template-rows: repeat(3, minmax(0, 1fr));
 }
 
 .flex-row {
@@ -835,6 +863,12 @@ video {
   gap: 1rem;
 }
 
+.space-x-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.25rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.25rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
@@ -845,10 +879,6 @@ video {
   --tw-divide-x-reverse: 0;
   border-right-width: calc(2px * var(--tw-divide-x-reverse));
   border-left-width: calc(2px * calc(1 - var(--tw-divide-x-reverse)));
-}
-
-.overflow-auto {
-  overflow: auto;
 }
 
 .overflow-hidden {
@@ -879,6 +909,10 @@ video {
 
 .whitespace-nowrap {
   white-space: nowrap;
+}
+
+.rounded {
+  border-radius: 0.25rem;
 }
 
 .rounded-full {
@@ -919,6 +953,10 @@ video {
   border-left-width: 2px;
 }
 
+.border-t {
+  border-top-width: 1px;
+}
+
 .border-t-2 {
   border-top-width: 2px;
 }
@@ -952,9 +990,23 @@ video {
   border-left-color: rgb(226 232 240 / var(--tw-border-opacity));
 }
 
+.border-t-slate-400 {
+  --tw-border-opacity: 1;
+  border-top-color: rgb(148 163 184 / var(--tw-border-opacity));
+}
+
+.border-t-slate-600 {
+  --tw-border-opacity: 1;
+  border-top-color: rgb(71 85 105 / var(--tw-border-opacity));
+}
+
 .border-t-white {
   --tw-border-opacity: 1;
   border-top-color: rgb(255 255 255 / var(--tw-border-opacity));
+}
+
+.bg-black\/30 {
+  background-color: rgb(0 0 0 / 0.3);
 }
 
 .bg-green-500 {
@@ -992,11 +1044,6 @@ video {
   background-color: rgb(248 250 252 / var(--tw-bg-opacity));
 }
 
-.bg-slate-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(100 116 139 / var(--tw-bg-opacity));
-}
-
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
@@ -1004,6 +1051,10 @@ video {
 
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+.bg-logo-aux {
+  background-image: url('/logo_aux.svg');
 }
 
 .from-blue-500 {
@@ -1014,6 +1065,10 @@ video {
 
 .to-cyan-500 {
   --tw-gradient-to: #06b6d4 var(--tw-gradient-to-position);
+}
+
+.bg-no-repeat {
+  background-repeat: no-repeat;
 }
 
 .p-0 {
@@ -1066,11 +1121,6 @@ video {
   padding-bottom: 0.75rem;
 }
 
-.py-4 {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -1111,8 +1161,8 @@ video {
   text-align: center;
 }
 
-.font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+.text-justify {
+  text-align: justify;
 }
 
 .font-sans {
@@ -1165,6 +1215,11 @@ video {
   color: rgb(96 165 250 / var(--tw-text-opacity));
 }
 
+.text-gray-500 {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
 .text-gray-700 {
   --tw-text-opacity: 1;
   color: rgb(55 65 81 / var(--tw-text-opacity));
@@ -1188,6 +1243,11 @@ video {
 .text-slate-600 {
   --tw-text-opacity: 1;
   color: rgb(71 85 105 / var(--tw-text-opacity));
+}
+
+.text-slate-700 {
+  --tw-text-opacity: 1;
+  color: rgb(51 65 85 / var(--tw-text-opacity));
 }
 
 .text-slate-800 {
@@ -1275,6 +1335,10 @@ video {
 
 .ease-in-out {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.twemoji {
+  width: 1em;
 }
 
 .hover\:cursor-pointer:hover {

@@ -1,5 +1,5 @@
-import { db } from '@charles-explorer/prisma';
-import { getTableSchema } from '@charles-explorer/prisma/utils';
+import { db, utils } from '@charles-explorer/prisma';
+const { getTableSchema } = utils;
 
 type PrismaClient = typeof db;
 
@@ -9,8 +9,8 @@ function containsNullishLiterals(obj: any) {
 
 export function getOnlyLiterals(obj: Record<string, string>, tableName: string) {
     const literalFields = Object.values(getTableSchema(tableName))
-    ?.filter(x => x.kind === 'scalar')
-    .map(x => x.name);
+    ?.filter((x: any) => x.kind === 'scalar')
+    .map((x: any) => x.name);
 
     if (!literalFields) {
         throw new Error(`Table ${tableName} not found`);

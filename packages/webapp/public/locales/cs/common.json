@@ -48,5 +48,7 @@
     "entityDescription": "{{ name }} je {{ mode }} na Univerzitě Karlově.",
     "ohno": "Ale ne!",
     "ohnoDescription": "Během načítání této stránky se něco pokazilo. Zkuste to prosím znovu později.",
-    "notFoundDesc": "Stránka, kterou hledáte, nebyla nalezena."
+    "notFoundDesc": "Stránka, kterou hledáte, nebyla nalezena.",
+    "takingTooLong": "Systém nefunguje?",
+    "contactUsAt": "Kontaktujte nás na"
 }

@@ -17,6 +17,12 @@ module.exports = {
   serverDependenciesToBundle: [
     '@charles-explorer/prisma',
     '@charles-explorer/solr-client',
-    'axios'
+    'axios',
+    'find-up',
+    'locate-path',
+    'path-exists',
+    'p-locate',
+    'p-limit',
+    'yocto-queue',
   ]
 };

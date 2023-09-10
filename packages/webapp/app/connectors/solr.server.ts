@@ -2,6 +2,13 @@ import { type entityTypes } from "~/utils/entityTypes";
 import { db } from "@charles-explorer/prisma";
 import { Solr } from "@charles-explorer/solr-client";
 import axios from "axios";
+import dotenv from "dotenv";
+import { findUpSync } from "find-up";
+
+const envfile = findUpSync('.env', { cwd: __dirname });
+if (envfile) {
+    dotenv.config({ path: envfile });
+}
 
 const DEFAULT_ROWS_LIMIT = 30;
 
