@@ -1,6 +1,6 @@
 import { redirect } from "@remix-run/node"
 import { Link, Outlet, useLocation } from "@remix-run/react"
-import { SearchTool } from "~/components/search"
+import { SearchTool, getRandomQuery } from "~/components/search"
 import { WordCloud } from "~/components/WordCloud/WordCloud"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
@@ -10,12 +10,15 @@ import { useRef, useEffect, useState } from "react"
 import { LangProvider } from "~/providers/LangContext"
 import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
+import remixi18n from '~/i18next.server';
 
 import Twemoji from 'react-twemoji';
 import { Modal } from "~/components/Modal/Modal"
 
-export function loader() {
-  return redirect(getSearchUrl('person', 'Machine Learning'));
+export async function loader({ request }: { request: any }) {
+  const locale = await remixi18n.getLocale(request);
+
+  return redirect(getSearchUrl('class', getRandomQuery(locale as 'en' | 'cs')));
 }
 
 export function meta() {

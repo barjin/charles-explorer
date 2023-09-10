@@ -5,31 +5,30 @@ import { SearchBar } from './search/searchBar';
 import { CategoryIcons } from '~/utils/icons';
 import { useTranslation } from 'react-i18next';
 
-// todo - random queries
-// function getRandomQuery(language: 'cs'|'en') {
-//     const queries = language === 'en' ? [
-//         'Machine learning',
-//         'Japan',
-//         'Archeology',
-//         '3D rendering',
-//         'Video games',
-//         'Oceans',
-//         'Dentistry',
-//         'Greenhouse gases',
-//         'Architecture'
-//     ] : [
-//         'Strojové učení',
-//         'Japonsko',
-//         'Python',
-//         'Mongolština',
-//         'Onkologie',
-//         'Oceány',
-//         'Dinosauři',
-//         'Skandinávie',
-//     ];
+export function getRandomQuery(language: 'cs'|'en') {
+    const queries = language === 'en' ? [
+        'Machine learning',
+        'Japan',
+        'Archeology',
+        '3D rendering',
+        'Video games',
+        'Oceans',
+        'Dentistry',
+        'Greenhouse gases',
+        'Architecture'
+    ] : [
+        'Strojové učení',
+        'Japonsko',
+        'Python',
+        'Mongolština',
+        'Onkologie',
+        'Oceány',
+        'Dinosauři',
+        'Skandinávie',
+    ];
 
-//     return queries[Math.floor((+new Date())/5000) % queries.length];
-// }
+    return queries[Math.floor((+new Date())/5000) % queries.length];
+}
 
 export function SearchTool() {
     const { search } = useLocation();

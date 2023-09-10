@@ -13,6 +13,7 @@ import { getTextFields } from "~/utils/retrievers";
 import { useLocalize } from "~/providers/LangContext";
 import { useTranslation } from "react-i18next";
 import remixi18n from '~/i18next.server';
+import { getRandomQuery } from "~/components/search";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -33,7 +34,7 @@ export async function loader({ params, request }: LoaderArgs) {
 
     if(isValidEntity(category)) {
         if(!query) {
-            return redirect(getSearchUrl(category, 'Machine Learning'));
+            return redirect(getSearchUrl(category, getRandomQuery(lang as 'en' | 'cs')));
         }
         
         const searchResults = await searchClient.search(category, query, { includeTextFields: true });
