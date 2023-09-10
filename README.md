@@ -32,3 +32,16 @@ Unlike many university information systems, Charles Explorer is built for the we
 We at Charles Univeristy are fully aware of years-old incremental development of university information systems. That's why we've built Charles Explorer to be easily integrated with any university information system.
 
 All you need is an SQLite export and 10 minutes to write the mapping transformation.
+
+## How to do it?
+
+1. Clone this repository
+2. Supply your database url in the `.env` file. 
+    - If you don't have a database, you can use the example environment file `.env.prod`. Just rename it to `.env` and you're good to go.
+3. Build the services with `docker compose --profile=app build` and `docker compose --profile=seeder build`
+4. Run the services with `docker compose --profile=app up`.
+    - At this point, you should be able to access the app at `localhost:8080`.
+5. Run the seeder with `docker compose --profile=seeder up`.
+    - This will populate the database with example data from the database.db file.
+    - You can provide your data in the same format (and the transformation script) and it will be imported automatically.
+6. You're done! 🎉
