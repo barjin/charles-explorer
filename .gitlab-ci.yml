@@ -23,7 +23,9 @@ pull-job:       # This job runs in the build stage, which runs first.
   stage: pull
   image: alpine
   script:
-    - apk add --no-cache openssh-client
-    - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh -o StrictHostKeyChecking=no bar@nomos.is.cuni.cz "echo 'Connected to server!'"
+        - apk add --no-cache openssh-client
+        - mkdir -p ~/.ssh
+        - echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+        - chmod 600 ~/.ssh/id_rsa
+        - ssh -o StrictHostKeyChecking=no user@server "echo 'Connected to server!'"
+
