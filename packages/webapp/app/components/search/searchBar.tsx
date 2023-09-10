@@ -159,7 +159,7 @@ export function SearchBar() {
             </Link>     
         </div>
         <div 
-            className={`${focus ? 'flex' : 'hidden'} absolute bg-slate-50 flex-col w-full box-border rounded-md rounded-t-none drop-shadow-lg overflow-hidden`}
+            className={`${focus ? 'flex' : 'hidden'} absolute bg-slate-50 flex-col w-full box-border rounded-md rounded-t-none drop-shadow-lg overflow-hidden z-50`}
         >
             {
                 query !== '' &&
