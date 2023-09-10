@@ -1,4 +1,0 @@
-cs_idf_table.pickle filter=lfs diff=lfs merge=lfs -text
-cs.tagger filter=lfs diff=lfs merge=lfs -text
-en_idf_table.pickle filter=lfs diff=lfs merge=lfs -text
-en.tagger filter=lfs diff=lfs merge=lfs -text
