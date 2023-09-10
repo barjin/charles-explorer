@@ -1,12 +1,11 @@
-<h1 align="center">
-    <a href="https://explorer.cuni.cz">
+<table align="center"><tr><td align="center" width="9999">
+    <a href="https://explorer.cuni.cz" align="center">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="./docs/img/logo_dark.png">
-          <img alt="Fingerprinting suite" src="./docs/img/logo.png" width="500">
+          <img alt="Charles Explorer" src="./docs/img/logo.png" width="500">
         </picture>
     </a>
-    <br>
-</h1>
+</td></tr></table>
 
 Charles Explorer is a tool for vizualizing, searching and exploring university courses, publications, study programmes and more. It is a part of the [Charles University Information System](https://is.cuni.cz) and is available at [explorer.cuni.cz](https://explorer.cuni.cz).
 
