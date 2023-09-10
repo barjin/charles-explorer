@@ -8,6 +8,7 @@ import { type entityTypes } from "~/utils/entityTypes";
 import { CategoryIcons } from "~/utils/icons";
 import { useLocalize } from "~/providers/LangContext";
 import { useTranslation } from "react-i18next";
+import { useDebounce } from "~/hooks/useDebounce";
 
 function SuggestionItem({x, i, activeIndex, setActiveIndex, setEnterSubmitInput}: {x: any, i: number, activeIndex: number, setActiveIndex: (i: number) => void, setEnterSubmitInput: (b: boolean) => void}) {
     const { localize } = useLocalize();
@@ -40,6 +41,8 @@ export function SearchBar() {
     const form = useRef<HTMLFormElement>(null);
     const [focus, setFocus] = useState(false);
     const [query, setQuery] = useState<string>(new URLSearchParams(search).get('query') ?? '');
+
+    const debouncedQuery = useDebounce(query, 500);
 
     const navigate = useNavigate();
     const searchMode = useParams<{ category: entityTypes }>().category!;
@@ -81,13 +84,13 @@ export function SearchBar() {
     const [currentlySuggested, setCurrentlySuggested] = useState<string>(query);
 
     useEffect(() => {
-        if(query.length > 0) {
-            if (suggester.state === "idle" && query !== currentlySuggested) {
-                setCurrentlySuggested(query.slice(0, 50));
-                suggester.load(`./suggest?query=${query.slice(0, 50)}`);
+        if(debouncedQuery.length > 0) {
+            if (suggester.state === "idle" && debouncedQuery !== currentlySuggested) {
+                setCurrentlySuggested(debouncedQuery.slice(0, 50));
+                suggester.load(`./suggest?query=${debouncedQuery.slice(0, 50)}`);
             }
         }
-    }, [query, suggester, currentlySuggested]);
+    }, [debouncedQuery, suggester, currentlySuggested]);
 
     const suggestionsPanel =  [
         {query, mode: searchMode, icon: BiSearch},
