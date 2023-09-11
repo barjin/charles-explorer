@@ -16,6 +16,15 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  solr-user-fix:
+    image: alpine
+    profiles: ['app']
+    volumes:
+      - type: bind
+        source: ./solr-data
+        target: /var/solr/
+    command: sh -c "chown -R 8983:8983 /var/solr"
+
   solr:
     image: solr
     volumes:
@@ -33,7 +42,10 @@ services:
        interhub:    
           aliases:
             - solr.charles
-  
+    depends_on:
+      solr-user-fix:
+        condition: service_completed_successfully
+
   ker:
     build: ./packages/nanoker
     hostname: ker
