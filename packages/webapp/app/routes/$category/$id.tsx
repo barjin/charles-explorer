@@ -149,7 +149,7 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
   }
 
   return [
-    { title: data.title },
+    { title: createMetaTitle(data?.title) },
     { name: "description", content: data.description },
     {
       "script:ld+json": new LinkedDataProcessor((new URL(data.baseUrl)).origin).getTransformer(data.category)?.transform(data as any),
