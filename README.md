@@ -61,4 +61,4 @@ You only need an SQLite export and 10 minutes to write the mapping transformatio
 
 ## Let's get started?
 
-Are you convinced to use Charles Explorer for your education organization? Continue to our [integration guide](https://gitlab.mff.cuni.cz/barj/charles-explorer/-/wikis/Deployment-guide).
+Are you convinced to use Charles Explorer for your education organization? Continue to our [deployment guide](https://gitlab.mff.cuni.cz/barj/charles-explorer/-/wikis/Deployment-guide).
