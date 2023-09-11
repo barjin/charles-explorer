@@ -5,6 +5,8 @@
         </picture>
     </a>
 </div>
+<br>
+
 
 Charles Explorer is a tool for visualizing, searching, and exploring university courses, publications, study programs and more. It is a part of the [Charles University Information System](https://is.cuni.cz) and is available at [explorer.cuni.cz](https://explorer.cuni.cz).
 
