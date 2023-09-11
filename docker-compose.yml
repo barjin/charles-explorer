@@ -58,6 +58,7 @@ services:
     profiles: ['app']
     environment:
       POSTGRES_PASSWORD: charles_explorer_db_password
+      PGDATA: /var/lib/postgresql/data/pgdata
     networks:
         interhub:    
             aliases:
