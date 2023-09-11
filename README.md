@@ -1,10 +1,10 @@
-<table align="center"><tr><td align="center" width="9999">
+<div align="center">
     <a href="https://explorer.cuni.cz" align="center">
         <picture>
           <img alt="Charles Explorer" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/img/logo.png" width="500">
         </picture>
     </a>
-</td></tr></table>
+</div>
 
 Charles Explorer is a tool for visualizing, searching, and exploring university courses, publications, study programs and more. It is a part of the [Charles University Information System](https://is.cuni.cz) and is available at [explorer.cuni.cz](https://explorer.cuni.cz).
 
@@ -69,7 +69,7 @@ Are you convinced to use Charles Explorer for your education organization? Conti
 <div align="center">
   <b>Built with</b>
   <div align="center">
-<img alt="Remix.js, Docker, TailwindCSS, Solr" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/builtwith.png?ref_type=heads" width="500">
+<img alt="Remix.js, Docker, TailwindCSS, Solr" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/builtwith.png?ref_type=heads" width="700">
   </div>
 </div>
 
