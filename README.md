@@ -62,3 +62,20 @@ You only need an SQLite export and 10 minutes to write the mapping transformatio
 ## Let's get started?
 
 Are you convinced to use Charles Explorer for your education organization? Continue to our [deployment guide](https://gitlab.mff.cuni.cz/barj/charles-explorer/-/wikis/Deployment-guide).
+
+----
+
+
+<div align="center">
+  <b>Built with</b>
+  <div align="center">
+<img alt="Remix.js, Docker, TailwindCSS, Solr" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/builtwith.png?ref_type=heads" width="500">
+  </div>
+</div>
+
+
+----
+
+<div align="center">
+  2022 - 2023, Jindřich Bär
+</div>
