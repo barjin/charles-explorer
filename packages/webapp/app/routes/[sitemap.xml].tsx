@@ -9,7 +9,7 @@ export const loader = async ({ request }) => {
       return { entity, count };
     }));
 
-    const domain = request.origin;
+    const domain = request.url;
     // handle "GET" request
   // separating xml content from Response to keep clean code. 
       const content = `<?xml version="1.0" encoding="UTF-8"?>
