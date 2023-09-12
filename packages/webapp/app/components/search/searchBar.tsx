@@ -144,7 +144,7 @@ export function SearchBar() {
                         } else {
                             const historyItem = suggestionsPanel[activeIndex];
                             setQuery(historyItem.query);
-                            navigate(getSearchUrl(historyItem.mode, historyItem.query));
+                            navigate(getSearchUrl(historyItem.mode, historyItem.query, search));
                             setFocus(false);
                         }
                     }
