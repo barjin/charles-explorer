@@ -23,12 +23,13 @@ Charles Explorer is a tool for visualizing, searching, and exploring university 
 
 Unlike many university information systems, Charles Explorer is built for the web with the 21st century in mind.
 
-- ✅ Progressive enhancement (works without JavaScript)
+- ✅ Progressive enhancement (can work without JavaScript)
 - ✅ Accessibility
 - ✅ Responsive design
 - ✅ Linked Data integration
 - ✅ Simple internationalization
-- and more...
+
+Learn more about what Charles Explorer can offer in the [Features showcase](https://gitlab.mff.cuni.cz/barj/charles-explorer/-/wikis/features).
 
 <table align="center"><tr><td align="center" width="9999">
 <table align="center">
@@ -40,7 +41,12 @@ Unlike many university information systems, Charles Explorer is built for the we
 </td>
 <td align="center" width="300">
         <picture>
-          <img alt="Keyboard accessibility preview" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/img/i18n.gif?ref_type=heads" width="300">
+          <img alt="Internationalisation preview" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/img/i18n.gif?ref_type=heads" width="300">
+        </picture>
+</td>
+<td align="center" width="500">
+        <picture>
+          <img alt="Responsive design" src="https://gitlab.mff.cuni.cz/barj/charles-explorer/-/raw/master/docs/img/responsive.png?ref_type=heads" width="500">
         </picture>
 </td>
 </tr>
@@ -50,6 +56,9 @@ Unlike many university information systems, Charles Explorer is built for the we
 </td>
 <td align="center" width="300">
 🌍️ Internationalization
+</td>
+<td align="center" width="500">
+📱 Responsive design
 </td>
 </tr>
 </table>
