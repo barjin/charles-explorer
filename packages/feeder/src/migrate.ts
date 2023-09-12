@@ -153,11 +153,11 @@ export async function fixPeopleFaculties(prisma: typeof db) {
                         none: {}
                     },
                 },
-                {
-                    departments: {
-                        none: {}
-                    }
-                }
+                // {
+                //     departments: {
+                //         none: {}
+                //     }
+                // }
             ]
         },
         select: {
@@ -188,6 +188,11 @@ export async function fixPeopleFaculties(prisma: typeof db) {
                         faculties: true,
                     }
                 },
+                publications: {
+                    include: {
+                        faculties: true,
+                    }
+                },
             }
         });
 
@@ -203,6 +208,13 @@ export async function fixPeopleFaculties(prisma: typeof db) {
     
             for (const c of person.classes) {
                 for (const faculty of c.faculties) {
+                    faculties[faculty.id] ??= 0;
+                    faculties[faculty.id]++;
+                }
+            }
+
+            for (const p of person.publications) {
+                for (const faculty of p.faculties) {
                     faculties[faculty.id] ??= 0;
                     faculties[faculty.id]++;
                 }
