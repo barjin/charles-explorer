@@ -24,6 +24,8 @@ services:
         source: ./solr-data
         target: /var/solr/
     command: sh -c "chown -R 8983:8983 /var/solr"
+    networks:
+      - interhub
 
   solr:
     image: solr
