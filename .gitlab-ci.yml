@@ -24,7 +24,7 @@ deploy-job:       # This job runs in the build stage, which runs first.
   stage: deploy
   image: alpine
   rules:
-  - if: '$CI_COMMIT_REF_NAME == "master"'
+  - if: '$CI_COMMIT_REF_NAME == "master" && $CI_PIPELINE_SOURCE != "schedule"'
   script:
         - apk add --no-cache openssh-client
         - mkdir -p ~/.ssh
