@@ -18,6 +18,7 @@
 
 stages:          # List of stages for jobs, and their order of execution
   - deploy
+  - data-update
 
 deploy-job:       # This job runs in the build stage, which runs first.
   stage: deploy
@@ -31,3 +32,18 @@ deploy-job:       # This job runs in the build stage, which runs first.
         - chmod 600 ~/.ssh/id_rsa
         - ssh -o StrictHostKeyChecking=no bar@nomos.is.cuni.cz "echo 'Connected to server!'"
 
+data-update:
+  stage: data-update
+  image: alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+      allow_failure: false
+    - when: manual
+      allow_failure: true
+  script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$DATA_UPDATE_SSH_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh -o StrictHostKeyChecking=no bar@nomos.is.cuni.cz "echo 'Connected to server!'"
