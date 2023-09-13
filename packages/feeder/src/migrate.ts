@@ -220,7 +220,7 @@ export async function fixPeopleFaculties(prisma: typeof db) {
                 }
             }
     
-            const facultyIds = Object.entries(faculties).sort((a, b) => Number(b[1]) - Number(a[1])).map(x => x[0]);
+            const facultyIds = Object.entries(faculties).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0,1).map(x => x[0]);
     
             await prisma['person'].update({
                 where: {
