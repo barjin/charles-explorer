@@ -1,5 +1,5 @@
 import { Dialog } from '@headlessui/react'
-import logo from './logo.svg'
+import logo from '~/assets/logo.svg';
 import { useTranslation } from 'react-i18next';
 
 export function Modal({ isOpen, setIsOpen } : { isOpen: boolean, setIsOpen: (isOpen: boolean) => void }) {

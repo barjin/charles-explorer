@@ -11,11 +11,11 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 
-import { useChangeLanguage } from "~/utils/useChangeLanguage";
+import { useChangeLanguage } from "~/utils/hooks/useChangeLanguage";
 import { useTranslation } from "react-i18next";
 import i18next from "~/i18next.server";
 
-import logo from '~/components/Modal/logo.svg';
+import logo from '~/assets/logo.svg';
 
 export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: styles }]

@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from '@remix-run/react';
 import { type entityTypes } from '~/utils/entityTypes';
 import { capitalize } from '~/utils/lang';
-import { SearchBar } from './search/searchBar';
+import { SearchBar } from './SearchBar';
 import { CategoryIcons } from '~/utils/icons';
 import { useTranslation } from 'react-i18next';
 

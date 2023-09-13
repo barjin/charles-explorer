@@ -7,13 +7,13 @@ import { getLocalized } from "~/utils/lang";
 import { RelatedItem } from "~/components/RelatedItem";
 import { createMetaTitle } from "~/utils/meta";
 import { useCallback } from "react";
-import icon404 from "./../../img/404.svg";
+import icon404 from "~/assets/404.svg";
 import { groupBy } from "~/utils/groupBy";
 import { getTextFields } from "~/utils/retrievers";
-import { useLocalize } from "~/providers/LangContext";
+import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
 import remixi18n from '~/i18next.server';
-import { getRandomQuery } from "~/components/search";
+import { getRandomQuery } from "~/components/Search/SearchTool";
 
 function parseSearchParam(request: Request, key: string) {
     const url = new URL(request.url);
@@ -132,8 +132,6 @@ function SkeletonLoading() {
 export default function Category() {
     const records = useLoaderData();
     const { state } = useNavigation();
-
-
 
     return (
         state === 'loading' ? 

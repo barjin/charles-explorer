@@ -3,7 +3,7 @@ import { CategoryIcons } from "~/utils/icons";
 import { EntityParser, type entityTypes } from "~/utils/entityTypes";
 import { getFacultyColor } from "~/utils/colors";
 import { capitalize } from "~/utils/lang";
-import { useLocalize } from "~/providers/LangContext";
+import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
 
 export function getSteppedGradientCSS(colors: string[] | null) {

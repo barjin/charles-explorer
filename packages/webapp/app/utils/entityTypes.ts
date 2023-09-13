@@ -106,7 +106,7 @@ abstract class ParsedEntity {
           case 'M':
             return 'Mgr.';
           case 'D':
-            return 'Ph.D.';
+            return 'PhD.';
           case 'N':
             return 'Mgr.';
         }

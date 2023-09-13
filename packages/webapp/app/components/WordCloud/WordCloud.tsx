@@ -1,7 +1,7 @@
 import React, { useRef, memo, useEffect, useCallback } from 'react';
 import { CytoscapeWrapper } from './CytoscapeWrapper';
 import { getFacultyColor } from '~/utils/colors';
-import { useLocalize } from '~/providers/LangContext';
+import { useLocalize } from '~/utils/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
 import { useMatches, useNavigate } from '@remix-run/react';
 
