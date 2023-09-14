@@ -185,7 +185,7 @@ GROUP BY ID`,
                         id: row.FACULTY_ID,
                     }
                 },
-                languages: [iso6392BTo1[row.JAZYK] ?? 'cs'],
+                languages: [iso6392BTo1[row.JAZYK.toLowerCase()] ?? 'cs'],
                 programmes: {
                     connect: row.RELATED_PROGRAMMES?.split('/').map((x: any) => ({id: x})),
                 },
@@ -258,19 +258,19 @@ GROUP BY ID`,
                 },
                 names: {
                     create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang] ?? 'en',
+                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
                         value: x.title,
                     }))
                 },
                 abstract: {
                     create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang] ?? 'en',
+                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
                         value: x.abstract,
                     }))
                 },
                 keywords: {
                     create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang] ?? 'en',
+                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
                         value: x.keywords,
                     }))
                 },
