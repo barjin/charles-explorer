@@ -67,6 +67,7 @@ export async function loader({ params, request }: LoaderArgs) {
             category,
             query,
             title: t('search.search'),
+            description: t('rootMetaDesc'),
         };
     }
 
@@ -77,7 +78,8 @@ export function meta({ data }) {
     return [
         {
             title: createMetaTitle(data?.title),
-        }
+        },
+        { name: "description", content: data.description },
     ];
 }
 
