@@ -13,7 +13,7 @@ export const loader = async ({ request }) => {
     // handle "GET" request
   // separating xml content from Response to keep clean code. 
       const content = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   ${counts.map(({ entity, count }) => {
     const pages = Math.ceil(count / sitemapPageSize);
     let content = '';
