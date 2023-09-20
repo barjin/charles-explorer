@@ -19,6 +19,12 @@ export async function loader({ request }: { request: any }) {
   return redirect(getSearchUrl('class', getRandomQuery(locale as 'en' | 'cs')));
 }
 
+export function links () {
+  return [{
+    rel: 'canonical', href: "https://explorer.cuni.cz/",
+  }];
+}
+
 export function meta() {
   return [{
     title: createMetaTitle(),

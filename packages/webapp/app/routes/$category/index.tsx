@@ -74,12 +74,18 @@ export async function loader({ params, request }: LoaderArgs) {
     return redirect('/');
 }
 
+export function links () {
+    return [{
+      rel: 'canonical', href: "https://explorer.cuni.cz/",
+    }];
+}
+
 export function meta({ data }) {
     return [
         {
             title: createMetaTitle(data?.title),
         },
-        { name: "description", content: data.description },
+        { name: "description", content: data?.description },
     ];
 }
 
