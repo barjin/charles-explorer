@@ -51,5 +51,6 @@
     "notFoundDesc": "Stránka, kterou hledáte, nebyla nalezena.",
     "takingTooLong": "Systém nefunguje?",
     "contactUsAt": "Kontaktujte nás na",
-    "rootMetaDesc": "Discover the academic world of Charles University in Prague with the Charles Explorer app. Seamlessly search courses, connect with professors, explore publications, and find your ideal study program."
+    "rootMetaDesc": "Objevte akademický svět Univerzity Karlovy s aplikací Charles Explorer. Hladce vyhledávejte kurzy, spojujte se s profesory, prozkoumávejte publikace a najděte svůj ideální studijní program.",
+    "unknownFaculty": "{{ type }} na UK"
 }

@@ -96,7 +96,7 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
                 skeleton || !item ? <>&nbsp;</> :
                 item.getFaculties().length > 0 ? 
                   item.getFaculties().map(x => localize(x.names)).join(', ') ?? '' :
-                  `${capitalize(type)} at CUNI`
+                  `${capitalize(t('unknownFaculty', { type: t(type, { count: 1 }) }))}`
               }
             </div>
           </div>
