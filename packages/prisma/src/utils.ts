@@ -1,13 +1,18 @@
 import { Prisma } from "@prisma/client";
 import { db } from ".";
 
+/**
+ * Capitalizes the first letter of a string.
+ * @param str The string to capitalize.
+ * @returns The capitalized string.
+ */
 export function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
- * Returns a schema object for a given table name as an object
- * @param tableName Name of the table to get the schema for
+ * Returns a schema object for a given table name as an object.
+ * @param tableName Name of the table to get the schema for.
  * @returns Schema object for the given table, indexed by field name. Values of this object are objects containing the field's type and other metadata.
  */
 export function getTableSchema(tableName: string): Record<string, any> {
