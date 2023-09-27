@@ -1,6 +1,9 @@
 import * as React from "react";
 import { useNavigation } from "@remix-run/react";
 
+/**
+ * Renders a global loading bar that is displayed when the user navigates between pages.
+ */
 function GlobalLoading() {
   const transition = useNavigation();
   const active = transition.state !== "idle";

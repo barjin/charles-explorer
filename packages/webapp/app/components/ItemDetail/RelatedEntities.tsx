@@ -7,6 +7,12 @@ import { groupBy } from "~/utils/groupBy";
 import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Renders a list of entities related to the current item
+ * @param category The category of the entities
+ * @param collection The collection of the entities itself
+ * @param matching IDs of the entities that match the current query
+ */
 export default function RelatedEntities({ category, collection, matching }: { category: entityTypes, collection: any[], matching: any[] }){
     const [collapsed, setCollapsed] = useState<boolean>(false);
     const { localize } = useLocalize();

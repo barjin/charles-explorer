@@ -1,3 +1,6 @@
+/**
+ * Returns the robots.txt file
+ */
 export const loader = async ({ request }) => {   
     const sitemapUrl = new URL('/sitemap.xml', request.url);
 

@@ -9,6 +9,9 @@ import { useTranslation } from "react-i18next";
 import { useDebounce } from "~/utils/hooks/useDebounce";
 import SuggestionItem from "./SuggestionItem";
 
+/**
+ * Renders a search bar (input field) with the search history and suggestions.
+ */
 export function SearchBar() {
     const { search } = useLocation();
     const [searchHistory, setSearchHistory] = useState<{query: string, mode: entityTypes}[]>([]);

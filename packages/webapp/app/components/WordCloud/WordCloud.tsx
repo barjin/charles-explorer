@@ -7,6 +7,9 @@ import { useMatches, useNavigate } from '@remix-run/react';
 
 const NODES_LIMIT = 40;
 
+/**
+ * Renders a word cloud with the query and the most relevant keywords based on the current search results
+ */
 export function WordCloud() {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<CytoscapeWrapper | null>(null);

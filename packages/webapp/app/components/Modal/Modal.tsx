@@ -2,6 +2,9 @@ import { Dialog } from '@headlessui/react'
 import logo from '~/assets/logo.svg';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Renders a modal with information about the project
+ */
 export function Modal({ isOpen, setIsOpen } : { isOpen: boolean, setIsOpen: (isOpen: boolean) => void }) {
   const { t } = useTranslation();
 

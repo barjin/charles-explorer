@@ -3,6 +3,9 @@ import { capitalize } from "~/utils/lang";
 import { getSearchUrl } from "~/utils/backend";
 import { Link, useLocation } from "@remix-run/react";
 
+/**
+ * Renders a suggestion / history item in the dropdown menu of the search bar
+ */
 export default function SuggestionItem({x, i, activeIndex, setActiveIndex, setEnterSubmitInput}: {x: any, i: number, activeIndex: number, setActiveIndex: (i: number) => void, setEnterSubmitInput: (b: boolean) => void}) {
     const { localize } = useLocalize();
     const { search } = useLocation();

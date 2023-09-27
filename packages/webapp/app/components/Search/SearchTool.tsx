@@ -5,6 +5,10 @@ import { SearchBar } from './SearchBar';
 import { CategoryIcons } from '~/utils/icons';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Returns a random query from a list of queries for a given language
+ * @param language ISO 639-1 of the language to get the query for
+ */
 export function getRandomQuery(language: 'cs'|'en') {
     const queries = language === 'en' ? [
         'Machine learning',
@@ -30,6 +34,9 @@ export function getRandomQuery(language: 'cs'|'en') {
     return queries[Math.floor((+new Date())/5000) % queries.length];
 }
 
+/**
+ * Renders a search tool with a search bar and a category picker.
+ */
 export function SearchTool() {
     const { search } = useLocation();
     const searchMode = useParams<{ category: entityTypes }>().category!;

@@ -1,3 +1,10 @@
+/** 
+ * While the @charles-explorer/solr-client package handles all of the Solr communication, it treats all the Solr collections the same.
+ * 
+ * This file contains the logic for handling the different Solr collections separately 
+ * - e.g. a search for "class" has to search only in the class names and syllabi, but a search for "person" has to search for all the relevant classes and publications and join those together.
+ */ 
+
 import { type entityTypes } from "~/utils/entityTypes";
 import { db } from "@charles-explorer/prisma";
 import { Solr } from "@charles-explorer/solr-client";
@@ -12,6 +19,9 @@ if (envfile) {
 
 const DEFAULT_ROWS_LIMIT = 30;
 
+/**
+ * A client for searching in the Solr index. Uses the SolrClient class from @charles-explorer/solr-client.
+ */
 abstract class CategorySearchClient {
     category: entityTypes;
     searchClient: SearchClient;
@@ -33,7 +43,6 @@ abstract class CategorySearchClient {
         return this.searchClient.solr.getCollection(this.category).suggest(query, { rows, lang: 'cs' });
     }
 }
-
 class ClassSearchClient extends CategorySearchClient {
     constructor(searchClient: SearchClient) {
         super(searchClient);
@@ -114,6 +123,9 @@ class PersonSearchClient extends CategorySearchClient {
     }
 }
 
+/**
+ * A client managing the search in the Solr index and the keyword extraction from the Nanoker API.
+ */
 class SearchClient {
     public solr: Solr;
     public categoryClients = new Map<entityTypes, CategorySearchClient>();
@@ -129,14 +141,35 @@ class SearchClient {
         this.categoryClients.set('person', new PersonSearchClient(this));
     }
 
+    /**
+     * For the given category, searches the Solr index for the given query and returns the results.
+     * @param category Category name to search in.
+     * @param query Query to search for.
+     * @param options Options for the search.
+     * @returns A list of results from the Solr index.
+     */
     async search(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT, includeTextFields = false } = {}): Promise<any[]> {
         return this.categoryClients.get(category)!.search(query, { rows, includeTextFields });
     }
     
+    /**
+     * For the given category, searches the Solr index for the given query and returns the IDs of the results.
+     * @param category Category name to search in.
+     * @param query Query to search for.
+     * @param options Options for the search.
+     * @returns A list of result IDs from the Solr index.
+     */
     async searchIds(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT, ids } : {rows?: number, ids?: string[]} = {}): Promise<any[]> {
         return this.categoryClients.get(category)!.searchIds(query, { rows, ids });
     }
 
+    /**
+     * For the given category, searches the Solr index for the given query and returns "autocomplete-like" suggestions.
+     * @param category Category name to get suggestions for.
+     * @param query Query to get suggestions for.
+     * @param options Options for the search.
+     * @returns A list of suggestions from the Solr index.
+     */
     async suggest(category: entityTypes, query: string, { rows = DEFAULT_ROWS_LIMIT } = {}): Promise<any[]> {
         try {
             return await this.categoryClients.get(category)!.suggest(query, { rows });
@@ -146,6 +179,12 @@ class SearchClient {
         }
     }
 
+    /**
+     * For the given content, extracts keywords using the Nanoker API.
+     * @param content Content to extract keywords from.
+     * @param options Options for the keyword extraction.
+     * @returns A list of keywords extracted from the content with their scores.
+     */
     public async getKeywords(content: string, { lang }: { lang: 'en' | 'cs' }): Promise<{ value: string, score: string }[]> {
         const requestUrl = new URL(this.nanokerUrl);
         requestUrl.searchParams.append('lang', lang ?? 'cs');

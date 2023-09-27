@@ -3,6 +3,12 @@ import { entities } from "~/utils/entityTypes";
 
 export const sitemapPageSize = 1000;
 
+/**
+ * Returns the sitemap index for the Charles Explorer website.
+ * Since the sitemap is too large to be served in a single file, it is split into multiple files by entity type.
+ * 
+ * Available at /sitemap.xml
+ */
 export const loader = async ({ request }) => {
     const counts = await Promise.all(entities.map(async (entity) => {
       const count = await db[entity].count();

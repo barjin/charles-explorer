@@ -1,3 +1,8 @@
+/**
+ * A list of dummy keywords for every faculty. 
+ * 
+ * These are used in case the API call fails or there are not enough results from the API.
+ */
 export const DummyKeywords = [
     {
       code: 11140,

@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from "~/components/Modal/Modal"
 import logo_horizontal from '~/assets/logo_horizontal.svg';
 
+/**
+ * Renders the "tabs" with the project logo, the info button and the language switcher 
+ */
 export default function Topbar() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { search } = useLocation();

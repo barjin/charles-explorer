@@ -2,6 +2,9 @@ import { db } from "~/connectors/prisma";
 import { isValidEntity } from "~/utils/entityTypes";
 import { sitemapPageSize } from "../[sitemap.xml]";
 
+/**
+ * Returns the sitemap for the given entity type and page number.
+ */
 export const loader = async ({ params, request }) => {
   const url = new URL(request.url);
   const { category } = params;

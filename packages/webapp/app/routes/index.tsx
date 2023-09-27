@@ -13,24 +13,36 @@ import { useTranslation } from 'react-i18next';
 import remixi18n from '~/i18next.server';
 import Topbar from "~/components/Topbar/Topbar"
 
+/**
+ * Redirects the user from the root of the website to a random search query.
+ */
 export async function loader({ request }: { request: any }) {
   const locale = await remixi18n.getLocale(request);
 
   return redirect(getSearchUrl('class', getRandomQuery(locale as 'en' | 'cs')));
 }
 
+/**
+ * Sets the canonical link for the root of the website.
+ */
 export function links () {
   return [{
     rel: 'canonical', href: "https://explorer.cuni.cz/",
   }];
 }
 
+/**
+ * Sets the meta title for the root of the website.
+ */
 export function meta() {
   return [{
     title: createMetaTitle(),
   }];
 }
 
+/**
+ * Renders the root of the website.
+ */
 export default function Index() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();

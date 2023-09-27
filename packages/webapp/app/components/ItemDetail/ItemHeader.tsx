@@ -10,6 +10,9 @@ import { capitalize } from "~/utils/lang";
 
 import Twemoji from 'react-twemoji';
 
+/**
+ * Renders a circular icon with a background color
+ */
 function IconWithBackground({ icon, background, size, className }: { icon: React.ReactNode, background: string, size?: number, className?: string }) {
     if(!size) size = 12
   
@@ -20,6 +23,11 @@ function IconWithBackground({ icon, background, size, className }: { icon: React
     )
 }
 
+/**
+ * Renders a header for an item with the name, category, faculties and external links
+ * 
+ * Used in the item detail page.
+ */
 export default function ItemHeader({ data } : { data: any }) {
     const { t } = useTranslation()
     const { localize } = useLocalize();

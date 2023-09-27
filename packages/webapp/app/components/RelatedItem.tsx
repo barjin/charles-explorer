@@ -6,10 +6,18 @@ import { capitalize } from "~/utils/lang";
 import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Returns a CSS gradient string with the given colors
+ * @param colors Array of color hex codes
+ * @returns A CSS gradient string
+ */
 export function getSteppedGradientCSS(colors: string[] | null) {
     return `linear-gradient(135deg, ${[...colors.map((color, i) => `${color} ${i * 100 / (colors.length)}%, ${color} ${(i+1) * 100 / (colors.length)-0.01}%`), `${colors[colors.length - 1]} 100%`].join(', ')})`;
 }
 
+/**
+ * Renders a (clickable) link or a `div` depending on the `disabled` prop
+ */
 function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
   if (props.disabled) {
     return <div {...props as any} />
@@ -18,6 +26,9 @@ function Linkv2(props: Parameters<typeof Link>[0] & { disabled?: boolean}) {
   return <Link {...props} />
 }
 
+/**
+ * Renders a single related item with a link to the item detail page
+ */
 export function RelatedItem({ items, type, matching }: { items: any, type: entityTypes | 'skeleton', matching?: boolean }) {
     const { search } = useLocation();
     const { localize } = useLocalize();
