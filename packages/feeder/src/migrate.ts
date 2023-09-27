@@ -239,6 +239,11 @@ export async function fixPeopleFaculties(prisma: typeof db) {
     singleBar.stop();
 }
 
+/**
+ * Returns a function that maps private IDs to public IDs. This can be useful when the user is matching data using the private IDs.
+ * @param prisma Instance of the Prisma client
+ * @returns A function that maps private IDs to public IDs.
+ */
 async function getPeoplePrivToPubl(prisma: typeof db) {
     const people = await prisma['person'].findMany({
         select: {
@@ -251,6 +256,14 @@ async function getPeoplePrivToPubl(prisma: typeof db) {
     return (id: string) => mapping[id];
 }
 
+/**
+ * Runs the data joining task. This task connects the data in the Prisma database by inserting records into the join tables.
+ * @param inDB SQLite database instance
+ * @param outDB Prisma client instance
+ * @param tableName Current table name
+ * @param transformer Transformer object - contains an SQL query and a transform function that maps rows (results of the query) to prisma objects
+ * @param options Options object
+ */
 export async function connectPrismaEntities(inDB: AsyncDatabase, outDB: typeof db, tableName: string, transformer: Transformers['class'], options?: { batchSize?: number }) {
     const batchSize = options?.batchSize ?? 1000;
     const schema = getTableSchema(tableName);

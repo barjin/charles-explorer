@@ -1,3 +1,15 @@
+/**
+ * This file is the main entry point for the migration script.
+ * 
+ * It is responsible for:
+ * - Creating the database schema
+ * - Migrating the data from the SQLite database to the Prisma database
+ * - Joining the data in the Prisma database
+ * - Inserting the data into Solr
+ * 
+ * Before running this script, make sure your target database / Solr is clean. Multiple runs of this script will most likely result in duplicate and / or inconsistent data.
+ */
+
 import { db } from '@charles-explorer/prisma';
 
 import { AsyncDatabase } from 'promised-sqlite3';
