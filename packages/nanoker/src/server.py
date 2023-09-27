@@ -20,6 +20,9 @@ app = FastAPI()
 
 @app.post('/')
 async def post_request(data: Request, lang: str = "en"):
+    """
+    Returns keywords for the given text passed in the request body.
+    """
 
     tagger = lang == "cs" and cs_tagger or en_tagger
     idf_doc_count = lang == "cs" and cs_idf_doc_count or en_idf_doc_count
