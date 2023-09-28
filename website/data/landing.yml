@@ -1,0 +1,70 @@
+# Note: Template blocks require a 'weight' parameter so they're correctly ordered on the landing page
+
+# Hero
+hero:
+  enable: true
+  weight: 10
+
+  backgroundImage:
+    path: "images/templates/hero"
+    filename:
+      desktop: "gradient-desktop.webp"
+      mobile: "gradient-mobile.webp"
+
+  # badge:
+  #   text: v0.0.2
+  #   color: primary # primary, secondary, success, danger, warning, info, light, dark
+  #   pill: false # boolean
+  #   soft: true # boolean
+
+  titleLogo:
+    path: "images"
+    filename: "logo.png"
+    alt: "Lotus Docs Logo"
+    height: 100px
+
+  subtitle: "A university search engine for the 21st century. Find the best **courses**, study **programmes** or publications at your university **in seconds**."
+
+  image:
+    path: "images" # path to image under configured assets directory. default 'images'
+    filename: "hero.png" # filename of your hero image (including file extension)
+    alt: "Charles Explorer screenshot" # Optional but recommended
+    boxShadow: true # default 'false' (excludes .svg images)
+    rounded: true # round the image corners? default 'false' (excludes .svg images)
+
+  ctaButton:
+    icon: rocket_launch
+    btnText: "Try it out"
+    url: "https://explorer.cuni.cz"
+  cta2Button:
+    icon: construction
+    btnText: "Read the Docs"
+    url: "./docs/home"
+
+  info: "**Open Source**, built on Open Source."
+
+# Features Grid
+features:
+  enable: true
+  weight: 20
+
+  title: Why choose Charles Explorer?
+  subtitle: "Discover the best courses, study programmes, and publications at your university with Charles Explorer - the fast, SEO-friendly, and secure search engine built for the 21st century."
+
+  items:
+    - title: Fast
+      icon: speed
+      description: With `p99` response times of less than 5 seconds, Charles Explorer is one of the fastest search engines for academic data.
+
+    - title: SEO Friendly
+      icon: trending_up
+      description: Data is automatically structured to be SEO friendly. Includes Meta tags, Linked data and localized descriptions.
+
+    - title: Accessible
+      icon: Accessibility
+      description: Charles Explorer is built with accessibility in mind. It is fully keyboard navigable and includes ARIA attributes.
+
+# Image compare
+image_compare:
+  enable: false
+  weight: 30

@@ -1,0 +1,30 @@
+baseURL = 'https://gitlab.mff.cuni.cz/barj/charles-explorer'
+languageCode = 'en-us'
+title = 'Charles Explorer | Documentation'
+
+[module]
+    [[module.imports]]
+        path = "github.com/colinwilson/lotusdocs"
+        disable = false
+    [[module.imports]]
+        path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
+        disable = false
+
+[[menu.primary]]
+    name  = "Docs"
+    url = "./docs/home"
+    identifier = "docs"
+    weight = 10
+
+[[menu.primary]]
+    name  = "Source code"
+    url = "https://gitlab.mff.cuni.cz/barj/charles-explorer"
+    identifier = "gitlab"
+    weight = 20  
+
+[params.docs]
+    sidebarIcons = true
+    themeColor = "cyan"
+
+[params.footer]
+    copyright = "© :YEAR: [Jindřich Bär](https://jindrich.bar) & [MFF UK](https://mff.cuni.cz). Documentation built with [Hugo](https://gohugo.io)."
