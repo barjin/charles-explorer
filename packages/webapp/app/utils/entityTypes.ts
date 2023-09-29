@@ -18,6 +18,9 @@ export const getPlural = (entity: entityTypes): string => {
     return entitiesPlurals[entity];
 }
 
+/**
+ * A common interface for all parsed entities.
+ */
 abstract class ParsedEntity {
     protected data: Record<string, any>;
   

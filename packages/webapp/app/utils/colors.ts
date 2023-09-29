@@ -18,6 +18,13 @@ const facultyIds = [
   11130
 ];
 
+/**
+ * Convert HSL to RGB
+ * @param h Hue (0-360)
+ * @param s Saturation (0-100)
+ * @param l Lightness (0-100)
+ * @returns The RGB color as an array of numbers (e.g. `[255, 0, 0]`)
+ */
 const HSLToRGB = (h, s, l) => {
     s /= 100;
     l /= 100;
@@ -28,6 +35,13 @@ const HSLToRGB = (h, s, l) => {
     return [255 * f(0), 255 * f(8), 255 * f(4)];
 };
 
+/**
+ * Based on the faculty id, return a color. The colors are picked from the HSL color space - the hues are spaced evenly, and the saturation and lightness are fixed.
+ * @param facultyId Faculty id to get the color for
+ * @param s Color saturation (0-100)
+ * @param l Color lightness (0-100)
+ * @returns The color as a hex string (e.g. `#ff0000`)
+ */
 export function getFacultyColor(facultyId: string, s = 100, l = 30) {
   const faculty = facultyIds.findIndex((faculty) => String(faculty) === facultyId);
   

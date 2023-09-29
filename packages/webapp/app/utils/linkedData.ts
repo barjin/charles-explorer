@@ -7,6 +7,9 @@ const categoryToClass: Record<entityTypes, string> = {
     publication: "https://schema.org/CreativeWork"
 }
 
+/**
+ * JSON-LD context for the whole application.
+ */
 const commonContext = { 
     "@context": { 
         "schema": "https://schema.org/",
@@ -39,6 +42,9 @@ const commonContext = {
         }
     } };
 
+/**
+ * Common interface for all Linked Data transformers.
+ */
 abstract class LinkedDataTransformer {
     protected url: string;
     transform (data: Record<string, any>): Record<string, any> {
@@ -50,6 +56,9 @@ abstract class LinkedDataTransformer {
     }
 }
 
+/**
+ * Transformer for the `person` category.
+ */
 class PersonTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
@@ -80,6 +89,9 @@ class PersonTransformer extends LinkedDataTransformer {
     }
 }
 
+/**
+ * Transformer for the `class` category.
+ */
 class ClassTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
@@ -118,6 +130,9 @@ class ClassTransformer extends LinkedDataTransformer {
     }
 }
 
+/**
+ * Transformer for the `publication` category.
+ */
 class PublicationTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
@@ -144,6 +159,9 @@ class PublicationTransformer extends LinkedDataTransformer {
     }
 }
 
+/**
+ * Transformer for the `programme` category.
+ */
 class ProgrammeTransformer extends LinkedDataTransformer {
     transform(data: Record<string, any>) {
         return {
@@ -166,6 +184,9 @@ class ProgrammeTransformer extends LinkedDataTransformer {
     }
 }
 
+/**
+ * A common "hub" for all Linked Data transformers.
+ */
 export class LinkedDataProcessor {
     private baseUrl: string;
 

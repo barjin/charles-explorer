@@ -10,12 +10,20 @@ const LangContext = createContext<LangContextType>({
   localize: () => "",
 });
 
+/**
+ * A hook to access the lang and localize function. 
+ * This is used to localize the **data** in the app - for localization of the UI, use the `react-i18next` library.
+ * @returns 
+ */
 export const useLocalize = () => useContext(LangContext);
 
 type LangProviderProps = LangContextType & {
     children: React.ReactNode;
 };
 
+/**
+ * Language context provider.
+ */
 export const LangProvider = ({
   lang,
   localize,
