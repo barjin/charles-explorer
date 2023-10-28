@@ -16,4 +16,4 @@ charles-explorer.db
 *.AppImage
 *.sqlite3
 
-website/*
+website

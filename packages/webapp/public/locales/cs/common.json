@@ -20,7 +20,10 @@
         "dataIntegration": "Integrace dat ze SIS UK",
         "inCollaborationWith": "Ve spolupráci s",
         "inCollaborationWithOther": "a dalšími",
-        "contact": "Našli jste chybu? Máte nápad na zlepšení? Napište nám na "
+        "contact": "Našli jste chybu? Máte nápad na zlepšení? Napište nám na ",
+        "betaVersion": "Používáte beta verzi aplikace Charles Explorer",
+        "betaDescription": "Tato verze je v testovacím provozu a může obsahovat chyby. Pokud narazíte na nějakou chybu, nebojte se nám napsat!",
+        "currentBetaFeatures": "Funkce aktuálně dostupné v beta verzi"
     },
     "class_one": "předmět",
     "thisClass": "tento předmět",

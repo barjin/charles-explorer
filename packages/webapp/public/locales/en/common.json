@@ -20,7 +20,10 @@
         "dataIntegration": "Integration of data from SIS UK",
         "inCollaborationWith": "In collaboration with",
         "inCollaborationWithOther": "and others",
-        "contact": "Did you find a mistake? Do you have an idea for improvement? Contact us at "
+        "contact": "Did you find a mistake? Do you have an idea for improvement? Contact us at ",
+        "betaVersion": "You are currently using a beta version of Charles Explorer.",
+        "betaDescription": "The beta version is a testing version of the application. It is not yet fully functional and may contain errors. If you encounter any errors, don't hesitate to contact us!",
+        "currentBetaFeatures": "Current beta features"
     },
     "class_one": "class",
     "class_other": "classes",
