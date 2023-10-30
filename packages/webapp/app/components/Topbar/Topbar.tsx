@@ -1,13 +1,41 @@
 import Twemoji from 'react-twemoji';
-import { Link, useLocation } from '@remix-run/react';
+import { Link, useLocation, useNavigate, useNavigation, useSearchParams } from '@remix-run/react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Modal, modalTypes } from "~/components/Modal/Modal"
 import logo_horizontal from '~/assets/logo_horizontal.svg';
 import { useBeta } from '~/utils/hooks/useBeta';
+import { BiNetworkChart } from 'react-icons/bi';
 
 type ModalType = keyof typeof modalTypes;
+
+function CloudNetSwitch() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const view = searchParams.get('view') ?? 'cloud';
+
+    return (
+        <button
+            onClick={() => {
+                setSearchParams((prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set('view', view === 'cloud' ? 'network' : 'cloud');
+                    return next;
+                });
+            }}
+            className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
+            title='Switch between cloud and network view'
+        >
+            {
+                view === 'cloud' ? 
+                <Twemoji options={{ className: 'twemoji' }}>
+                    { view === 'cloud' ? '☁️' : '🌐' }
+                </Twemoji> :
+                <BiNetworkChart/>
+            }
+        </button>
+    )
+}
 
 /**
  * Renders the "tabs" with the project logo, the info button and the language switcher 
@@ -40,16 +68,19 @@ export default function Topbar() {
             <span className="flex-1"></span>
             {
                 useBeta() && (
-                    <button
-                    onClick={() => openModal('beta')}
-                    className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
-                    >
-                    {
-                    <Twemoji options={{ className: 'twemoji' }}>
-                        🔮
-                    </Twemoji>
-                    }
-                </button>
+                    <>
+                        <CloudNetSwitch />
+                        <button
+                            onClick={() => openModal('beta')}
+                            className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
+                            >
+                            {
+                            <Twemoji options={{ className: 'twemoji' }}>
+                                🔮
+                            </Twemoji>
+                            }
+                        </button>
+                    </>
                 )
             }
             <button

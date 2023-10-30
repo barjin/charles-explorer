@@ -19,7 +19,7 @@ import Topbar from "~/components/Topbar/Topbar"
 export async function loader({ request }: { request: any }) {
   const locale = await remixi18n.getLocale(request);
 
-  return redirect(getSearchUrl('class', getRandomQuery(locale as 'en' | 'cs')));
+  return redirect(getSearchUrl('class', getRandomQuery(locale as 'en' | 'cs'), new URL(request.url).searchParams));
 }
 
 /**
