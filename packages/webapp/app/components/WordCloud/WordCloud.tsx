@@ -96,7 +96,7 @@ export function WordCloud() {
     return <GraphInternal r={graphRef} />;
 }
 
-const GraphInternal = memo(
+export const GraphInternal = memo(
     function GraphInternal ( props: { r: React.RefObject<HTMLDivElement> } ) {
         return (
             <div
@@ -114,4 +114,5 @@ const GraphInternal = memo(
             >
             </div>
         );
-    }, () => true, );
+    }, () => true, 
+);

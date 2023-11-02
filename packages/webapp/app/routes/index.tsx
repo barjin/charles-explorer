@@ -1,7 +1,8 @@
 import { redirect } from "@remix-run/node"
-import { Outlet, useLocation } from "@remix-run/react"
+import { Outlet, useLocation, useSearchParams } from "@remix-run/react"
 import { SearchTool, getRandomQuery } from "~/components/Search/SearchTool"
-import { WordCloud } from "~/components/WordCloud/WordCloud"
+import { WordCloud } from "~/components/WordCloud/WordCloud";
+import { NetworkView } from "~/components/WordCloud/NetworkView"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
@@ -48,6 +49,7 @@ export default function Index() {
   const { pathname } = useLocation();
   const [ prevLoc, setPrevLoc ] = useState(pathname);
   const { i18n } = useTranslation();
+  const [searchParams] = useSearchParams();
 
   const lang = i18n.language as 'cs'|'en';
 
@@ -77,7 +79,11 @@ export default function Index() {
               </div>
             </div>
         <div className="h-full col-span-2 hidden xl:block">
-          <WordCloud />
+          { 
+            searchParams?.get('view') === 'network' ? 
+              <NetworkView /> :
+              <WordCloud />
+          }
         </div>
       </div>
     </LangProvider>

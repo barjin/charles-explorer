@@ -1,5 +1,5 @@
 import Twemoji from 'react-twemoji';
-import { Link, useLocation, useNavigate, useNavigation, useSearchParams } from '@remix-run/react';
+import { Link, useLocation, useNavigate, useNavigation, useParams, useSearchParams } from '@remix-run/react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,11 @@ type ModalType = keyof typeof modalTypes;
 
 function CloudNetSwitch() {
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const { category, id } = useParams();
     const view = searchParams.get('view') ?? 'cloud';
+
+    if(category !== 'person' || !id) return null;
 
     return (
         <button
