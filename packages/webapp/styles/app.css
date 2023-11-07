@@ -5,3 +5,7 @@
 .twemoji {
     width: 1em;
 }
+
+.sunburst-viz .tooltip {
+    max-width: none !important;
+}

@@ -45,6 +45,12 @@ export async function loader({ request, params }: LoaderArgs) {
                 private_id: true,
                 id: true,
                 names: true,
+                faculties: {
+                    select: {
+                        id: true,
+                        names: true,
+                    }
+                }
             }
         });
 

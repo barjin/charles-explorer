@@ -33,7 +33,8 @@
     "react-i18next": "^13.2.1",
     "react-icons": "^4.10.1",
     "react-twemoji": "^0.5.0",
-    "remix-i18next": "^5.3.0"
+    "remix-i18next": "^5.3.0",
+    "sunburst-chart": "^1.19.0"
   },
   "engines": {
     "node": ">=14.0.0"

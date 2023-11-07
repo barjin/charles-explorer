@@ -1,11 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { GraphInternal, WordCloud } from './WordCloud';
-import cytoscape from 'cytoscape';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore 
-import fcose from 'cytoscape-fcose';
 import { useLocation, useNavigate, useParams } from '@remix-run/react';
-
+import cytoscape from 'cytoscape';
+// @ts-ignore
+import fcose from 'cytoscape-fcose';
 /**
  * Renders a social network view on entities and their relationships
  */
@@ -21,8 +20,6 @@ export function NetworkView() {
         if(graphRef.current && window.screen.width > 1280 && id && category === 'person') {
             (async () => {
                 const networkData: any = await fetch(`/person/network?id=${id}`).then(x => x.json());
-
-                console.log(networkData);
 
                 cytoscape.use(fcose);
 
@@ -120,3 +117,7 @@ export function NetworkView() {
 
     return <GraphInternal r={graphRef} />;
 }
+
+/**
+ * Renders a sunburst view on entities and their relationships
+ */

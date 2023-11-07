@@ -863,6 +863,10 @@ video {
   justify-content: space-around;
 }
 
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
 .gap-4 {
   gap: 1rem;
 }
@@ -1343,6 +1347,10 @@ video {
 
 .twemoji {
   width: 1em;
+}
+
+.sunburst-viz .tooltip {
+  max-width: none !important;
 }
 
 .hover\:cursor-pointer:hover {

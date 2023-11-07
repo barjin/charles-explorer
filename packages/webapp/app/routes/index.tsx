@@ -12,7 +12,8 @@ import { LangProvider } from "~/utils/providers/LangContext"
 import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 import remixi18n from '~/i18next.server';
-import Topbar from "~/components/Topbar/Topbar"
+import Topbar, { viewTypes } from "~/components/Topbar/Topbar"
+import { Sunburst } from "~/components/WordCloud/Sunburst";
 
 /**
  * Redirects the user from the root of the website to a random search query.
@@ -80,9 +81,13 @@ export default function Index() {
             </div>
         <div className="h-full col-span-2 hidden xl:block">
           { 
-            searchParams?.get('view') === 'network' ? 
-              <NetworkView /> :
+            searchParams.get('view') === 'cloud' ? (
               <WordCloud />
+            ) : searchParams.get('view') === 'network' ? (
+              <NetworkView />
+            ) : (
+              <Sunburst />
+            )
           }
         </div>
       </div>
