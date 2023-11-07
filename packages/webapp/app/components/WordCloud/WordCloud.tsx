@@ -97,12 +97,13 @@ export function WordCloud() {
 }
 
 export const GraphInternal = memo(
-    function GraphInternal ( props: { r: React.RefObject<HTMLDivElement> } ) {
+    function GraphInternal ( props: { r?: React.RefObject<HTMLDivElement>, children?: React.ReactNode, className?: string } ) {
         return (
             <div
                 ref={props.r}
                 id="cy" 
                 className={`
+                    ${props.className ?? ''}
                     w-full 
                     h-full 
                     background-slate-50 
@@ -112,6 +113,7 @@ export const GraphInternal = memo(
                 `}
                 style={{backgroundSize: '150px', backgroundPosition: '98% 98%'}}
             >
+                {props.children}
             </div>
         );
     }, () => true, 
