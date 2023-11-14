@@ -4,6 +4,7 @@ import { GraphInternal, WordCloud } from './WordCloud';
 import { useLocation, useNavigate, useParams } from '@remix-run/react';
 import { getFacultyColor } from '~/utils/colors';
 import { groupBy } from '~/utils/groupBy';
+import { stripTitles } from '~/utils/people';
 
 async function SunburstChart(...props: any) {
     return import('sunburst-chart').then(x => x.default(...props));
@@ -30,7 +31,7 @@ export function Sunburst() {
                         if(d.type === 'person') {
                             return navigate(`/person/${d.id}?` + search.substring(1));
                         } else {
-                            return sunburst.current.focusOnNode(d);
+                            return d ? sunburst.current?.focusOnNode(d) : null;
                         }
                     });
 
@@ -43,26 +44,27 @@ export function Sunburst() {
 
                 if (sunburst.current.data()?.id !== id) {
                     const networkData: any = await fetch(`/person/network?id=${id}`).then(x => x.json());
-
-                    if(sunburst.current.data()) {
-                        sunburst.current.focusOnNode(sunburst.current.data());
+                    
+                    const data = sunburst.current.data();
+                    if(data) {
+                        sunburst.current?.focusOnNode(data);
                     }
 
                     sunburst.current.data({
                         id: networkData.me.id,
-                        name: networkData.me.names[0].value,
-                        children: Object.values(groupBy(networkData.friends, x => x.faculties[0].id)).map((x: any) => ({
-                            name: x[0].faculties[0].names[0].value,
+                        name: stripTitles(networkData.me.names[0].value),
+                        children: Object.values(groupBy(networkData.friends, x => x.faculties[0]?.id ?? 'Unknown')).map((x: any) => ({
+                            name: x[0].faculties[0]?.names[0].value ?? 'Unknown faculty',
                             children: x.map((y: any) => ({
-                                name: `${y.names[0].value} (${y.score})`,
+                                name: `${stripTitles(y.names[0].value)} (${y.score})`,
                                 id: y.id,
                                 value: y.score,
                                 type: 'person',
-                                faculty: y.faculties[0].id,
+                                faculty: y.faculties[0]?.id ?? 10000,
                             })),
                             value: 0,
                             type: 'faculty',
-                            faculty: x[0].faculties[0].id,
+                            faculty: x[0].faculties[0]?.id ?? 10000,
                         })),
                         faculty: networkData.me.faculties[0].id,
                     });
