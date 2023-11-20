@@ -63,7 +63,7 @@ function ViewmodeSwitch() {
   if(category !== 'person' || !id) return null;
 
   return (
-        <div className="absolute top-1/3 -right-4">
+        <div className="absolute top-1/3 -right-4 hidden xl:block">
           {
             viewTypes.map((v, i, a) => (
               <div 

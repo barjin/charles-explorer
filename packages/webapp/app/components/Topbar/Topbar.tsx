@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Modal, type modalTypes } from "~/components/Modal/Modal"
 import logo_horizontal from '~/assets/logo_horizontal.svg';
-import { useBeta } from '~/utils/hooks/useBeta';
 
 type ModalType = keyof typeof modalTypes;
 
@@ -38,23 +37,6 @@ export default function Topbar() {
                 <img src={logo_horizontal} alt="Charles Explorer logo" />
             </div>
             <span className="flex-1"></span>
-            {
-                useBeta() && (
-                    <>
-                        <CloudNetSwitch />
-                        <button
-                            onClick={() => openModal('beta')}
-                            className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
-                            >
-                            {
-                            <Twemoji options={{ className: 'twemoji' }}>
-                                🔮
-                            </Twemoji>
-                            }
-                        </button>
-                    </>
-                )
-            }
             <button
                 onClick={() => openModal('info')}
                 className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
