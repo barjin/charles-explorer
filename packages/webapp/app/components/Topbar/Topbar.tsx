@@ -1,51 +1,13 @@
 import Twemoji from 'react-twemoji';
-import { Link, useLocation, useParams, useSearchParams } from '@remix-run/react';
+import { Link, useLocation } from '@remix-run/react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Modal, type modalTypes } from "~/components/Modal/Modal"
 import logo_horizontal from '~/assets/logo_horizontal.svg';
 import { useBeta } from '~/utils/hooks/useBeta';
-import { BiNetworkChart } from 'react-icons/bi';
-import { TbChartDonut } from 'react-icons/tb';
-import { WordCloud } from '../WordCloud/WordCloud';
-import { NetworkView } from '../WordCloud/NetworkView';
-import { SunburstView } from '../WordCloud/Sunburst';
 
 type ModalType = keyof typeof modalTypes;
-
-export const viewTypes = [
-    { name: 'cloud', icon: () => <Twemoji options={{ className: 'twemoji' }}>☁️</Twemoji>, component: WordCloud },
-    { name: 'network', icon: BiNetworkChart, component: NetworkView },
-    { name: 'sunburst', icon: TbChartDonut, component: SunburstView },
-] as const;
-
-function CloudNetSwitch() {
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    const { category, id } = useParams();
-    const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
-
-    if(category !== 'person' || !id) return null;
-
-    return (
-        <button
-            onClick={() => {
-                setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set('view', viewTypes[(viewTypes.findIndex((v) => v.name === view) + 1) % viewTypes.length].name);
-                    return next;
-                });
-            }}
-            className="text-slate-400 bg-white px-2 text-xl rounded-md rounded-b-none shadow-md hover:text-slate-500 p-2 h-full flex flex-col justify-center items-center" 
-            title='Switch between cloud and network view'
-        >
-            {
-                viewTypes.find((v) => v.name === view)?.icon({})
-            }
-        </button>
-    )
-}
 
 /**
  * Renders the "tabs" with the project logo, the info button and the language switcher 

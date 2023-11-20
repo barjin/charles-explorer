@@ -1,5 +1,5 @@
 import { redirect } from "@remix-run/node"
-import { Outlet, useLocation, useSearchParams } from "@remix-run/react"
+import { Outlet, useLocation, useParams, useSearchParams } from "@remix-run/react"
 import { SearchTool, getRandomQuery } from "~/components/Search/SearchTool"
 import { WordCloud } from "~/components/WordCloud/WordCloud";
 import { NetworkView } from "~/components/WordCloud/NetworkView"
@@ -12,8 +12,13 @@ import { LangProvider } from "~/utils/providers/LangContext"
 import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 import remixi18n from '~/i18next.server';
-import Topbar, { viewTypes } from "~/components/Topbar/Topbar"
+import Topbar from "~/components/Topbar/Topbar"
 import { SunburstView } from "~/components/WordCloud/Sunburst";
+import { BiNetworkChart } from "react-icons/bi";
+import { MdCloudQueue } from "react-icons/md";
+import { TbChartArcs, TbChartDonut } from "react-icons/tb";
+import { ChordChart } from "~/components/WordCloud/ChordChart";
+import { useBeta } from "~/utils/hooks/useBeta";
 
 /**
  * Redirects the user from the root of the website to a random search query.
@@ -42,6 +47,42 @@ export function meta() {
   }];
 }
 
+export const viewTypes = [
+  { name: 'cloud', icon: MdCloudQueue, component: WordCloud },
+  { name: 'network', icon: BiNetworkChart, component: NetworkView },
+  { name: 'sunburst', icon: TbChartDonut, component: SunburstView },
+  { name: 'chord', icon: TbChartArcs, component: ChordChart },
+] as const;
+
+function ViewmodeSwitch() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const { category, id } = useParams();
+  const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
+
+  if(category !== 'person' || !id) return null;
+
+  return (
+        <div className="absolute top-1/3 -right-4">
+          {
+            viewTypes.map((v, i, a) => (
+              <div 
+                key={v.name}
+                onClick={() => {
+                  setSearchParams((prev) => {
+                      const next = new URLSearchParams(prev);
+                      next.set('view', v.name);
+                      return next;
+                  });
+                }}
+                className={`w-8 h-9 p-1 ${i == 0 ? 'rounded-tr-md' : ''} ${i === a.length - 1 ? 'rounded-br-md': ''} shadow-md cursor-pointer flex items-center justify-center ${v.name === view ? 'bg-slate-100' : 'bg-white'}`}>
+                {typeof v.icon === 'function' ? v.icon({size: 30, color: v.name === view ? '#1F2937' : '#9CA3AF'}) : v.icon}
+              </div>
+            ))
+          }
+        </div>
+  )
+}
 /**
  * Renders the root of the website.
  */
@@ -66,7 +107,7 @@ export default function Index() {
     <GlobalLoading />
     <LangProvider lang={lang} localize={(token) => localize(token, { lang })}>
       <div className="grid grid-cols-1 xl:grid-cols-3 h-full">
-        <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4">
+        <div className="h-full col-span-1 bg-slate-100 box-border flex flex-col xl:h-screen xl:p-4 relative">
             <Topbar />
             <div className="bg-white xl:rounded-md xl:rounded-tr-none box-border flex-1 shadow-lg xl:h-screen overflow-hidden">
               <SearchTool />
@@ -77,17 +118,24 @@ export default function Index() {
                 >
                   <Outlet/>
                 </div>
-              </div>
             </div>
+            {
+              useBeta() && (
+                <ViewmodeSwitch />
+              )
+            }
+        </div>
         <div className="h-full col-span-2 hidden xl:block">
           { 
-            searchParams.get('view') === 'cloud' ? (
-              <WordCloud />
+            searchParams.get('view') === 'sunburst' ? (
+              <SunburstView />
             ) : searchParams.get('view') === 'network' ? (
               <NetworkView />
+            ) : searchParams.get('view') === 'chord' ? (
+              <ChordChart />
             ) : (
-              <SunburstView />
-            )
+              <WordCloud />
+            ) 
           }
         </div>
       </div>
