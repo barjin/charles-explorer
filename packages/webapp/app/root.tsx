@@ -80,6 +80,13 @@ export default function App() {
         <Meta />
         <Links />
       </head>
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-W8ERPYSLFH"></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-W8ERPYSLFH');`}} />
       <body className="h-screen bg-slate-100">
         <Outlet />
         <ScrollRestoration />
