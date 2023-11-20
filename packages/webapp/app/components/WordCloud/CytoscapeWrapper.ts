@@ -6,7 +6,7 @@ import fcose from 'cytoscape-fcose';
 /**
  * A scene is a set of nodes and edges that are rendered at the same time.
  */
-class RenderingScene {
+export class RenderingScene {
     private manager: CytoscapeWrapper;
     private collection: any[] = [];
     private sceneElements: any = [];
@@ -318,9 +318,9 @@ export class CytoscapeWrapper {
     }
 
     /**
-     * Returns the currently rendered scene.
+     * Returns the currently rendered scene or null if no scene is being rendered.
      */
     public getCurrentScene() {
-        return this.scenes[0];
+        return this.scenes[0] ?? null;
     }
 }

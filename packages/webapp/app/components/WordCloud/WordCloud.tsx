@@ -1,5 +1,5 @@
 import React, { useRef, memo, useEffect, useCallback } from 'react';
-import { CytoscapeWrapper } from './CytoscapeWrapper';
+import { CytoscapeWrapper, type RenderingScene } from './CytoscapeWrapper';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/utils/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
@@ -17,7 +17,7 @@ export function WordCloud() {
     const matches = useMatches();
     const navigate = useNavigate();
 
-    const { searchResults = [], query = '', category = '', keywords = {} } = matches?.[2]?.data ?? {};
+    const { searchResults = [], query = '', category = '', keywords = {}, faculties = [] } = matches?.[2]?.data ?? {};
     const { localize, lang } = useLocalize();
 
     useEffect(() => {
@@ -27,9 +27,57 @@ export function WordCloud() {
     }, []);
 
     const getCurrentFaculties = useCallback(() => {
-        return searchResults.flatMap(x => x.faculties)
-            .filter((x, i, a) => a.findIndex(b => b.id === x.id) === i);
+        if(faculties.length > 0) return faculties;
+        return searchResults
+                .flatMap(x => x.faculties)
+                .filter((x, i, a) => a.findIndex(b => b.id === x.id) === i);
     }, [searchResults]);
+
+    const drawCloud = useCallback((scene: RenderingScene) => {
+        scene?.addNode('query', query, {
+            style: {
+                'font-size': '32px',
+            }
+        });
+
+        const faculties = getCurrentFaculties();
+
+        faculties.forEach((x, i) => {
+            scene?.addNode(x.id, localize(x.names), { 
+                parent: 'query', 
+                    style: {
+                        color: getFacultyColor(x.id),
+                        fontWeight: 'bold',
+                        fontSize: 32 - faculties.length,
+                    }, edgeData: {
+                        idealEdgeLength: 50
+                    },
+                });
+
+            [
+                ...(keywords?.[x.id] ?? []), 
+                ...(DummyKeywords.find(k => k.code == Number(x.id))?.keywords[lang as 'cs' | 'en']?.map(x => ({ value: x })) ?? [])
+            ]?.slice(0, (NODES_LIMIT - faculties.length) / faculties.length)
+                .forEach(({ value }, i) => {
+                
+                if (value === query) return;
+                scene?.addNode(`${value}${x.id}`, value, { parent: x.id, style: {
+                    'font-size': Math.max(30 - i * 2.5, 12),
+                    'color': getFacultyColor(x.id, 50, 50),
+                }, edgeData: {
+                    idealEdgeLength: 20,
+                }, onClick: () => {
+                    navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
+                }});
+            });
+        });
+
+        for(let i = 0; i < faculties.length; i++) {
+            scene?.addEdge(faculties[i].id, faculties[(i+1) % faculties.length].id);
+        }
+
+        return scene;
+    }, [category, getCurrentFaculties, keywords, lang, localize, navigate, query]);
 
     useEffect(() => {
         if (cy.current) {
@@ -41,54 +89,21 @@ export function WordCloud() {
                     return;
                 }
 
-                scene?.addNode('query', query, {
-                    style: {
-                        'font-size': '32px',
-                    }
-                });
-    
-                const faculties = getCurrentFaculties();
-    
-                faculties.forEach((x, i) => {
-                    scene?.addNode(x.id, localize(x.names), { 
-                        parent: 'query', 
-                            style: {
-                                color: getFacultyColor(x.id),
-                                fontWeight: 'bold',
-                                fontSize: 32 - faculties.length,
-                            }, edgeData: {
-                                idealEdgeLength: 50
-                            },
-                        });
-
-                    [
-                        ...(keywords?.[x.id] ?? []), 
-                        ...(DummyKeywords.find(k => k.code == Number(x.id))?.keywords[lang]?.map(x => ({ value: x })) ?? [])
-                    ]
-                        ?.slice(0, (NODES_LIMIT - faculties.length) / faculties.length)
-                        .forEach(({ value }, i) => {
-                        
-                        if (value === query) return;
-                        scene?.addNode(`${value}${x.id}`, value, { parent: x.id, style: {
-                            'font-size': Math.max(30 - i * 2.5, 12),
-                            'color': getFacultyColor(x.id, 50, 50),
-                        }, edgeData: {
-                            idealEdgeLength: 20,
-                        }, onClick: () => {
-                            navigate({ pathname: `/${category}`, search: `query=${value}&lang=${lang}` });
-                        }});
-                    });
-                });
-
-                for(let i = 0; i < faculties.length; i++) {
-                    scene?.addEdge(faculties[i].id, faculties[(i+1) % faculties.length].id);
-                }
+                drawCloud(scene);
     
                 scene?.finish();
             }
 
             if(matches[2]?.id === 'routes/$category/$id' && matches[2]?.data?.faculties?.[0]?.id) {
-                cy.current.getCurrentScene()?.zoomTowards(matches[2].data.faculties[0].id);
+                const currentScene = cy.current.getCurrentScene();
+
+                if(currentScene) {
+                    currentScene.zoomTowards(matches[2].data.faculties[0].id);
+                } else {
+                    const scene = cy.current.newScene(query + category + lang);
+                    drawCloud(scene);
+                    scene?.finish();
+                }
             }
         }
     }, [cy, getCurrentFaculties, keywords, lang]);
