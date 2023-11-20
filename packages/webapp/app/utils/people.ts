@@ -1,6 +1,11 @@
 export function stripTitles(nameWithTitles: string): string {
   const titles = [
     'Mgr.',
+    'et', 
+    'M.Sc.',
+    'M.Sc.,',
+    'MgA.',
+    'Ing.',
     'MUDr.',
     'MVDr.',
     'CSc.',

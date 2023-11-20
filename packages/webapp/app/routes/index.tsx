@@ -13,7 +13,7 @@ import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 import remixi18n from '~/i18next.server';
 import Topbar, { viewTypes } from "~/components/Topbar/Topbar"
-import { Sunburst } from "~/components/WordCloud/Sunburst";
+import { SunburstView } from "~/components/WordCloud/Sunburst";
 
 /**
  * Redirects the user from the root of the website to a random search query.
@@ -86,7 +86,7 @@ export default function Index() {
             ) : searchParams.get('view') === 'network' ? (
               <NetworkView />
             ) : (
-              <Sunburst />
+              <SunburstView />
             )
           }
         </div>

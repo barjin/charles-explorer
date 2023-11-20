@@ -10,14 +10,14 @@ import { BiNetworkChart } from 'react-icons/bi';
 import { TbChartDonut } from 'react-icons/tb';
 import { WordCloud } from '../WordCloud/WordCloud';
 import { NetworkView } from '../WordCloud/NetworkView';
-import { Sunburst } from '../WordCloud/Sunburst';
+import { SunburstView } from '../WordCloud/Sunburst';
 
 type ModalType = keyof typeof modalTypes;
 
 export const viewTypes = [
     { name: 'cloud', icon: () => <Twemoji options={{ className: 'twemoji' }}>☁️</Twemoji>, component: WordCloud },
     { name: 'network', icon: BiNetworkChart, component: NetworkView },
-    { name: 'sunburst', icon: TbChartDonut, component: Sunburst },
+    { name: 'sunburst', icon: TbChartDonut, component: SunburstView },
 ] as const;
 
 function CloudNetSwitch() {

@@ -101,6 +101,9 @@ export function WordCloud() {
                     currentScene.zoomTowards(matches[2].data.faculties[0].id);
                 } else {
                     const scene = cy.current.newScene(query + category + lang);
+
+                    if(!scene) return;
+
                     drawCloud(scene);
                     scene?.finish();
                 }

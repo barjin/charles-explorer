@@ -14,6 +14,8 @@
     "@charles-explorer/prisma": "*",
     "@charles-explorer/solr-client": "*",
     "@headlessui/react": "^1.7.17",
+    "@nivo/core": "^0.83.1",
+    "@nivo/sunburst": "^0.83.1",
     "@remix-run/css-bundle": "^1.18.1",
     "@remix-run/node": "^1.18.1",
     "@remix-run/react": "^1.18.1",
