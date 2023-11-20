@@ -23,7 +23,8 @@ export function SunburstView() {
                         .map((friend: any) => ({
                             id: friend.id,
                             name: stripTitles(friend.names[0].value),
-                            score: Math.log(friend.score),
+                            angle: Math.log2(friend.score + 1),
+                            score: friend.score,
                             color: getFacultyColor(friend.faculties[0]?.id ?? 10000, 40, 70),
                     }))
                 })
@@ -41,7 +42,7 @@ export function SunburstView() {
         <ResponsiveSunburst data={data}
             margin={{ top: 50, right: 50, bottom: 50, left: 50 }}
             id="name"
-            value="score"
+            value="angle"
             theme={{
                 labels: {
                     text: {
@@ -78,7 +79,7 @@ export function SunburstView() {
                 return (
                     <rect width={tooltipWidth} height={tooltipHeight} fill="#ffffff" opacity={1} rx={5} style={{backgroundColor: 'white', padding: '5px'}}>
                         <text x={tooltipWidth / 2} y={tooltipHeight / 2} fill="#333" textAnchor="middle" alignmentBaseline="central">
-                            {e.data.name} - {e.data.score} mutual publications
+                            {e.data.name} - {e.data.score} mutual publication{e.data.score > 1 ? 's' : ''}
                         </text>
                     </rect>
                 );

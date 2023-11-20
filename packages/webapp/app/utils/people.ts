@@ -27,6 +27,7 @@ export function stripTitles(nameWithTitles: string): string {
     'B.Sc.',
     'B.Sc.,',
     'M.Sc.',
+    'Dipl.-Ing.',
   ]
 
   return nameWithTitles.split(' ').filter(x => !titles.includes(x)).join(' ')
