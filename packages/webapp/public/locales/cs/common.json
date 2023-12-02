@@ -26,7 +26,7 @@
         "currentBetaFeatures": "Funkce aktuálně dostupné v beta verzi"
     },
     "views": {
-        "wordcloud": "Wordcloud",
+        "wordcloud": "Témata",
         "network": "Síť",
         "sunburst": "Koláčový graf",
         "chord": "Obloukový graf"

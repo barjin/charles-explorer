@@ -26,7 +26,7 @@
         "currentBetaFeatures": "Current beta features"
     },
     "views": {
-        "wordcloud": "Wordcloud",
+        "wordcloud": "Topics",
         "network": "Social network",
         "sunburst": "Pie chart",
         "chord": "Chord diagram"
