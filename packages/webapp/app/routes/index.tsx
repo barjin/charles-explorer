@@ -52,7 +52,7 @@ export const viewTypes = [
   { name: 'cloud', icon: MdCloudQueue, component: WordCloud, tooltipLocalizationKey: 'views.wordcloud' },
   { name: 'network', icon: BiNetworkChart, component: NetworkView, tooltipLocalizationKey: 'views.network' },
   { name: 'sunburst', icon: TbChartDonut, component: SunburstView, tooltipLocalizationKey: 'views.sunburst' },
-  { name: 'chord', icon: TbChartArcs, component: ChordChart, tooltipLocalizationKey: 'views.chord' },
+  // { name: 'chord', icon: TbChartArcs, component: ChordChart, tooltipLocalizationKey: 'views.chord' },
 ] as const;
 
 function ViewmodeSwitch() {
@@ -135,9 +135,11 @@ export default function Index() {
               <SunburstView />
             ) : searchParams.get('view') === 'network' ? (
               <NetworkView />
-            ) : searchParams.get('view') === 'chord' ? (
-              <ChordChart />
-            ) : (
+            ) : 
+            // searchParams.get('view') === 'chord' ? (
+            //   <ChordChart />
+            // ) : 
+            (
               <WordCloud />
             ) 
           }
