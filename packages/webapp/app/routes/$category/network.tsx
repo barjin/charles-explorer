@@ -31,7 +31,7 @@ export async function loader({ request, params }: LoaderArgs) {
     let friendScores = (socialNetwork as any)[String(private_id)] ?? {};
 
     friendScores = Object.fromEntries(
-        Object.entries(friendScores)
+        Object.entries(friendScores).sort((a,b) => b[1] - a[1]).slice(0, 20)
     );
 
     if (Object.keys(friendScores).length > 0) {
