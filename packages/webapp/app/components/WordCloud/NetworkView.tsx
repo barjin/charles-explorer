@@ -1,13 +1,43 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { GraphInternal, WordCloud } from './WordCloud';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { useLocation, useNavigate, useParams } from '@remix-run/react';
 import cytoscape from 'cytoscape';
 // @ts-ignore
 import fcose from 'cytoscape-fcose';
+import { getFacultyColor } from '~/utils/colors';
+import { localize } from '~/utils/lang';
+import { useTranslation } from 'react-i18next';
+import { WithLegend } from '../WithLegend';
 /**
  * Renders a social network view on entities and their relationships
  */
+
+
+function FacultiesLegend({ faculties }: { faculties: any[] }) {
+    const { i18n: { language: lang } } = useTranslation();
+
+    return faculties.length > 0 && (
+        <div className="flex flex-col justify-center bg-white rounded-md p-5 shadow-sm">
+            {
+                faculties.map((faculty: any) => (
+                    <div className="mt-1" key={faculty.id}>
+                        <div className="flex items-center">
+                            <div 
+                                className="w-3 h-3 rounded-full mr-3"
+                                style={{ backgroundColor: getFacultyColor(faculty.id) }}    
+                            ></div>
+                            <span>
+                                {localize(faculty.names, { lang })}
+                            </span>
+                        </div>
+                    </div>
+                ))
+            }
+        </div>
+    )
+}
+
 export function NetworkView() {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<cytoscape.Core>(null);
@@ -15,11 +45,18 @@ export function NetworkView() {
     const { category, id } = useParams();
     const navigate = useNavigate();
     const { search } = useLocation();
+
+    const [faculties, setActiveFaculties] = useState<any>([]);
     
     useEffect(() => {
         if(graphRef.current && window.screen.width > 1280 && id && category === 'person') {
             (async () => {
                 const networkData: any = await fetch(`/person/network?id=${id}`).then(x => x.json());
+                setActiveFaculties(
+                    [...networkData.me.faculties, ...networkData.friends.map((x: any) => x.faculties)]
+                        .flat()
+                        .filter((x, i, a) => a.findIndex(z => z.id === x.id) === i)
+                );
 
                 cytoscape.use(fcose);
 
@@ -32,12 +69,14 @@ export function NetworkView() {
                             {
                                 data: {
                                     id: networkData.me.id,
-                                    title: `👤 ${networkData.me.names[0].value}`
+                                    title: `👤 ${networkData.me.names[0].value}`,
+                                    faculty: networkData.me.faculties[0]?.id,
                                 },
                             },
                             ...networkData.friends.map((x: any) => ({
                                 data: {
                                     id: x.id,
+                                    faculty: x.faculties[0]?.id,
                                     title: `👤 ${x.names[0].value}`
                                 }
                             })),
@@ -74,6 +113,7 @@ export function NetworkView() {
                             style: {
                                 'label': (element: any) => element?.data('title'),
                                 'background-opacity': 0,
+                                'color': (e: any) => getFacultyColor(e?.data('faculty')),
                                 "text-valign" : "center",
                                 'opacity': 1,
                                 'width': 'label',
@@ -91,31 +131,40 @@ export function NetworkView() {
                 });
 
                 cy.current?.layout({
-                    'name': 'fcose',
-                    'animate': true,
-                    'animationDuration': 1000,
-                    'animationEasing': 'ease-in-out',
-                    'randomize': true,
-                    idealEdgeLength: edge => 1000 / (edge.data('score') + 1),
+                    name: 'fcose',
+                    animate: true,
+                    animationDuration: 1000,
+                    animationEasing: 'ease-in-out',
+                    randomize: true,
+                    idealEdgeLength: (edge: any) => 1000 / (edge.data('score') + 1),
                     // fit: false,
-                    nodeRepulsion: node => 1000
+                    nodeRepulsion: 1000
                 }).run();
 
                 cy.current?.on('click', 'node', function(evt){
                     const node = evt.target;
                     const id = node.id();
+
                     navigate(`/person/${id}?` + search.substring(1));
                 });
             })();
 
         }
-    }, [graphRef, id, search]);
+    }, [graphRef, id, search, setActiveFaculties]);
 
     if (category !== 'person' || !id) {
         return <WordCloud />;
     }
 
-    return <GraphInternal r={graphRef} />;
+
+    return (
+        <WithLegend 
+            legend={<FacultiesLegend faculties={faculties} />}
+            className="w-full h-full"
+        >
+            <GraphInternal r={graphRef} />
+        </WithLegend>
+    );
 }
 
 /**
