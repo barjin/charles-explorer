@@ -5,6 +5,8 @@ import { useParams, useNavigate, useLocation } from '@remix-run/react';
 import { getFacultyColor } from '~/utils/colors';
 import { ResponsiveSunburst } from '@nivo/sunburst';
 import { stripTitles } from '~/utils/people';
+import { WithLegend } from './Legends/WithLegend';
+import { FacultiesLegend } from './Legends/FacultiesLegend';
 
 export function SunburstView() {
     const { category, id } = useParams();
@@ -25,6 +27,7 @@ export function SunburstView() {
                             name: stripTitles(friend.names[0].value),
                             angle: Math.log2(friend.score + 1),
                             score: friend.score,
+                            faculty: friend.faculties[0],
                             color: getFacultyColor(friend.faculties[0]?.id ?? 10000, 40, 70),
                     }))
                 })
@@ -39,6 +42,10 @@ export function SunburstView() {
     }
 
     return data &&
+        <WithLegend
+            legend={<FacultiesLegend faculties={data.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
+            className={'w-full h-full'}
+        >
         <ResponsiveSunburst data={data}
             margin={{ top: 50, right: 50, bottom: 50, left: 50 }}
             id="name"
@@ -85,4 +92,5 @@ export function SunburstView() {
                 );
             }}
         />
+        </WithLegend>
 }
