@@ -25,6 +25,12 @@
         "betaDescription": "The beta version is a testing version of the application. It is not yet fully functional and may contain errors. If you encounter any errors, don't hesitate to contact us!",
         "currentBetaFeatures": "Current beta features"
     },
+    "views": {
+        "wordcloud": "Wordcloud",
+        "network": "Social network",
+        "sunburst": "Pie chart",
+        "chord": "Chord diagram"
+    },
     "class_one": "class",
     "class_other": "classes",
     "thisClass": "this class",

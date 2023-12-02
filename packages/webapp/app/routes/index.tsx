@@ -6,6 +6,7 @@ import { NetworkView } from "~/components/WordCloud/NetworkView"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
+import { Tooltip } from "react-tooltip";
 
 import { useRef, useEffect, useState } from "react"
 import { LangProvider } from "~/utils/providers/LangContext"
@@ -48,14 +49,15 @@ export function meta() {
 }
 
 export const viewTypes = [
-  { name: 'cloud', icon: MdCloudQueue, component: WordCloud },
-  { name: 'network', icon: BiNetworkChart, component: NetworkView },
-  { name: 'sunburst', icon: TbChartDonut, component: SunburstView },
-  { name: 'chord', icon: TbChartArcs, component: ChordChart },
+  { name: 'cloud', icon: MdCloudQueue, component: WordCloud, tooltipLocalizationKey: 'views.wordcloud' },
+  { name: 'network', icon: BiNetworkChart, component: NetworkView, tooltipLocalizationKey: 'views.network' },
+  { name: 'sunburst', icon: TbChartDonut, component: SunburstView, tooltipLocalizationKey: 'views.sunburst' },
+  { name: 'chord', icon: TbChartArcs, component: ChordChart, tooltipLocalizationKey: 'views.chord' },
 ] as const;
 
 function ViewmodeSwitch() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   const { category, id } = useParams();
   const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
@@ -75,11 +77,13 @@ function ViewmodeSwitch() {
                       return next;
                   });
                 }}
+                data-tooltip-id="mode-switch-tooltip" data-tooltip-content={t(v.tooltipLocalizationKey)}
                 className={`w-8 h-9 p-1 ${i == 0 ? 'rounded-tr-md' : ''} ${i === a.length - 1 ? 'rounded-br-md': ''} shadow-md cursor-pointer flex items-center justify-center ${v.name === view ? 'bg-slate-100' : 'bg-white'}`}>
                 {typeof v.icon === 'function' ? v.icon({size: 30, color: v.name === view ? '#1F2937' : '#9CA3AF'}) : v.icon}
               </div>
             ))
           }
+          <Tooltip id="mode-switch-tooltip" place="right-end"/>
         </div>
   )
 }

@@ -25,6 +25,12 @@
         "betaDescription": "Tato verze je v testovacím provozu a může obsahovat chyby. Pokud narazíte na nějakou chybu, nebojte se nám napsat!",
         "currentBetaFeatures": "Funkce aktuálně dostupné v beta verzi"
     },
+    "views": {
+        "wordcloud": "Wordcloud",
+        "network": "Síť",
+        "sunburst": "Koláčový graf",
+        "chord": "Obloukový graf"
+    },
     "class_one": "předmět",
     "thisClass": "tento předmět",
     "class_few": "předměty",
