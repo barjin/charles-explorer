@@ -3,21 +3,25 @@ import { CytoscapeWrapper, type RenderingScene } from './CytoscapeWrapper';
 import { getFacultyColor } from '~/utils/colors';
 import { useLocalize } from '~/utils/providers/LangContext';
 import { DummyKeywords } from './DummyKeywords';
-import { useMatches, useNavigate } from '@remix-run/react';
+import { useNavigate } from '@remix-run/react';
 
 const NODES_LIMIT = 40;
 
 /**
  * Renders a word cloud with the query and the most relevant keywords based on the current search results
  */
-export function WordCloud() {
+export function WordCloud({
+    data, context
+}: {
+    data: any,
+    context: 'search' | 'entity',
+}) {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<CytoscapeWrapper | null>(null);
 
-    const matches = useMatches();
     const navigate = useNavigate();
 
-    const { searchResults = [], query = '', category = '', keywords = {}, faculties = [] } = matches?.[2]?.data ?? {};
+    const { searchResults = [], query = '', category = '', keywords = {}, faculties = [] } = data ?? {};
     const { localize, lang } = useLocalize();
 
     useEffect(() => {
@@ -81,7 +85,7 @@ export function WordCloud() {
 
     useEffect(() => {
         if (cy.current) {
-            if(matches[2]?.id === 'routes/$category/index') {
+            if(context === 'search') {
                 const scene = cy.current.newScene(query + category + lang);
 
                 if(!scene) {
@@ -94,11 +98,11 @@ export function WordCloud() {
                 scene?.finish();
             }
 
-            if(matches[2]?.id === 'routes/$category/$id' && matches[2]?.data?.faculties?.[0]?.id) {
+            if(context === 'entity' && data.faculties?.[0]?.id) {
                 const currentScene = cy.current.getCurrentScene();
 
                 if(currentScene) {
-                    currentScene.zoomTowards(matches[2].data.faculties[0].id);
+                    currentScene.zoomTowards(data.faculties[0].id);
                 } else {
                     const scene = cy.current.newScene(query + category + lang);
 

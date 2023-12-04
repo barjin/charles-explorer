@@ -1,23 +1,28 @@
 import { useState, useEffect } from 'react';
-import { WordCloud } from './WordCloud';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-import { useParams, useNavigate, useLocation } from '@remix-run/react';
+import { useNavigate, useLocation } from '@remix-run/react';
 import { getFacultyColor } from '~/utils/colors';
 import { ResponsiveSunburst } from '@nivo/sunburst';
 import { stripTitles } from '~/utils/people';
 import { WithLegend } from './Legends/WithLegend';
 import { FacultiesLegend } from './Legends/FacultiesLegend';
 
-export function SunburstView() {
-    const { category, id } = useParams();
-    const [data, setData] = useState<any>(null);
+export function SunburstView({
+        data, context
+    }: {
+        data: any,
+        context: 'search' | 'entity',
+    }
+) {
+    const { category, id } = data;
+    const [stats, setStats] = useState<any>(null);
     
     useEffect(() => {
         fetch(`/person/network?id=${id}`)
             .then(x => x.json())
             .then(network => {
                 if(!network || network.length < 0 || !network.me) return;
-                setData({
+                setStats({
                     name: network.me.names[0].value,
                     color: getFacultyColor(network.me.faculties[0]?.id ?? 10000, 40, 70),
                     children: network.friends
@@ -37,16 +42,12 @@ export function SunburstView() {
     const navigate = useNavigate();
     const { search } = useLocation();
 
-    if (category !== 'person' || !id) {
-        return <WordCloud />;
-    }
-
-    return data &&
+    return stats &&
         <WithLegend
-            legend={<FacultiesLegend faculties={data.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
+            legend={<FacultiesLegend faculties={stats.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
             className={'w-full h-full'}
         >
-        <ResponsiveSunburst data={data}
+        <ResponsiveSunburst data={stats}
             margin={{ top: 50, right: 50, bottom: 50, left: 50 }}
             id="name"
             value="angle"
@@ -77,7 +78,7 @@ export function SunburstView() {
             arcLabelsRadiusOffset={0.5}
             layers={['arcs', 'arcLabels', (props: any) =>
                 <text x="47%" y="47%" fontSize={30} fontWeight={700} textAnchor="middle" alignmentBaseline="central" dominantBaseline={'center'}>
-                    {data.name}
+                    {stats.name}
                 </text>
             ]}
             tooltip={(e: any) => {

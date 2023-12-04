@@ -1,12 +1,10 @@
 import { redirect } from "@remix-run/node"
-import { Outlet, useLocation, useParams, useSearchParams } from "@remix-run/react"
+import { Outlet, useLocation, useMatches, useSearchParams } from "@remix-run/react"
 import { SearchTool, getRandomQuery } from "~/components/Search/SearchTool"
-import { WordCloud } from "~/components/WordCloud/WordCloud";
-import { NetworkView } from "~/components/WordCloud/NetworkView"
 import { createMetaTitle } from "~/utils/meta"
 import { getSearchUrl } from "~/utils/backend"
 import { GlobalLoading } from "~/components/GlobalLoading"
-import { Tooltip } from "react-tooltip";
+
 
 import { useRef, useEffect, useState } from "react"
 import { LangProvider } from "~/utils/providers/LangContext"
@@ -14,12 +12,8 @@ import { localize } from "~/utils/lang"
 import { useTranslation } from 'react-i18next';
 import remixi18n from '~/i18next.server';
 import Topbar from "~/components/Topbar/Topbar"
-import { SunburstView } from "~/components/WordCloud/Sunburst";
-import { BiNetworkChart } from "react-icons/bi";
-import { MdCloudQueue } from "react-icons/md";
-import { TbChartArcs, TbChartDonut } from "react-icons/tb";
-import { ChordChart } from "~/components/WordCloud/ChordChart";
-import { useBeta } from "~/utils/hooks/useBeta";
+
+import { Visualizer } from "~/components/WordCloud/Visualizer";
 
 /**
  * Redirects the user from the root of the website to a random search query.
@@ -48,45 +42,6 @@ export function meta() {
   }];
 }
 
-export const viewTypes = [
-  { name: 'cloud', icon: MdCloudQueue, component: WordCloud, tooltipLocalizationKey: 'views.wordcloud' },
-  { name: 'network', icon: BiNetworkChart, component: NetworkView, tooltipLocalizationKey: 'views.network' },
-  { name: 'sunburst', icon: TbChartDonut, component: SunburstView, tooltipLocalizationKey: 'views.sunburst' },
-  // { name: 'chord', icon: TbChartArcs, component: ChordChart, tooltipLocalizationKey: 'views.chord' },
-] as const;
-
-function ViewmodeSwitch() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useTranslation();
-
-  const { category, id } = useParams();
-  const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
-
-  if(category !== 'person' || !id) return null;
-
-  return (
-        <div className="absolute top-1/3 -right-4 hidden xl:block z-50">
-          {
-            viewTypes.map((v, i, a) => (
-              <div 
-                key={v.name}
-                onClick={() => {
-                  setSearchParams((prev) => {
-                      const next = new URLSearchParams(prev);
-                      next.set('view', v.name);
-                      return next;
-                  });
-                }}
-                data-tooltip-id="mode-switch-tooltip" data-tooltip-content={t(v.tooltipLocalizationKey)}
-                className={`w-8 h-9 p-1 ${i == 0 ? 'rounded-tr-md' : ''} ${i === a.length - 1 ? 'rounded-br-md': ''} shadow-md cursor-pointer flex items-center justify-center ${v.name === view ? 'bg-slate-100' : 'bg-white'}`}>
-                {typeof v.icon === 'function' ? v.icon({size: 30, color: v.name === view ? '#1F2937' : '#9CA3AF'}) : v.icon}
-              </div>
-            ))
-          }
-          <Tooltip id="mode-switch-tooltip" place="right-end"/>
-        </div>
-  )
-}
 /**
  * Renders the root of the website.
  */
@@ -106,6 +61,9 @@ export default function Index() {
     setPrevLoc(pathname);
   }, [pathname, setPrevLoc]);
 
+  const matches = useMatches();  
+  const context = matches[2]?.id === 'routes/$category/index' ? 'search' : 'entity';
+
   return (
     <>
     <GlobalLoading />
@@ -123,26 +81,9 @@ export default function Index() {
                   <Outlet/>
                 </div>
             </div>
-            {
-              useBeta() && (
-                <ViewmodeSwitch />
-              )
-            }
         </div>
         <div className="h-full col-span-2 hidden xl:block">
-          { 
-            searchParams.get('view') === 'sunburst' ? (
-              <SunburstView />
-            ) : searchParams.get('view') === 'network' ? (
-              <NetworkView />
-            ) : 
-            // searchParams.get('view') === 'chord' ? (
-            //   <ChordChart />
-            // ) : 
-            (
-              <WordCloud />
-            ) 
-          }
+          <Visualizer type={searchParams.get('view') ?? 'cloud'} data={matches[2].data} context={context} />
         </div>
       </div>
     </LangProvider>
