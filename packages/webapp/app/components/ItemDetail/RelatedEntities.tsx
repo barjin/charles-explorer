@@ -50,6 +50,7 @@ export default function RelatedEntities({ category, collection, matching }: { ca
       >
       {
         groupedCollection
+        .sort((a, b) => (b[0].year - a[0].year) ?? 0)
         .sort((a, b) => {
           return (b.some(
             x => matching.map(x => x.id).includes(x.id)
