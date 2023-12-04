@@ -2,75 +2,114 @@ import { type LoaderArgs } from "@remix-run/node";
 import socialNetwork from "~/assets/social_network.json";
 import { db } from "~/connectors/prisma";
 
+const emptyResponse = {
+    entities: [],
+    relations: []
+};
+
+/**
+ * Given a set of ids, returns a set of nodes and edges that represent the social network of the given ids
+ * A social network of ids are an induced subgraph of the entire social network graph.
+ * @param param0 
+ * @returns 
+ */
 export async function loader({ request, params }: LoaderArgs) {
     const searchParams = new URL(request.url).searchParams;
     const { category } = params;
 
     if (category !== 'person') {
-        console.error('Invalid category');
-        return [];
+        console.error('[network] Invalid category');
+        return emptyResponse;
     }
 
-    const id = searchParams.get('id');
+    const ids = searchParams.get('ids')?.split(',') ?? [];
+    let depth = parseInt(searchParams.get('depth') ?? '0');
 
-    if(!id) {
-        console.error('No personId provided');
-        return []; 
+    if ( ids.length === 1 ) {
+        depth = 1;
     }
 
-    const { private_id } = await db.person.findFirst({
-        where: { id },
-        select: { private_id: true }
-    }) ?? {};
-
-    if(!private_id) {
-        console.error('No private_id found');
-        return [];
+    if(!ids) {
+        console.error('[network] no ids provided');
+        return emptyResponse; 
     }
 
-    let friendScores = (socialNetwork as any)[String(private_id)] ?? {};
+    const people = (await db.person.findMany({
+        where: {
+            id: { in: ids }
+        },
+        select: {
+            private_id: true,
+        }
+    })) ?? {};
 
-    friendScores = Object.fromEntries(
-        Object.entries(friendScores).sort((a,b) => b[1] - a[1]).slice(0, 20)
-    );
+    if(people.length === 0) {
+        console.error('[network] no valid nodes found');
+        return emptyResponse;
+    }
 
-    if (Object.keys(friendScores).length > 0) {
-        const people = await db.person.findMany({
-            where: {
-                private_id: {
-                    in: [private_id, ...Object.keys(friendScores)]
-                }
-            },
-            select: {
-                private_id: true,
-                id: true,
-                names: true,
-                faculties: {
-                    select: {
-                        id: true,
-                        names: true,
-                    }
-                }
+    // find neighborhood of nodes
+    let nodes = people.map(x => x.private_id);
+    let newNodes = nodes;
+
+    for (let i = 0; i < depth; i++) {
+        const newDiscovered = newNodes.flatMap(x => Object.keys(socialNetwork[x] ?? {}));
+        nodes = [...new Set([...nodes, ...newNodes])];
+
+        newNodes = newDiscovered;
+    }
+
+    nodes = [...new Set([...nodes, ...newNodes])];
+
+    const relations = [];
+
+    for (const id of nodes) {
+        for (const id2 of nodes) {
+            if (id <= id2) {
+                continue;
             }
-        });
 
-        return {
-            me: {...(people.find(x => x.id === id) ?? {}), private_id: undefined},
-            friends: Object.entries(friendScores).map(([k,score]) => ({
-                score,
-                mutual: Object.fromEntries(
-                    Object.entries(socialNetwork[k])
-                        .filter(([k]) => friendScores[k])
-                        .map(([k,v]) => [people.find(x => x.private_id === k)?.id, v])
-                        .filter(([k]) => k)
-                ),
-                ...people.find(y => y.private_id === k)
-            }))
-                .sort((a,b) => b.score - a.score)
-                .filter(x => x.id)
-                .map(x => ({...x, private_id: undefined}))
+            if (socialNetwork[id]?.[id2]) {
+                relations.push({
+                    source: id,
+                    target: id2,
+                    score: socialNetwork[id][id2]
+                });
+            }
         }
     }
 
-    return [];
+    const peopleWithNames = await db.person.findMany({
+        where: {
+            private_id: { in: nodes },
+        },
+        include: {
+            names: true,
+            faculties: {
+                include: {
+                    names: true,
+                }
+            }
+        }
+    });
+
+    const peopleIdMap = Object.fromEntries(peopleWithNames.map(x => [x.private_id, x]));
+
+    const translatedRelations = relations.map(x => ({
+        source: peopleIdMap[x.source]?.id,
+        target: peopleIdMap[x.target]?.id,
+        score: x.score,
+    })).filter(x => x.source && x.target)
+
+    return {
+        entities: peopleWithNames.map(x => ({
+            id: x.id,
+            title: x.names[0].value,
+            faculty: x.faculties?.[0] ?? {
+                id: '123',
+                names: [{ value: 'Unknown' }]
+            }
+        })),
+        relations: translatedRelations
+    };
 }

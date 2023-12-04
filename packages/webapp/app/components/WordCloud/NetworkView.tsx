@@ -9,6 +9,7 @@ import { getFacultyColor } from '~/utils/colors';
 import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { WithLegend } from './Legends/WithLegend';
 import { stripTitles } from '~/utils/people';
+import { jLouvain } from './louvain';
 
 interface GraphEntity {
     id: string;
@@ -29,86 +30,51 @@ export const NetworkView = memo(function NetworkView({
     data: any,
     context: 'search' | 'entity',
 }) {
-    const [ state, setState ] = useState<any>({ entities: [], relationships: [], parent: null });
-
-    console.log(context);
+    const [ state, setState ] = useState<any>({ entities: [], relationships: [], communities: [] });
 
     useEffect(() => {
+        const { id, category } = data;
+        
         if ( context === 'search' ) {
-            setState({entities: [{
-                id: '1',
-                title: 'test',
-                faculty: {
-                id: '1',
-                names: [
-                    { lang: 'cs', name: 'test' },
-                    { lang: 'en', name: 'test' },
-                ]
-                },
-                class: 'large'
-            },
-            {
-                id: '2',
-                title: 'test1',
-                faculty: {
-                id: '3',
-                names: [
-                    { lang: 'cs', name: 'test3' },
-                    { lang: 'en', name: 'test3' },
-                ]
-                },
-            }], relationships: [
-                {
-                source: '1',
-                target: '2',
-                score: 10,
-                }
-            ],
-            parent: 'search'
-            });
-        } else if (context === 'entity') {
-            const { id, category } = data;
+            const searchResultIds = data.searchResults.map(x => x.id)
 
-
-            fetch(`http://localhost:3000/${category}/network?id=${id}`)
+            fetch(`/${category}/network?ids=${searchResultIds.join(',')}`)
                 .then((x) => x.json())
                 .then((x) => {
+
+                    const maxScore = Math.max(...x.relations.map(x => x.score));
+                    const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.05);
+
                     setState({
-                        entities: [
-                            {
-                                id: id,
-                                title: stripTitles(x.me.names[0].value),
-                                faculty: x.me.faculties?.[0],
-                                class: 'large',
-                            },
-                            ...x.friends.map(x => {
-                                return {
-                                    id: x.id,
-                                    title: stripTitles(x.names[0].value),
-                                    faculty: x.faculties?.[0],
-                                }
-                            }),
-                        ],
-                        relationships: [
-                            ...x.friends.map(x => {
-                                return {
-                                    source: id,
-                                    target: x.id,
-                                    score: x.score,
-                                }
-                            }),
-                        ],
-                })
-            });
+                        entities: x.entities,
+                        relationships: x.relations.filter(x => communities[x.source] === communities[x.target]),
+                        communities,
+                    })
+                });
+        } else if (context === 'entity') {
+
+            fetch(`/${category}/network?ids=${id}`)
+                .then((x) => x.json())
+                .then((x) => {
+                    
+                    const maxScore = Math.max(...x.relations.map(x => x.score));
+                    const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
+
+                    x.relations = x.relations.filter(edge => edge.source !== id && edge.target !== id)
+
+                    setState({
+                        entities: x.entities.filter(x => x.id !== id),
+                        relationships: communities.length > x.relations.length * 0.8 ? x.relations : x.relations.filter(x => communities[x.source] === communities[x.target]),
+                    })
+                });
         }
-    }, [data.id, data.category, context])
+    }, [data])
 
     return (
         <INetworkView {...{...state}} />
     );
 }, (prev, next) => {
-    console.log(prev, next);
-    return ((prev.data.id === next.data.id)) && prev.context === next.context;
+    return (prev.data.id === next.data.id && prev.context === next.context && prev.data.query === next.data.query);
 });
 
 /**
@@ -117,9 +83,11 @@ export const NetworkView = memo(function NetworkView({
 export function INetworkView({
     entities,
     relationships,
+    communities
 } : {
     entities: GraphEntity[];
     relationships: GraphRelationship[];
+    communities: any[];
 }) {
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<cytoscape.Core>(null);
@@ -137,7 +105,7 @@ export function INetworkView({
             cy.current = cytoscape({
                 container: graphRef.current,
                 autoungrabify: true,
-                userPanningEnabled: false,
+                wheelSensitivity: 0.1,
                 elements: {
                     nodes: entities.map((x) => ({ data: x, classes: x.class ?? 'normal' })),
                     edges: relationships.map((x) => ({ data: x })),
@@ -153,19 +121,21 @@ export function INetworkView({
                     {
                         selector: 'node',
                         style: {
-                            'label': (element: any) => element?.data('title'),
-                            'background-opacity': 0,
+                            'label': (element: any) => stripTitles(element?.data('title')),
+                            'background-opacity': 1,
+                            'background-color': 'white',
+                            shape: 'roundrectangle',
                             'color': (e: any) => getFacultyColor(e?.data('faculty')?.id),
                             "text-valign" : "center",
                             'opacity': 1,
                             'width': 'label',
-                            'height': '13em',
+                            'height': '2em'
                         }
                     },
                     {
                         selector: 'edge',
                         style: {
-                            opacity: 0.2,
+                            opacity: 1,
                             width: (element: any) => element?.data('score') / 10,
                         }
                     }
@@ -178,9 +148,7 @@ export function INetworkView({
                 animationDuration: 1000,
                 animationEasing: 'ease-in-out',
                 randomize: true,
-                idealEdgeLength: (edge: any) => 1000 / (edge.data('score') + 1),
-                // fit: false,
-                nodeRepulsion: 1000
+                fit: true,
             }).run();
 
             cy.current?.on('click', 'node', function(evt){
