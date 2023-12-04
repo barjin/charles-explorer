@@ -10,6 +10,7 @@ import { useBeta } from "~/utils/hooks/useBeta";
 import { SunburstView } from "~/components/WordCloud/Sunburst";
 import { WordCloud } from "~/components/WordCloud/WordCloud";
 import { NetworkView } from "~/components/WordCloud/NetworkView"
+import { useEffect } from "react";
 
 export const viewTypes = [
     { name: 'cloud', icon: MdCloudQueue, component: WordCloud, tooltipLocalizationKey: 'views.wordcloud' },
@@ -20,13 +21,27 @@ export const viewTypes = [
   
 function ViewmodeSwitch() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const { category, id } = useParams();
     const { t } = useTranslation();
     const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
+
+    useEffect(() => {
+      if (category !== 'person') {
+        setSearchParams((prev) => {
+            const next = new URLSearchParams(prev);
+            next.set('view', 'cloud');
+            return next;
+        });
+      }
+    }, [category]);
+
+    if(category !== 'person') return null;
   
     return (
           <div className="absolute top-1/3 hidden xl:block z-50">
             {
               viewTypes.map((v, i, a) => (
+                v.name === 'sunburst' && !id ? null :
                 <div 
                   key={v.name}
                   onClick={() => {

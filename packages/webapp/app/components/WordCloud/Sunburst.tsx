@@ -14,26 +14,36 @@ export function SunburstView({
         context: 'search' | 'entity',
     }
 ) {
-    const { category, id } = data;
+    const { id } = data;
     const [stats, setStats] = useState<any>(null);
     
     useEffect(() => {
-        fetch(`/person/network?id=${id}`)
+        fetch(`/person/network?ids=${id}`)
             .then(x => x.json())
             .then(network => {
-                if(!network || network.length < 0 || !network.me) return;
+                const { entities, relations } = network;
+
+                if(entities.length === 0) return;
+
+                const me = entities.find((x: any) => x.id === id);
+
+                const scores = Object.fromEntries(relations
+                    .filter((x: any) => x.source === id || x.target === id)
+                    .map((x: any) => [x.source === id ? x.target : x.source, x.score]));
+
                 setStats({
-                    name: network.me.names[0].value,
-                    color: getFacultyColor(network.me.faculties[0]?.id ?? 10000, 40, 70),
-                    children: network.friends
-                        .sort((a, b) => (a.faculties[0]?.id ?? 10000) - (b.faculties[0]?.id ?? 10000))
+                    name: me.title,
+                    color: getFacultyColor(me.faculty?.id ?? 10000, 40, 70),
+                    children: entities
+                        .filter(x => x.id !== me.id)
+                        .sort((a, b) => (a.faculty.id ?? 10000) - (b.faculty.id ?? 10000))
                         .map((friend: any) => ({
                             id: friend.id,
-                            name: stripTitles(friend.names[0].value),
-                            angle: Math.log2(friend.score + 1),
-                            score: friend.score,
-                            faculty: friend.faculties[0],
-                            color: getFacultyColor(friend.faculties[0]?.id ?? 10000, 40, 70),
+                            name: stripTitles(friend.title),
+                            angle: Math.log2(scores[friend.id] + 1),
+                            score: scores[friend.id],
+                            faculty: friend.faculty,
+                            color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
                     }))
                 })
             });
