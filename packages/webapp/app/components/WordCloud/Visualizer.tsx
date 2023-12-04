@@ -61,7 +61,7 @@ export function Visualizer({ type, data, context }) {
                 type === 'cloud' && <WordCloud {...{data, context}}/>
             }
             {
-                type === 'network' && <NetworkView />
+                type === 'network' && <NetworkView {...{data, context}} />
             }
             {
                 type === 'sunburst' && <SunburstView  {...{data, context}} />

@@ -51,7 +51,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
               ...getNames().include,
               faculties: getNames(),
               departments: getNames(),
-            }
+            },
           }
         })
       , {}),

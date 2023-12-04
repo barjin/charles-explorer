@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, memo } from 'react';
 import { GraphInternal } from './WordCloud';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { useLocation, useNavigate, useParams } from '@remix-run/react';
@@ -8,6 +8,7 @@ import fcose from 'cytoscape-fcose';
 import { getFacultyColor } from '~/utils/colors';
 import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { WithLegend } from './Legends/WithLegend';
+import { stripTitles } from '~/utils/people';
 
 interface GraphEntity {
     id: string;
@@ -22,46 +23,93 @@ interface GraphRelationship {
     score: number;
 }
 
-export function NetworkView({
+export const NetworkView = memo(function NetworkView({
     data, context
 }: {
     data: any,
     context: 'search' | 'entity',
 }) {
-    return (
-        <INetworkView
-        entities={[{
-            id: '1',
-            title: 'test',
-            faculty: {
-            id: '1',
-            names: [
-                { lang: 'cs', name: 'test' },
-                { lang: 'en', name: 'test' },
-            ]
+    const [ state, setState ] = useState<any>({ entities: [], relationships: [], parent: null });
+
+    console.log(context);
+
+    useEffect(() => {
+        if ( context === 'search' ) {
+            setState({entities: [{
+                id: '1',
+                title: 'test',
+                faculty: {
+                id: '1',
+                names: [
+                    { lang: 'cs', name: 'test' },
+                    { lang: 'en', name: 'test' },
+                ]
+                },
+                class: 'large'
             },
-            class: 'large'
-        },
-        {
-            id: '2',
-            title: 'test1',
-            faculty: {
-            id: '3',
-            names: [
-                { lang: 'cs', name: 'test3' },
-                { lang: 'en', name: 'test3' },
-            ]
-            },
-        }]}
-        relationships={[
             {
-            source: '1',
-            target: '2',
-            score: 10,
-            }
-        ]} />
+                id: '2',
+                title: 'test1',
+                faculty: {
+                id: '3',
+                names: [
+                    { lang: 'cs', name: 'test3' },
+                    { lang: 'en', name: 'test3' },
+                ]
+                },
+            }], relationships: [
+                {
+                source: '1',
+                target: '2',
+                score: 10,
+                }
+            ],
+            parent: 'search'
+            });
+        } else if (context === 'entity') {
+            const { id, category } = data;
+
+
+            fetch(`http://localhost:3000/${category}/network?id=${id}`)
+                .then((x) => x.json())
+                .then((x) => {
+                    setState({
+                        entities: [
+                            {
+                                id: id,
+                                title: stripTitles(x.me.names[0].value),
+                                faculty: x.me.faculties?.[0],
+                                class: 'large',
+                            },
+                            ...x.friends.map(x => {
+                                return {
+                                    id: x.id,
+                                    title: stripTitles(x.names[0].value),
+                                    faculty: x.faculties?.[0],
+                                }
+                            }),
+                        ],
+                        relationships: [
+                            ...x.friends.map(x => {
+                                return {
+                                    source: id,
+                                    target: x.id,
+                                    score: x.score,
+                                }
+                            }),
+                        ],
+                })
+            });
+        }
+    }, [data.id, data.category, context])
+
+    return (
+        <INetworkView {...{...state}} />
     );
-}
+}, (prev, next) => {
+    console.log(prev, next);
+    return ((prev.data.id === next.data.id)) && prev.context === next.context;
+});
 
 /**
  * Renders a social network view on entities and their relationships
@@ -107,7 +155,7 @@ export function INetworkView({
                         style: {
                             'label': (element: any) => element?.data('title'),
                             'background-opacity': 0,
-                            'color': (e: any) => getFacultyColor(e?.data('faculty')),
+                            'color': (e: any) => getFacultyColor(e?.data('faculty')?.id),
                             "text-valign" : "center",
                             'opacity': 1,
                             'width': 'label',
