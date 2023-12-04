@@ -88,7 +88,7 @@ export default function TextField({field, data}: any) {
   }, [collapsed]);
 
   return ((localize(data[field as keyof typeof data] as any))?.trim()?.length ?? -1) > 0 ?
-      (<div key={field}>
+      (<div key={field} className="w-full">
         <h3 
           className="text-stone-800 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none" 
           onClick={collapse}
