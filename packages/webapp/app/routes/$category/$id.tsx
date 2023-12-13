@@ -20,6 +20,15 @@ function getQueryParam(request, key){
   return url.searchParams.get(key);
 }
 
+function createSubtitle(data) {
+  const parsed = EntityParser.parse(data, data.category);
+
+  if (data.category === 'class') return `${data.id}${data.faculties[0]?.abbreviations[0].value ? ` | Class at ${data.faculties[0]?.abbreviations[0].value}, CUNI` : '| Class at CUNI'}`;
+  if (data.category === 'person') return `${data.faculties[0]?.abbreviations[0].value ? `Researcher at ${data.faculties[0]?.abbreviations[0].value}, CUNI` : 'Researcher at CUNI'}`;
+  if (data.category === 'publication') return `${data.year}${data.faculties[0]?.abbreviations[0].value ? ` | Publication at ${data.faculties[0]?.abbreviations[0].value}, CUNI` : 'Publication at CUNI'}`;
+  if (data.category === 'programme') return `${parsed?.getDegree()}${data.faculties[0]?.abbreviations[0].value ? ` | Study programme at ${data.faculties[0]?.abbreviations[0].value}, CUNI` : '| Study programme at CUNI'}`;
+}
+
 export const loader = async ({ request, params }: LoaderArgs) => {
   const { category, id } = params;
   const query = getQueryParam(request, 'query');
@@ -41,7 +50,12 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     include: {
       ...getNames().include,
       departments: getNames(),
-      faculties: getNames(),
+      faculties: {
+        include: {
+          ...getNames().include,
+          abbreviations: true,
+        }
+      },
       ...getJoinableEntities(category)
         ?.filter(x => x != category)
         .reduce((p: Record<string, any>, x) => ({
@@ -72,7 +86,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
   const entity = EntityParser.parse(loaded, category as any);
   const relatedMatching = query ? await entity?.getRelevantRelatedEntities(query) : {};
 
-  return { 
+  const data = { 
     title: !loaded ? t('notFound') : getLocalized(loaded.names, { lang }),
     description: !loaded ? t('notFoundDesc') : t('entityDescription', { name: getLocalized(loaded.names, { lang }), mode: t(category, { count: 1 }) }),
     baseUrl: request.url,
@@ -81,6 +95,16 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     relatedMatching,
     ...loaded 
   };
+
+  data.imageURL = `http://localhost:3000/resources/ogimage?data=${Buffer.from(JSON.stringify({
+    title: data.title,
+    subtitle: createSubtitle(data),
+    faculty: data.faculties[0],
+    category: data.category,
+    entities: getJoinableEntities(category)?.reduce((p,x) => ({...p, [x]: data[x]?.length}), {}),
+  })).toString('base64')}`;
+
+  return data;
 }
 
 export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
@@ -97,7 +121,11 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
     { name: "description", content: data.description },
     {
       "script:ld+json": new LinkedDataProcessor((new URL(data.baseUrl)).origin).getTransformer(data.category)?.transform(data as any),
-    }
+    },
+    {
+      property: "og:image",
+      content: data.imageURL,
+    },
   ];
 }
 

@@ -101,20 +101,21 @@ abstract class ParsedEntity {
       ));
     }
 
-    override getDetail(): string | null {
-      const getDegree = () => {
-        switch ( this.data.type ) {
-          case 'B':
-            return 'Bc.';
-          case 'M':
-            return 'Mgr.';
-          case 'D':
-            return 'PhD.';
-          case 'N':
-            return 'Mgr.';
-        }
+    getDegree(): string {
+      switch ( this.data.type ) {
+        case 'B':
+          return 'Bc.';
+        case 'M':
+          return 'Mgr.';
+        case 'D':
+          return 'PhD.';
+        case 'N':
+          return 'NMgr.';
       }
+      return this.data.type;
+    }
 
+    override getDetail(): string | null {
       const getLang = () => {
         switch ( this.data.languages?.[0] ) {
           case 'cs':
@@ -130,7 +131,7 @@ abstract class ParsedEntity {
         }
       }
 
-      return `${getLang()}  ${getDegree()}`;
+      return `${getLang()}  ${this.getDegree()}`;
     }
   }
   
