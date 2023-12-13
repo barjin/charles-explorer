@@ -96,7 +96,9 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     ...loaded 
   };
 
-  const imageURL = new URL(request.url)
+  const imageURL = new URL(request.url);
+
+  imageURL.search = '';
 
   imageURL.pathname = `/resources/ogimage`;
   imageURL.searchParams.set('data', Buffer.from(JSON.stringify({
@@ -131,6 +133,10 @@ export function meta({ data }: { data: Awaited<ReturnType<typeof loader>> }) {
       property: "og:image",
       content: data.imageURL,
     },
+    {
+      property: "twitter:image",
+      content: data.imageURL,
+    }
   ];
 }
 
