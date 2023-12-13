@@ -96,13 +96,18 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     ...loaded 
   };
 
-  data.imageURL = `http://localhost:3000/resources/ogimage?data=${Buffer.from(JSON.stringify({
+  const imageURL = new URL(request.url)
+
+  imageURL.pathname = `/resources/ogimage`;
+  imageURL.searchParams.set('data', Buffer.from(JSON.stringify({
     title: data.title,
     subtitle: createSubtitle(data),
     faculty: data.faculties[0],
     category: data.category,
     entities: getJoinableEntities(category)?.reduce((p,x) => ({...p, [x]: data[x]?.length}), {}),
-  })).toString('base64')}`;
+  })).toString('base64'));
+
+  data.imageURL = imageURL.toString();
 
   return data;
 }
