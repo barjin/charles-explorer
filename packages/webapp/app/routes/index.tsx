@@ -37,9 +37,11 @@ export function links () {
  * Sets the meta title for the root of the website.
  */
 export function meta() {
-  return [{
-    title: createMetaTitle(),
-  }];
+  return [
+    {
+      title: createMetaTitle(),
+    },
+];
 }
 
 /**

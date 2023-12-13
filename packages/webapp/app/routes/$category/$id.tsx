@@ -97,9 +97,7 @@ export const loader = async ({ request, params }: LoaderArgs) => {
   };
 
   const imageURL = new URL(request.url);
-
   imageURL.search = '';
-
   imageURL.pathname = `/resources/ogimage`;
   imageURL.searchParams.set('data', Buffer.from(JSON.stringify({
     title: data.title,

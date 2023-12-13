@@ -86,6 +86,14 @@ export function meta({ data }) {
             title: createMetaTitle(data?.title),
         },
         { name: "description", content: data?.description },
+        {
+            property: 'og:image',
+            content: 'https://explorer.cuni.cz/ogimage.png'
+        },
+        {
+            property: 'twitter:image',
+            content: 'https://explorer.cuni.cz/ogimage.png'
+        }
     ];
 }
 
