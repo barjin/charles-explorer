@@ -170,7 +170,7 @@ export default function Index() {
       {
         entities
           .sort((a, b) => {
-            return (data.relatedMatching[b]?.length ?? 0) - (data.relatedMatching[a]?.length ?? 0)
+            return (data[getPlural(a)]?.length ?? 0) - (data[getPlural(b)]?.length ?? 0);
           })
           .map((category, i) => {
           const relatedCollection = data[getPlural(category) as any];

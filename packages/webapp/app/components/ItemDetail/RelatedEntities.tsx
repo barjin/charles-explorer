@@ -2,10 +2,12 @@ import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import { capitalize } from "~/utils/lang";
 import { getPlural, type entityTypes }  from "~/utils/entityTypes";
 import { RelatedItem } from "~/components/RelatedItem";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { groupBy } from "~/utils/groupBy";
 import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
+
+const MAX_ITEMS = 10;
 
 /**
  * Renders a list of entities related to the current item
@@ -17,8 +19,14 @@ export default function RelatedEntities({ category, collection, matching }: { ca
     const [collapsed, setCollapsed] = useState<boolean>(false);
     const { localize } = useLocalize();
     const { t } = useTranslation();
+
+    const [limit, setLimit] = useState<number>(MAX_ITEMS);
   
     const groupByName = useCallback((collection: any[]) => groupBy(collection, x => `${x.faculties.length}-${x.faculties?.[0]?.id ?? ''}-${localize(x.names)}` ?? ''), [localize]);
+    const loadMore = useCallback(() => {
+      if(limit >= collection.length) return;
+      setLimit(limit + MAX_ITEMS);
+    }, [limit, collection]);
   
     const collapse = useCallback(() => {  
       setCollapsed(!collapsed);
@@ -27,6 +35,10 @@ export default function RelatedEntities({ category, collection, matching }: { ca
     collection.sort((a, b) => {
       return b.faculties.length - a.faculties.length;
     });
+
+    useEffect(() => {
+      setLimit(MAX_ITEMS);
+    }, [collection]);
   
     const groupedCollection = Object.values(groupByName(collection));
   
@@ -58,6 +70,7 @@ export default function RelatedEntities({ category, collection, matching }: { ca
             x => matching.map(x => x.id).includes(x.id)
           ) ? 1 : 0);
         })
+        .slice(0, limit)
         .map((item, i) => (
           <RelatedItem 
             key={i}
@@ -70,5 +83,13 @@ export default function RelatedEntities({ category, collection, matching }: { ca
         ))
       }
       </ul>
+      {
+        limit < collection.length && 
+          <button className="text-blue-500 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none text-center w-full" onClick={loadMore}>
+            {
+              t('loadMore') + ' ' + t(category, {count: 2})
+            } ({collection.length - limit})
+          </button>
+      }
     </div>);
   }

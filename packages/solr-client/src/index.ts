@@ -118,7 +118,7 @@ class SolrCollection {
      * @returns Array of IDs of the matching documents with their relevance scores.
      */
     async searchIds(query: string, options?: { rows?: number, ids?: string[] }): Promise<{ id: string, score: number }[]> {
-        if (!query) {
+        if (!query || options.ids?.length === 0) {
             return Promise.resolve([]);
         }
     
