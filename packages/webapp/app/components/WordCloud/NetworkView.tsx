@@ -10,6 +10,7 @@ import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { WithLegend } from './Legends/WithLegend';
 import { stripTitles } from '~/utils/people';
 import { jLouvain } from './louvain';
+import { groupBy } from '~/utils/groupBy';
 
 interface GraphEntity {
     id: string;
@@ -60,12 +61,21 @@ export const NetworkView = memo(function NetworkView({
                     const maxScore = Math.max(...x.relations.map(x => x.score));
                     const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
 
-                    x.relations = x.relations.filter(edge => edge.source !== id && edge.target !== id)
-
-                    setState({
-                        entities: x.entities.filter(x => x.id !== id),
-                        relationships: communities.length > x.relations.length * 0.8 ? x.relations : x.relations.filter(x => communities[x.source] === communities[x.target]),
-                    })
+                    if(groupBy(Object.values(communities), (x) => x).length === x.entities.length) {
+                        setState({
+                            entities: x.entities,
+                            relationships: x.relations,
+                        });
+                    } else {
+                        setState({
+                            entities: x.entities.filter(x => x.id !== id),
+                            relationships: communities.length > x.relations.length * 0.8 ? 
+                                x.relations.filter(edge => edge.source !== id && edge.target !== id) : 
+                                x.relations
+                                    .filter(edge => edge.source !== id && edge.target !== id)
+                                    .filter(x => communities[x.source] === communities[x.target]),
+                        })
+                    }
                 });
         }
     }, [data])
@@ -121,21 +131,21 @@ export function INetworkView({
                     {
                         selector: 'node',
                         style: {
-                            'label': (element: any) => stripTitles(element?.data('title')),
+                            'content': (element: any) => stripTitles(element?.data('title')),
+                            'font-size': '0.5em',
                             'background-opacity': 1,
-                            'background-color': 'white',
-                            shape: 'roundrectangle',
+                            shape: 'ellipse',
                             'color': (e: any) => getFacultyColor(e?.data('faculty')?.id),
-                            "text-valign" : "center",
+                            'background-color': (e: any) => getFacultyColor(e?.data('faculty')?.id, 40, 70),
                             'opacity': 1,
-                            'width': 'label',
+                            'width': '2em',
                             'height': '2em'
                         }
                     },
                     {
                         selector: 'edge',
                         style: {
-                            opacity: 1,
+                            opacity: 0.5,
                             width: (element: any) => element?.data('score') / 10,
                         }
                     }

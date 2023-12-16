@@ -53,7 +53,15 @@ export async function loader({ request, params }: LoaderArgs) {
     let newNodes = nodes;
 
     for (let i = 0; i < depth; i++) {
-        const newDiscovered = newNodes.flatMap(x => Object.keys(socialNetwork[x] ?? {}));
+        const newDiscovered = newNodes
+            .flatMap(x => Object.entries(socialNetwork[x] ?? {})
+                .filter(([_, score], i, a) => {
+                    if(a.length < 50) return true;
+                    const maxScore = Math.max(...a.map(([_, score]) => score));
+                    return score > maxScore * 0.1;
+                })
+                .map(([id]) => id)
+            );
         nodes = [...new Set([...nodes, ...newNodes])];
 
         newNodes = newDiscovered;

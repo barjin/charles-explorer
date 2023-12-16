@@ -57,8 +57,9 @@ export default function RelatedEntities({ category, collection, matching }: { ca
       >
         {capitalize(t(category, {count: Math.min(groupedCollection.length, 2)}))} { collapsed ? <FaChevronRight className="inline" /> : <FaChevronDown className="inline" /> }
       </h3>
+      <div className={`${collapsed ? 'hidden' : ''}`}>
       <ul 
-        className={`${collapsed ? 'hidden' : ''} w-full flex flex-col pl-2`}
+        className='w-full flex flex-col pl-2'
       >
       {
         groupedCollection
@@ -83,13 +84,14 @@ export default function RelatedEntities({ category, collection, matching }: { ca
         ))
       }
       </ul>
-      {
-        limit < collection.length && 
-          <button className="text-blue-500 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none text-center w-full" onClick={loadMore}>
-            {
-              t('loadMore') + ' ' + t(category, {count: 2})
-            } ({collection.length - limit})
-          </button>
-      }
+        {
+          limit < collection.length && 
+            <button className="text-blue-500 font-sans font-semibold text-1xl py-2 hover:cursor-pointer select-none text-center w-full" onClick={loadMore}>
+              {
+                t('loadMore') + ' ' + t(category, {count: 2})
+              } ({collection.length - limit})
+            </button>
+        }
+      </div>
     </div>);
   }
