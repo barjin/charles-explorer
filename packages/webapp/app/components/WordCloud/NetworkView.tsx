@@ -10,6 +10,7 @@ import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { WithLegend } from './Legends/WithLegend';
 import { stripTitles } from '~/utils/people';
 import { jLouvain } from './louvain';
+import { GraphTooltip } from './GraphTooltip';
 
 interface GraphEntity {
     id: string;
@@ -60,6 +61,16 @@ export const NetworkView = memo(function NetworkView({
                     const maxScore = Math.max(...x.relations.map(x => x.score));
                     const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
 
+                    x.entities = x.entities.map(b => ({
+                        ...b, 
+                        score: x.relations.filter((edge) => 
+                            (edge.source === id && edge.target === b.id) || 
+                            (edge.source === b.id && edge.target === id))
+                                .reduce((acc, x) => acc + x.score, 0)
+                            }
+                        )
+                    );
+
                     if(Object.keys(communities).length === [...new Set(Object.values(communities))].length) {
                         setState({
                             entities: x.entities,
@@ -67,7 +78,8 @@ export const NetworkView = memo(function NetworkView({
                         });
                     } else {
                         setState({
-                            entities: x.entities.filter(x => x.id !== id),
+                            entities: x.entities
+                                .filter(x => x.id !== id),
                             relationships: communities.length > x.relations.length * 0.8 ? 
                                 x.relations.filter(edge => edge.source !== id && edge.target !== id) : 
                                 x.relations
@@ -101,9 +113,21 @@ export function INetworkView({
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<cytoscape.Core>(null);
 
-    const { category } = useParams();
+    const { category, id } = useParams();
     const navigate = useNavigate();
     const { search } = useLocation();
+
+    const [tooltipData, setTooltipData] = useState<any>({
+        name: '',
+        color: '',
+        faculty: {
+            abbreviations: [
+                { value: '' }
+            ]
+        },
+        visible: false,
+        position: [0, 0]
+    });
 
     const faculties = entities.map((x) => x.faculty).filter((x, i, a) => a.findIndex(z => z.id === x.id) === i);
     
@@ -116,7 +140,10 @@ export function INetworkView({
                 autoungrabify: true,
                 wheelSensitivity: 0.1,
                 elements: {
-                    nodes: entities.map((x) => ({ data: x, classes: x.class ?? 'normal' })),
+                    nodes: entities.map((x) => ({ 
+                        data: x,
+                        classes: x.class ?? 'normal' 
+                    })),
                     edges: relationships.map((x) => ({ data: x })),
                 },
                 style: [
@@ -151,6 +178,37 @@ export function INetworkView({
                 ],
             });
 
+            cy.current.on('mouseover', 'node', function({ target: node }) {
+                graphRef.current?.classList.add('cursor-pointer');
+
+                setTooltipData({
+                    name: stripTitles(node.data('title')),
+                    color: getFacultyColor(node.data('faculty')?.id),
+                    faculty: node.data('faculty'),
+                    publications: node.data('score'),
+                    visible: true,
+                    position: [node.renderedPosition().x, node.renderedPosition().y],
+                });
+            });
+
+            cy.current.on('mouseout', 'node', function() {
+                graphRef.current?.classList.remove('cursor-pointer');
+
+                setTooltipData({
+                    visible: false,
+                });
+            });
+
+            cy.current?.on('click', 'node', function({ target: node }){
+                const id = node.id();
+
+                setTooltipData({
+                    visible: false,
+                });
+
+                navigate(`/${category}/${id}?` + search.substring(1));
+            });
+
             cy.current?.layout({
                 name: 'fcose',
                 animate: true,
@@ -159,21 +217,25 @@ export function INetworkView({
                 randomize: true,
                 fit: true,
             }).run();
-
-            cy.current?.on('click', 'node', function(evt){
-                const node = evt.target;
-                const id = node.id();
-
-                navigate(`/${category}/${id}?` + search.substring(1));
-            });
         }
     }, [graphRef.current, entities, relationships]);
 
     return (
         <WithLegend 
             legend={<FacultiesLegend faculties={faculties} />}
-            className="w-full h-full"
-        >
+            className="w-full h-full relative"
+        >   
+        {
+            tooltipData.visible &&
+            <GraphTooltip 
+                className={'absolute top-0 left-0 z-50'}
+                name={tooltipData.name}
+                color={tooltipData.color}
+                faculty={tooltipData.faculty}
+                publications={tooltipData.publications}
+                followCursor={graphRef.current}
+            />
+        }
             <GraphInternal r={graphRef} />
         </WithLegend>
     );
