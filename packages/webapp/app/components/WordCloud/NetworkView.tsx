@@ -10,7 +10,6 @@ import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { WithLegend } from './Legends/WithLegend';
 import { stripTitles } from '~/utils/people';
 import { jLouvain } from './louvain';
-import { groupBy } from '~/utils/groupBy';
 
 interface GraphEntity {
     id: string;
@@ -61,7 +60,7 @@ export const NetworkView = memo(function NetworkView({
                     const maxScore = Math.max(...x.relations.map(x => x.score));
                     const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
 
-                    if(groupBy(Object.values(communities), (x) => x).length === x.entities.length) {
+                    if(Object.keys(communities).length === [...new Set(Object.values(communities))].length) {
                         setState({
                             entities: x.entities,
                             relationships: x.relations,
@@ -138,8 +137,8 @@ export function INetworkView({
                             'color': (e: any) => getFacultyColor(e?.data('faculty')?.id),
                             'background-color': (e: any) => getFacultyColor(e?.data('faculty')?.id, 40, 70),
                             'opacity': 1,
-                            'width': '2em',
-                            'height': '2em'
+                            'width': '1.5em',
+                            'height': '1.5em'
                         }
                     },
                     {

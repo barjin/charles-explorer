@@ -1,7 +1,6 @@
 import { BiNetworkChart } from "react-icons/bi";
 import { MdCloudQueue } from "react-icons/md";
-import { TbChartArcs, TbChartDonut } from "react-icons/tb";
-import { ChordChart } from "./ChordChart";
+import { TbChartDonut } from "react-icons/tb";
 import { Tooltip } from "react-tooltip";
 import { useParams, useSearchParams } from "@remix-run/react"
 import { useTranslation } from "react-i18next";
@@ -10,7 +9,6 @@ import { useBeta } from "~/utils/hooks/useBeta";
 import { SunburstView } from "~/components/WordCloud/Sunburst";
 import { WordCloud } from "~/components/WordCloud/WordCloud";
 import { NetworkView } from "~/components/WordCloud/NetworkView"
-import { useEffect } from "react";
 
 export const viewTypes = [
     { name: 'cloud', icon: MdCloudQueue, component: WordCloud, tooltipLocalizationKey: 'views.wordcloud' },
@@ -24,16 +22,6 @@ function ViewmodeSwitch() {
     const { category, id } = useParams();
     const { t } = useTranslation();
     const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
-
-    useEffect(() => {
-      if (category !== 'person') {
-        setSearchParams((prev) => {
-            const next = new URLSearchParams(prev);
-            next.set('view', 'cloud');
-            return next;
-        });
-      }
-    }, [category]);
 
     if(category !== 'person') return null;
   
@@ -63,24 +51,26 @@ function ViewmodeSwitch() {
 }
 
 export function Visualizer({ type, data, context }) {
-    return (
-        <div className="w-full h-full relative">
-            {
-              useBeta() && (
-                <div className="absolute h-full -left-4">
-                    <ViewmodeSwitch />
-                </div>
-              )
-            }
-            {
-                type === 'cloud' && <WordCloud {...{data, context}}/>
-            }
-            {
-                type === 'network' && <NetworkView {...{data, context}} />
-            }
-            {
-                type === 'sunburst' && <SunburstView  {...{data, context}} />
-            }
-        </div>
-    )
+  const { category } = useParams();
+
+  return (
+      <div className="w-full h-full relative">
+          {
+            useBeta() && (
+              <div className="absolute h-full -left-4">
+                  <ViewmodeSwitch />
+              </div>
+            )
+          }
+          {
+              (type === 'cloud' || category !== 'person') && <WordCloud {...{data, context}}/>
+          }
+          {
+              !(type === 'cloud' || category !== 'person') && type === 'network' && <NetworkView {...{data, context}} />
+          }
+          {
+              !(type === 'cloud' || category !== 'person') && type === 'sunburst' && <SunburstView  {...{data, context}} />
+          }
+      </div>
+  )
 }

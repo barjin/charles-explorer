@@ -168,6 +168,17 @@ export default function Index() {
         ))
       }
       {
+        textFields?.length > 0 && textFields?.filter((x) => {
+          return (localize(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
+        }).length === 0 && (
+          <p className="text-stone-600 font-sans font-normal text-1xl py-2">
+            Pro {
+              `${data.category === 'person' ? 'tuto osobu' : data.category === 'publication' ? 'tuto publikaci' : data.category === 'class' ? 'tento předmět' : 'tento program'}`
+            } bohužel nemáme k dispozici žádný popis.
+          </p>
+        )
+      }
+      {
         entities
           .sort((a, b) => {
             return (data[getPlural(a)]?.length ?? 0) - (data[getPlural(b)]?.length ?? 0);

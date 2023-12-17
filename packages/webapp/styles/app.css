@@ -9,3 +9,7 @@
 .sunburst-viz .tooltip {
     max-width: none !important;
 }
+
+svg g path {
+    cursor: pointer;
+}

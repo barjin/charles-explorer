@@ -96,6 +96,7 @@ export async function loader({ request, params }: LoaderArgs) {
             faculties: {
                 include: {
                     names: true,
+                    abbreviations: true,
                 }
             }
         }

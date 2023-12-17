@@ -1244,6 +1244,10 @@ video {
   font-weight: 500;
 }
 
+.font-normal {
+  font-weight: 400;
+}
+
 .font-semibold {
   font-weight: 600;
 }
@@ -1255,6 +1259,11 @@ video {
 .text-blue-400 {
   --tw-text-opacity: 1;
   color: rgb(96 165 250 / var(--tw-text-opacity));
+}
+
+.text-blue-500 {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 
 .text-gray-500 {
@@ -1397,6 +1406,10 @@ video {
 
 .sunburst-viz .tooltip {
   max-width: none !important;
+}
+
+svg g path {
+  cursor: pointer;
 }
 
 .hover\:cursor-pointer:hover {
