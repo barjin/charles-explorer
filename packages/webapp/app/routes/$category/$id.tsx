@@ -1,5 +1,5 @@
 import type { LoaderArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, useLocation, useNavigate } from "@remix-run/react";
 import { db } from '~/connectors/prisma';
 import { createMetaTitle } from "~/utils/meta";
 import { getLocalized } from "~/utils/lang";
@@ -15,6 +15,8 @@ import ItemHeader from "~/components/ItemDetail/ItemHeader";
 import TextField from "~/components/ItemDetail/TextField";
 import RelatedEntities from "~/components/ItemDetail/RelatedEntities";
 
+import { IoClose } from 'react-icons/io5';
+
 function getQueryParam(request, key){
   const url = new URL(request.url);
   return url.searchParams.get(key);
@@ -29,52 +31,78 @@ function createSubtitle(data) {
   if (data.category === 'programme') return `${parsed?.getDegree()}${data.faculties[0]?.abbreviations[0].value ? ` | Study programme at ${data.faculties[0]?.abbreviations[0].value}, CUNI` : '| Study programme at CUNI'}`;
 }
 
+async function loadEntities(category, ids) {
+  const [main, ...rest] = 
+    await Promise.all(ids.map(async (id) => 
+      db[category as 'class'].findUnique({
+        where: {
+          id: id
+        },
+        include: {
+          ...getNames().include,
+          departments: getNames(),
+          faculties: {
+            include: {
+              ...getNames().include,
+              abbreviations: true,
+            }
+          },
+          ...getJoinableEntities(category)
+            ?.filter(x => x != category)
+            .reduce((p: Record<string, any>, x) => ({
+              ...p,
+              [x]: {
+                include: {
+                  ...getNames().include,
+                  faculties: getNames(),
+                  departments: getNames(),
+                },
+              }
+            })
+          , {}),
+          ...getTextFields(category)?.reduce((p: Record<string, any>, x) => ({
+            ...p,
+            [x]: true
+          }), {}),
+        },
+      })
+    ));
+
+    return { 
+      ...main, 
+      private_id: undefined,
+      ...getJoinableEntities(category)?.reduce((p: Record<string, any>, x) => ({
+        ...p,
+        [x]: main[x]?.filter((item) => rest.every((r) => r[x]?.some((rItem) => rItem.id === item.id)))
+      }), {}),
+      filters: rest
+        .filter(x => x)
+        .map(x => ({
+          ...x,
+          private_id: undefined,
+          ...getJoinableEntities(category)?.reduce((p: Record<string, any>, x) => ({
+            ...p,
+            [x]: undefined,
+          }), {}),
+        }))
+    };
+}
+
 export const loader = async ({ request, params }: LoaderArgs) => {
   const { category, id } = params;
   const query = getQueryParam(request, 'query');
   const lang = await remixi18n.getLocale(request);
-
   const t = await remixi18n.getFixedT(request, 'common');
+  const ids = id?.split(',').filter((x,i,a) => a.indexOf(x) === i);
 
-  if (!isValidEntity(category)) {
+  if (!isValidEntity(category) || !ids || ids.length === 0) {
     throw new Response(null, {
       status: 404,
       statusText: "Not Found",
     });
   }
 
-  const loaded = await db[category as 'class'].findUnique({
-    where: {
-      id: id
-    },
-    include: {
-      ...getNames().include,
-      departments: getNames(),
-      faculties: {
-        include: {
-          ...getNames().include,
-          abbreviations: true,
-        }
-      },
-      ...getJoinableEntities(category)
-        ?.filter(x => x != category)
-        .reduce((p: Record<string, any>, x) => ({
-          ...p,
-          [x]: {
-            include: {
-              ...getNames().include,
-              faculties: getNames(),
-              departments: getNames(),
-            },
-          }
-        })
-      , {}),
-      ...getTextFields(category)?.reduce((p: Record<string, any>, x) => ({
-        ...p,
-        [x]: true
-      }), {}),
-    },
-  });
+  const loaded = await loadEntities(category, ids);
 
   if (!loaded) {
     throw new Response(null, {
@@ -151,6 +179,39 @@ export const ErrorBoundary = () => {
     </div>
   )
 };
+
+function Filters({filters}: {filters: any[]}) {
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
+
+
+  return (
+    <div className="pl-2">
+      <div className="text-slate-600">
+        Filtr pro spolupráci s:
+      </div>
+    {
+      filters.map((x, i) => {
+        const parsed = EntityParser.parse(x, 'person');
+        return (
+          <div 
+            className="p-1 px-2 bg-slate-200 rounded-md shadow-sm mb-2 cursor-pointer flex flex-row items-center justify-between" 
+            key={i}
+            onClick={() => {
+              const newPathname = pathname.split(',').filter((y) => y !== x.id).join(',');
+              navigate(newPathname + search);
+            }}
+          >
+            <span>
+            {parsed?.getNames()[0].value} 
+            </span> <IoClose className="text-slate-600 ml-2"/>
+          </div>
+        )
+      })
+    }
+    </div>
+  )
+}
  
 export default function Index() {
   const data = useLoaderData<Awaited<ReturnType<typeof loader>>>();
@@ -160,6 +221,10 @@ export default function Index() {
   return (
     <>
       <ItemHeader data={data} />
+      {
+        data.filters.length > 0 &&
+          <Filters filters={data.filters} />
+      }
       {
         textFields?.filter((x) => {
           return (localize(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
