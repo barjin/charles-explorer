@@ -39,7 +39,7 @@ export const ErrorBoundary: HandleErrorFunction = (error) => {
         <Links />
       </head>
 
-      <body className="w-screen h-screen">
+      <body className="w-screen h-screen overflow-hidden">
         <div className="w-full h-full grid grid-cols-1 grid-rows-3 xl:grid-cols-3 gap-4 text-slate-800">
           <div className="xl:col-start-2 xl:col-end-3 row-start-2 row-end-3 text-center px-4">
             <img src={logo} />
@@ -87,7 +87,7 @@ export default function App() {
     gtag('js', new Date());
 
     gtag('config', 'G-W8ERPYSLFH');`}} />
-      <body className="h-screen bg-slate-100">
+      <body className="h-screen bg-slate-100 overflow-hidden">
         <Outlet />
         <ScrollRestoration />
         <Scripts />
