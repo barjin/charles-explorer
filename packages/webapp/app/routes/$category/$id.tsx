@@ -258,6 +258,15 @@ export default function Index() {
           return null;
         })
       }
+      {
+        entities.map((category, i) => data[getPlural(category) as any]?.length > 0)
+          .filter(x => x)
+          .reduce((p, x) => p + x, 0) === 0 && (
+            <p className="text-stone-600 font-sans font-normal text-1xl py-2">
+              Pro tento dotaz bohužel nemáme k dispozici žádné další výsledky.
+            </p>
+          )
+      }
     </>
   )
 }

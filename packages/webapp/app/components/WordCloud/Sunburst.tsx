@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { useNavigate, useLocation } from '@remix-run/react';
 import { getFacultyColor } from '~/utils/colors';
@@ -18,9 +18,24 @@ export function SunburstView({
 ) {
     const { id, filters } = data;
     const [stats, setStats] = useState<any>(null);
+
+    const [tooltipData, setTooltipData] = useState<any>({
+        id: '',
+        name: '',
+        color: '',
+        faculty: {
+            abbreviations: [
+                { value: '' }
+            ]
+        },
+        visible: false,
+        position: [0, 0]
+    });
+
+    const seeds = [id, ...(filters?.map(x => x.id).filter(x => x) ?? [])];
     
     useEffect(() => {
-        fetch(`/person/network?ids=${id}`)
+        fetch(`/person/network?mode=all&ids=${seeds.join(',')}`)
             .then(x => x.json())
             .then(network => {
                 const { entities, relations } = network;
@@ -29,9 +44,13 @@ export function SunburstView({
 
                 const me = entities.find((x: any) => x.id === id);
 
-                const scores = Object.fromEntries(relations
-                    .filter((x: any) => x.source === id || x.target === id)
-                    .map((x: any) => [x.source === id ? x.target : x.source, x.score]));
+                const scores = relations
+                    .filter((x: any) => seeds.includes(x.source) || seeds.includes(x.target))
+                    .map((x: any) => [seeds.includes(x.source) ? x.target : x.source, x.score])
+                    .reduce((acc: any, [key, value]: any) => {
+                        acc[key] = Math.min((acc[key] ?? Infinity), value);
+                        return acc;
+                    }, {});
 
                 const faculties = Object.entries(groupBy(entities, (x: any) => x.faculty?.id ?? 10000)).map(([id, entities]) => (
                     {
@@ -40,36 +59,93 @@ export function SunburstView({
                     }
                 )).sort((a, b) => b.total - a.total).map(x => x.id);
 
+                const maxScore = Math.max(...Object.values(scores));
+
+                const children = entities
+                    .filter(x => !seeds.includes(x.id))
+                    .filter((x,i,a) => a.length < 30 || scores[x.id] > maxScore * 0.1)
+                    .sort((a, b) => scores[b.id] - scores[a.id])
+                    .sort((a, b) => (faculties.indexOf(a.faculty?.id ?? 10000) - faculties.indexOf(b.faculty?.id ?? 10000)))
+                    .map((friend: any) => ({
+                        id: friend.id,
+                        name: stripTitles(friend.title),
+                        angle: Math.log2(scores[friend.id] + 1),
+                        score: scores[friend.id],
+                        faculty: friend.faculty,
+                        color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
+                    }));
+
                 setStats({
                     name: me.title,
                     color: getFacultyColor(me.faculty?.id ?? 10000, 40, 70),
-                    children: entities
-                        .filter(x => x.id !== me.id)
-                        .sort((a, b) => scores[b.id] - scores[a.id])
-                        .sort((a, b) => (faculties.indexOf(a.faculty?.id ?? 10000) - faculties.indexOf(b.faculty?.id ?? 10000)))
-                        .map((friend: any) => ({
-                            id: friend.id,
-                            name: stripTitles(friend.title),
-                            angle: Math.log2(scores[friend.id] + 1),
-                            score: scores[friend.id],
-                            faculty: friend.faculty,
-                            color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
-                    }))
+                    children: [
+                        ...children,
+                        ...(entities.length - seeds.length > children.length ? 
+                            [entities
+                            .filter(x => !seeds.includes(x.id))
+                            .filter((x,i,a) => a.length >= 30 && scores[x.id] <= maxScore * 0.1)
+                            .map((friend: any) => ({
+                                id: friend.id,
+                                name: stripTitles(friend.title),
+                                angle: Math.log2(scores[friend.id] + 1),
+                                score: scores[friend.id],
+                                faculty: friend.faculty,
+                                color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
+                            })).reduce((p,x) => {
+                                return {
+                                    ...p,
+                                    score: p.score + x.score,
+                                    // angle: p.angle + x.angle,
+                                }
+                            }, {
+                                id: 'others',
+                                name: 'Ostatní',
+                                angle: 10,
+                                score: 0,
+                                faculty: {
+                                    abbreviations: [
+                                        { value: '' }
+                                    ]
+                                },
+                                color: '#d1d5db',
+                            })] : []),
+                    ]
                 })
             });
-    }, [id]);
+    }, [id, filters]);
 
     const navigate = useNavigate();
-    const { search } = useLocation();
+    const { search, pathname } = useLocation();
+
+    const graphRef = useRef<HTMLDivElement>(null);
 
     return stats &&
         <WithLegend
             legend={<FacultiesLegend faculties={stats.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
             className={'w-full h-full'}
+            r={graphRef}
+            onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if(tooltipData.visible && tooltipData.id !== 'others') {
+                    navigate({ pathname: pathname + ',' + tooltipData.id, search });
+                }
+            }}
         >
             <div
                 className='w-full h-full relative'
             >
+                {
+                    tooltipData.visible &&
+                    <GraphTooltip 
+                        className={'absolute top-0 left-0 z-50'}
+                        name={tooltipData.name}
+                        color={tooltipData.color}
+                        faculty={tooltipData.faculty}
+                        publications={tooltipData.publications}
+                        followCursor={graphRef.current}
+                    />
+                }
                 <ResponsivePie 
                     data={stats.children.map((x: any) => ({ id: x.id, label: x.name, angle: x.angle, score: x.score, color: x.color, faculty: x.faculty }))}
                     margin={{ top: 100, right: 100, bottom: 100, left: 100 }}
@@ -83,20 +159,26 @@ export function SunburstView({
                     borderColor={'#f1f5f9'}
                     borderWidth={5}
                     onClick={(e: any) => {
-                        navigate({ pathname: `/person/${e.data.id}`, search });
+                        if(e.data.id !== 'others') navigate({ pathname: `/person/${e.data.id}`, search });
+                    }}
+                    onMouseEnter={(e: any) => {
+                        setTooltipData({
+                            id: e.data.id,
+                            name: e.data.label,
+                            color: e.data.color,
+                            faculty: e.data.faculty,
+                            publications: e.data.score,
+                            visible: true,
+                            position: [e.clientX, e.clientY]
+                        });
+                    }}
+                    onMouseLeave={() => {
+                        setTooltipData({
+                            visible: false,
+                        });
                     }}
                     layers={['arcs', 'arcLinkLabels', 'arcLabels', 'legends']}
-                    tooltip={(e: any) => {
-                        e = e.datum;
-                        return (
-                            <GraphTooltip
-                                name={e.label}
-                                color={getFacultyColor(e.data?.faculty?.id ?? 10000)}
-                                faculty={e.data?.faculty}
-                                publications={e.data?.score}
-                                />
-                        );
-                    }}
+                    tooltip={() => null}
                 />
                 <span
                     className='absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'

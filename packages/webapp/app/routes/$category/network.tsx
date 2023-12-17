@@ -24,6 +24,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
     const ids = searchParams.get('ids')?.split(',') ?? [];
     let depth = parseInt(searchParams.get('depth') ?? '0');
+    const mode = searchParams.get('mode') ?? 'one';
 
     if ( ids.length === 1 ) {
         depth = 1;
@@ -52,20 +53,29 @@ export async function loader({ request, params }: LoaderArgs) {
     let nodes = people.map(x => x.private_id);
     let newNodes = nodes;
 
-    for (let i = 0; i < depth; i++) {
+    if(mode=== 'one') {
+        for (let i = 0; i < depth; i++) {
+            const newDiscovered = newNodes
+                .flatMap(x => Object.entries(socialNetwork[x] ?? {})
+                    .filter(([_, score], i, a) => {
+                        if(a.length < 50) return true;
+                        const maxScore = Math.max(...a.map(([_, score]) => score));
+                        return score > maxScore * 0.1;
+                    })
+                    .map(([id]) => id)
+                );
+            nodes = [...new Set([...nodes, ...newNodes])];
+    
+            newNodes = newDiscovered;
+        }
+    } else if(mode === 'all') {
         const newDiscovered = newNodes
-            .flatMap(x => Object.entries(socialNetwork[x] ?? {})
-                .filter(([_, score], i, a) => {
-                    if(a.length < 50) return true;
-                    const maxScore = Math.max(...a.map(([_, score]) => score));
-                    return score > maxScore * 0.1;
-                })
-                .map(([id]) => id)
-            );
-        nodes = [...new Set([...nodes, ...newNodes])];
+            .map(x => Object.keys(socialNetwork[x] ?? {}))
+            .map((x,_,a) => x.filter((y) => a.every(z => z.includes(y))))
 
-        newNodes = newDiscovered;
+        nodes = [...new Set([...nodes, ...newDiscovered.flat()])];
     }
+
 
     nodes = [...new Set([...nodes, ...newNodes])];
 

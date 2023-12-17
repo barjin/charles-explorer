@@ -33,6 +33,10 @@ export const NetworkView = memo(function NetworkView({
 }) {
     const [ state, setState ] = useState<any>({ entities: [], relationships: [], communities: [] });
 
+    const { id, filters } = data;
+
+    const seeds = [id, ...(filters?.map(x => x.id).filter(x => x) ?? [])];
+
     useEffect(() => {
         const { id, category } = data;
         
@@ -53,15 +57,14 @@ export const NetworkView = memo(function NetworkView({
                     })
                 });
         } else if (context === 'entity') {
-
-            fetch(`/${category}/network?ids=${id}`)
+            fetch(`/${category}/network?mode=all&ids=${seeds.join(',')}`)
                 .then((x) => x.json())
                 .then((x) => {
-                    
                     const maxScore = Math.max(...x.relations.map(x => x.score));
-                    const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
 
-                    x.entities = x.entities.map(b => ({
+                    x.entities = x.entities
+                    .filter((x,_,a) => a.length < 30 || Math.min(...x.relations.filter(x => seeds.includes(x.source) || seeds.includes(x.target).map(x => x.score))) >= 0.1*maxScore)
+                    .map(b => ({
                         ...b, 
                         score: x.relations.filter((edge) => 
                             (edge.source === id && edge.target === b.id) || 
@@ -70,6 +73,9 @@ export const NetworkView = memo(function NetworkView({
                             }
                         )
                     );
+                    
+                    const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
+
 
                     if(Object.keys(communities).length === [...new Set(Object.values(communities))].length) {
                         setState({
@@ -89,13 +95,13 @@ export const NetworkView = memo(function NetworkView({
                     }
                 });
         }
-    }, [data])
+    }, [id, filters, context])
 
     return (
         <INetworkView {...{...state}} />
     );
 }, (prev, next) => {
-    return (prev.data.id === next.data.id && prev.context === next.context && prev.data.query === next.data.query);
+    return (prev.data.id === next.data.id && prev.data.filters?.length === next.data.filters?.length && prev.context === next.context && prev.data.query === next.data.query);
 });
 
 /**
