@@ -16,7 +16,7 @@ export function SunburstView({
         context: 'search' | 'entity',
     }
 ) {
-    const { id } = data;
+    const { id, filters } = data;
     const [stats, setStats] = useState<any>(null);
     
     useEffect(() => {
@@ -67,38 +67,53 @@ export function SunburstView({
             legend={<FacultiesLegend faculties={stats.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
             className={'w-full h-full'}
         >
-            <ResponsivePie 
-                data={stats.children.map((x: any) => ({ id: x.id, label: x.name, angle: x.angle, score: x.score, color: x.color, faculty: x.faculty }))}
-                margin={{ top: 50, right: 50, bottom: 50, left: 50 }}
-                innerRadius={0.7}
-                cornerRadius={5}
-                colors={(e: any) => e.data.color}
-                borderWidth={1}
-                arcLinkLabel={'label'}
-                arcLabel={''}
-                value={'angle'}
-                borderColor={'#f1f5f9'}
-                borderWidth={5}
-                onClick={(e: any) => {
-                    navigate({ pathname: `/person/${e.data.id}`, search });
-                }}
-                margin={{ top: 100, right: 100, bottom: 100, left: 100 }}
-                layers={['arcs', 'arcLinkLabels', 'arcLabels', 'legends', (props: any) =>
-                    <text x="45%" y="43%" fontSize={30} fontWeight={700} textAnchor="middle" alignmentBaseline="central" dominantBaseline={'center'}>
+            <div
+                className='w-full h-full relative'
+            >
+                <ResponsivePie 
+                    data={stats.children.map((x: any) => ({ id: x.id, label: x.name, angle: x.angle, score: x.score, color: x.color, faculty: x.faculty }))}
+                    margin={{ top: 100, right: 100, bottom: 100, left: 100 }}
+                    innerRadius={0.7}
+                    cornerRadius={5}
+                    colors={(e: any) => e.data.color}
+                    borderWidth={1}
+                    arcLinkLabel={'label'}
+                    arcLabel={''}
+                    value={'angle'}
+                    borderColor={'#f1f5f9'}
+                    borderWidth={5}
+                    onClick={(e: any) => {
+                        navigate({ pathname: `/person/${e.data.id}`, search });
+                    }}
+                    layers={['arcs', 'arcLinkLabels', 'arcLabels', 'legends']}
+                    tooltip={(e: any) => {
+                        e = e.datum;
+                        return (
+                            <GraphTooltip
+                                name={e.label}
+                                color={getFacultyColor(e.data?.faculty?.id ?? 10000)}
+                                faculty={e.data?.faculty}
+                                publications={e.data?.score}
+                                />
+                        );
+                    }}
+                />
+                <span
+                    className='absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'
+                >
+                    <span>
                         {stats.name}
-                    </text>
-                ]}
-                tooltip={(e: any) => {
-                    e = e.datum;
-                    return (
-                        <GraphTooltip
-                            name={e.label}
-                            color={getFacultyColor(e.data?.faculty?.id ?? 10000)}
-                            faculty={e.data?.faculty}
-                            publications={e.data?.score}
-                            />
-                    );
-                }}
-            />
+                    </span>
+                    {
+                        filters?.length > 0 &&
+                        filters.map((x: any) => 
+                        (
+                            <span className='text-xl text-slate-700 mt-2' key={x.id}>
+                                + {x.names[0].value}
+                            </span>
+                        ))
+                    }
+                </span>
+            </div>
         </WithLegend>
 }
