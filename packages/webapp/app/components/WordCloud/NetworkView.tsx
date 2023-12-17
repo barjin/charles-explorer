@@ -113,9 +113,9 @@ export function INetworkView({
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<cytoscape.Core>(null);
 
-    const { category, id } = useParams();
+    const { category } = useParams();
     const navigate = useNavigate();
-    const { search } = useLocation();
+    const { search, pathname } = useLocation();
 
     const [tooltipData, setTooltipData] = useState<any>({
         name: '',
@@ -209,16 +209,30 @@ export function INetworkView({
                 navigate(`/${category}/${id}?` + search.substring(1));
             });
 
+            cy.current?.on('cxttapstart', 'node', function({ target: node }){
+                const id = node.id();
+
+                setTooltipData({
+                    visible: false,
+                });
+
+                const newPath = pathname + `,${id}`;
+
+                navigate(newPath + search);
+            });
+
             cy.current?.layout({
                 name: 'fcose',
+                nodeRepulsion: 6000,
                 animate: true,
                 animationDuration: 1000,
                 animationEasing: 'ease-in-out',
                 randomize: true,
                 fit: true,
+                padding: 100,
             }).run();
         }
-    }, [graphRef.current, entities, relationships]);
+    }, [graphRef.current, entities, relationships, pathname, search ]);
 
     return (
         <WithLegend 
