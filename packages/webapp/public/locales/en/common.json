@@ -62,5 +62,6 @@
     "at": "at",
     "show": "Show",
     "addToFilter": "Add to filter",
-    "filterActive": "Filtering collaborations with:"
+    "filterActive": "Filtering collaborations with:",
+    "legend": "Legend"
 }

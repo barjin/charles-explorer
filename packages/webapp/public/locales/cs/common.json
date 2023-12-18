@@ -69,5 +69,6 @@
     "common_one": "společná",
     "common_few": "společné",
     "common_other": "společných",
-    "filterActive": "Filtruji spolupráce s:"
+    "filterActive": "Filtruji spolupráce s:",
+    "legend": "Legenda"
 }
