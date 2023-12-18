@@ -6,6 +6,7 @@ import { useCallback, useState } from "react";
 import { getSearchUrl } from "~/utils/backend";
 import { useLocalize } from "~/utils/providers/LangContext";
 import { useTranslation } from "react-i18next";
+import { getFacultyColor } from "~/utils/colors";
 
 /**
  * Strips HTML tags from a string
@@ -120,11 +121,12 @@ export default function TextField({field, data}: any) {
                         key={i} 
                         to={getSearchUrl(data.category, x.trim(), new URLSearchParams(search))}
                         className={`
-                          bg-orange-400
                           mb-2 
                           hover:cursor-pointer 
-                          hover:bg-orange-300 
+                          hover:brightness-125
                           transition-colors select-none px-3 py-1 rounded-md inline-block  text-white w-fit`}
+
+                        style={{backgroundColor: getFacultyColor(data.faculties?.[0]?.id ?? 10000)}}
                         >
                           {x}
                       </Link>)

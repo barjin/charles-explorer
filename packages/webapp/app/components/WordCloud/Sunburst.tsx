@@ -207,14 +207,14 @@ export function SunburstView({
                     className='absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'
                 >
                     <span>
-                        {stats.name}
+                        {stripTitles(stats.name)}
                     </span>
                     {
                         filters?.length > 0 &&
                         filters.map((x: any) => 
                         (
                             <span className='text-xl text-slate-700 mt-2' key={x.id}>
-                                + {x.names[0].value}
+                                + {stripTitles(x.names[0].value)}
                             </span>
                         ))
                     }

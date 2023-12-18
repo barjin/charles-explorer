@@ -31,7 +31,11 @@ export function stripTitles(nameWithTitles: string): string {
     'JUDr.',
     'DEA',
     'LL.M.',
+    'mimořádný',
+    'profesor',
+    'Univerzity',
+    'Karlovy',
   ]
 
-  return nameWithTitles.split(' ').filter(x => !titles.includes(x) && !titles.includes(`${x},`)).join(' ')
+  return nameWithTitles.split(' ').filter(x => !x.endsWith('.') && !x.endsWith(',') && !titles.includes(x) && !titles.includes(`${x},`)).join(' ')
 }
