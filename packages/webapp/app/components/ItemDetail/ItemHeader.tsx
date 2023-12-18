@@ -13,7 +13,7 @@ import Twemoji from 'react-twemoji';
 /**
  * Renders a circular icon with a background color
  */
-function IconWithBackground({ icon, background, size, className }: { icon: React.ReactNode, background: string, size?: number, className?: string }) {
+export function IconWithBackground({ icon, background, size, className }: { icon: React.ReactNode, background: string, size?: number, className?: string }) {
     if(!size) size = 12
   
     return (

@@ -124,6 +124,7 @@ export function INetworkView({
     const { search, pathname } = useLocation();
 
     const [tooltipData, setTooltipData] = useState<any>({
+        id: '',
         name: '',
         color: '',
         faculty: {
@@ -188,6 +189,7 @@ export function INetworkView({
                 graphRef.current?.classList.add('cursor-pointer');
 
                 setTooltipData({
+                    id: node.id(),
                     name: stripTitles(node.data('title')),
                     color: getFacultyColor(node.data('faculty')?.id),
                     faculty: node.data('faculty'),
@@ -248,6 +250,7 @@ export function INetworkView({
         {
             tooltipData.visible &&
             <GraphTooltip 
+                id={tooltipData.id}
                 className={'absolute top-0 left-0 z-50'}
                 name={tooltipData.name}
                 color={tooltipData.color}
@@ -260,7 +263,3 @@ export function INetworkView({
         </WithLegend>
     );
 }
-
-/**
- * Renders a sunburst view on entities and their relationships
- */

@@ -138,6 +138,7 @@ export function SunburstView({
                 {
                     tooltipData.visible &&
                     <GraphTooltip 
+                        id={tooltipData.id}
                         className={'absolute top-0 left-0 z-50'}
                         name={tooltipData.name}
                         color={tooltipData.color}
