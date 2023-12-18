@@ -59,11 +59,9 @@ export function SunburstView({
                     }
                 )).sort((a, b) => b.total - a.total).map(x => x.id);
 
-                const maxScore = Math.max(...Object.values(scores));
-
                 const children = entities
                     .filter(x => !seeds.includes(x.id))
-                    .filter((x,i,a) => a.length < 30 || scores[x.id] > maxScore * 0.1)
+                    .slice(0,300)
                     .sort((a, b) => scores[b.id] - scores[a.id])
                     .sort((a, b) => (faculties.indexOf(a.faculty?.id ?? 10000) - faculties.indexOf(b.faculty?.id ?? 10000)))
                     .map((friend: any) => ({
@@ -78,7 +76,7 @@ export function SunburstView({
                     const others = (entities.length - seeds.length > children.length ? 
                         [entities
                         .filter(x => !seeds.includes(x.id))
-                        .filter((x,i,a) => a.length >= 30 && scores[x.id] <= maxScore * 0.1)
+                        .slice(0,300)
                         .map((friend: any) => ({
                             id: friend.id,
                             name: stripTitles(friend.title),
