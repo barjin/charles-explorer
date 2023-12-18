@@ -11,7 +11,7 @@ export function FacultiesLegend({ faculties }: { faculties: any[] }) {
                 { t('legend') }
             </div>
             {
-                faculties.map((faculty: any) => (
+                faculties.filter(x=>x.id!=='others').map((faculty: any) => (
                     <div className="mt-1" key={faculty.id}>
                         <div className="flex items-center text-sm">
                             <div 

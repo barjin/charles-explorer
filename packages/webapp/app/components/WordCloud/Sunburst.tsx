@@ -61,7 +61,7 @@ export function SunburstView({
 
                 const children = entities
                     .filter(x => !seeds.includes(x.id))
-                    .slice(0,150)
+                    .slice(0, 100)
                     .sort((a, b) => scores[b.id] - scores[a.id])
                     .sort((a, b) => (faculties.indexOf(a.faculty?.id ?? 10000) - faculties.indexOf(b.faculty?.id ?? 10000)))
                     .map((friend: any) => ({
@@ -76,7 +76,7 @@ export function SunburstView({
                     const others = (entities.length - seeds.length > children.length ? 
                         [entities
                         .filter(x => !seeds.includes(x.id))
-                        .slice(0,150)
+                        .slice(0, 100)
                         .map((friend: any) => ({
                             id: friend.id,
                             name: stripTitles(friend.title),
@@ -92,13 +92,11 @@ export function SunburstView({
                             }
                         }, {
                             id: 'others',
-                            name: 'Ostatní',
+                            name: `Ostatní (${entities.length - seeds.length - children.length})`,
                             angle: 10,
                             score: 0,
                             faculty: {
-                                abbreviations: [
-                                    { value: '' }
-                                ]
+                                id: 'others',
                             },
                             color: '#d1d5db',
                         })] : []);
@@ -167,7 +165,7 @@ export function SunburstView({
                 }
                 <ResponsivePie 
                     data={stats.children.map((x: any) => ({ id: x.id, label: x.name, angle: x.angle, score: x.score, color: x.color, faculty: x.faculty }))}
-                    margin={{ top: 100, right: 200, bottom: 100, left: 100 }}
+                    margin={{ top: 100, right: 100, bottom: 100, left: 200 }}
                     innerRadius={0.7}
                     cornerRadius={5}
                     colors={(e: any) => e.data.color}
@@ -202,7 +200,7 @@ export function SunburstView({
                     tooltip={() => null}
                 />
                 <span
-                    className='absolute top-0 left-0 pr-28 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'
+                    className='absolute top-0 left-0 pl-28 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'
                 >
                     <span>
                         {stripTitles(stats.name)}
