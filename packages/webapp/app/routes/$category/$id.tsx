@@ -188,7 +188,7 @@ function Filters({filters}: {filters: any[]}) {
   return (
     <div className="pl-2">
       <div className="text-slate-600">
-        Filtr pro spolupráci s:
+        Filtruji spolupráce s:
       </div>
     {
       filters.map((x, i) => {

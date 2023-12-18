@@ -75,41 +75,62 @@ export function SunburstView({
                         color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
                     }));
 
+                    const others = (entities.length - seeds.length > children.length ? 
+                        [entities
+                        .filter(x => !seeds.includes(x.id))
+                        .filter((x,i,a) => a.length >= 30 && scores[x.id] <= maxScore * 0.1)
+                        .map((friend: any) => ({
+                            id: friend.id,
+                            name: stripTitles(friend.title),
+                            angle: Math.log2(scores[friend.id] + 1),
+                            score: scores[friend.id],
+                            faculty: friend.faculty,
+                            color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
+                        })).reduce((p,x) => {
+                            return {
+                                ...p,
+                                score: p.score + x.score,
+                                // angle: p.angle + x.angle,
+                            }
+                        }, {
+                            id: 'others',
+                            name: 'Ostatní',
+                            angle: 10,
+                            score: 0,
+                            faculty: {
+                                abbreviations: [
+                                    { value: '' }
+                                ]
+                            },
+                            color: '#d1d5db',
+                        })] : []);
+
                 setStats({
                     name: me.title,
                     color: getFacultyColor(me.faculty?.id ?? 10000, 40, 70),
                     children: [
                         ...children,
-                        ...(entities.length - seeds.length > children.length ? 
-                            [entities
-                            .filter(x => !seeds.includes(x.id))
-                            .filter((x,i,a) => a.length >= 30 && scores[x.id] <= maxScore * 0.1)
-                            .map((friend: any) => ({
-                                id: friend.id,
-                                name: stripTitles(friend.title),
-                                angle: Math.log2(scores[friend.id] + 1),
-                                score: scores[friend.id],
-                                faculty: friend.faculty,
-                                color: getFacultyColor(friend.faculty?.id ?? 10000, 40, 70),
-                            })).reduce((p,x) => {
-                                return {
-                                    ...p,
-                                    score: p.score + x.score,
-                                    // angle: p.angle + x.angle,
-                                }
-                            }, {
-                                id: 'others',
-                                name: 'Ostatní',
-                                angle: 10,
-                                score: 0,
-                                faculty: {
-                                    abbreviations: [
-                                        { value: '' }
-                                    ]
-                                },
-                                color: '#d1d5db',
-                            })] : []),
-                    ]
+                        ...others,
+                    ],
+                    connections: [...children.flatMap((x: any) => {
+                        const childRelations = relations.filter(
+                            (r: any) => 
+                                (seeds.includes(r.source) && r.target === x.id) || (r.source === x.id && seeds.includes(r.target)
+                            )
+                        );
+
+                        return childRelations.map((relation: any) => {
+                            return {
+                                from: x.id,
+                                to: entities.find(x => x.id === (seeds.includes(relation?.source) ? relation?.source : relation?.target)),
+                                publications: relation?.score ?? 0,
+                            }
+                        });
+                    }), others?.length > 0 ? {
+                        from: 'others',
+                        to: entities.find(x => x.id === id),
+                        publications: others[0].score,
+                    } : undefined].filter(x => x),
                 })
             });
     }, [id, filters]);
@@ -139,11 +160,10 @@ export function SunburstView({
                     tooltipData.visible &&
                     <GraphTooltip 
                         id={tooltipData.id}
-                        className={'absolute top-0 left-0 z-50'}
                         name={tooltipData.name}
-                        color={tooltipData.color}
                         faculty={tooltipData.faculty}
                         publications={tooltipData.publications}
+                        connections={stats.connections.filter((x: any) => x.from === tooltipData.id)}
                         followCursor={graphRef.current}
                     />
                 }

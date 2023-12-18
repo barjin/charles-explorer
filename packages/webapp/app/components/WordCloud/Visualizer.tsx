@@ -63,13 +63,13 @@ export function Visualizer({ type, data, context }) {
             )
           }
           {
-              (type === 'cloud' || category !== 'person') && <WordCloud {...{data, context}}/>
+              (type === 'cloud' || category !== 'person') && type !== 'network' && <WordCloud {...{data, context}}/>
+          }
+          {
+            !(type === 'cloud' || category !== 'person' || context === 'search') && type === 'sunburst' && <SunburstView  {...{data, context}} />
           }
           {
               !(type === 'cloud' || category !== 'person') && type === 'network' && <NetworkView {...{data, context}} />
-          }
-          {
-              !(type === 'cloud' || category !== 'person') && type === 'sunburst' && <SunburstView  {...{data, context}} />
           }
       </div>
   )

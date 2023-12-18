@@ -8,19 +8,16 @@ import { RightClick } from "~/assets/RightClick";
 export function GraphTooltip({ 
     id,
     name, 
-    color, 
     faculty, 
     publications, 
-    className,
     style,
+    connections,
     followCursor = null,
-} : { id?: string, name: string, color: string, faculty: any, publications?: number, className?: string, style ?: any, followCursor?: any }) {
+} : { id?: string, name: string, faculty: any, publications?: number, style ?: any, followCursor?: any, connections?: any }) {
     const [position, setPosition] = useState([0, 0]);
 
     const matches = useMatches();  
     const context = matches[2]?.id === 'routes/$category/index' ? 'search' : 'entity';
-
-    const selfName = `${matches[2]?.data?.title.slice(0, 30)}${matches[2]?.data?.title.length > 30 ? '...' : ''}`;
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -48,34 +45,51 @@ export function GraphTooltip({
               <div className="flex-1"></div>
           </div>
             <div className="flex flex-col ml-3">
-              <div className="text-lg font-semibold text-gray-900">{name}</div>
+              <div className="text-lg font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap">{name}</div>
               <div className="text-sm text-gray-500">Osoba na {faculty?.abbreviations?.[0]?.value ?? 'neznámá fakulta'} UK</div>
           </div>
         </div>
         {
-            (context === 'entity' && (matches[2]?.data?.id !== id)) &&
-            <div className="flex flex-col p-4 ml-5 items-end">
-              <div className="text-sm font-semibold text-gray-700 flex flex-row items-center">
-                <div className="w-3 h-3 rounded-full mr-2 text-right" style={{backgroundColor: getFacultyColor(matches[2]?.data?.faculties?.[0]?.id)}}></div>
-                {selfName}
-              </div>
-              <div className="text-xs text-right text-gray-500">{CategoryIcons['publication']({className: 'inline'})} {publications} společných publikací</div>
-            </div>
+            (context === 'entity' && connections?.length > 0 &&
+            <div className="flex flex-col p-4 pb-1 ml-5 items-end">
+              {
+                connections?.reverse()?.map?.((connection: any,i: number) => (
+                  <div className="mb-3" key={i}>
+                    <div className="text-sm font-semibold text-gray-700 flex flex-row items-center">
+                      <div className="w-3 h-3 rounded-full mr-2 text-right" style={{backgroundColor: getFacultyColor(connection?.to?.faculty?.id)}}></div>
+                      {connection.to?.title}
+                    </div>
+                    <div className="text-xs text-right text-gray-500">
+                      {CategoryIcons['publication']({className: 'inline'})} 
+                      {connection?.publications} společných publikací
+                    </div>
+                  </div>
+                ))
+              }
+            </div>)
         }
-        <div className="text-xs text-gray-500 bg-white px-3 py-1 flex flex-row">
-          <div className="flex flex-row items-center">
-            <RightClick width="1em" height="1em" className="mr-1 -scale-x-100" />
-            <span>
-              Zobrazit
-            </span>
+        {
+          id !== 'others' &&
+          <div className="text-xs text-gray-500 bg-white px-3 py-1 flex flex-row">
+            <div className="flex flex-row items-center">
+              <RightClick width="1em" height="1em" className="mr-1 -scale-x-100" />
+              <span>
+                Zobrazit
+              </span>
+            </div>
+            {
+              context === 'entity' && (
+                <div className="flex flex-row items-center ml-4">
+                  <RightClick width="1em" height="1em" className="mr-1" />
+                  <span>
+                    Přidat jako filtr
+                  </span>
+                </div>
+              )
+            }
           </div>
-          <div className="flex flex-row items-center ml-4">
-            <RightClick width="1em" height="1em" className="mr-1" />
-            <span>
-              Přidat jako filtr
-            </span>
-          </div>
-        </div>
+
+        }
       </div>
     )
 }

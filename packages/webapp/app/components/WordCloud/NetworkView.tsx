@@ -54,6 +54,7 @@ export const NetworkView = memo(function NetworkView({
                         entities: x.entities,
                         relationships: x.relations.filter(x => communities[x.source] === communities[x.target]),
                         communities,
+                        connections: []
                     })
                 });
         } else if (context === 'entity') {
@@ -81,6 +82,16 @@ export const NetworkView = memo(function NetworkView({
                         setState({
                             entities: x.entities,
                             relationships: x.relations,
+                            connections: x.entities
+                                .filter(x => x.id !== id)
+                                .map((child: any) => ({
+                                    from: child.id,
+                                    to: x.entities.find(x => x.id === (id)),
+                                    publications: x.relations.filter((edge) =>
+                                        (edge.source === id && edge.target === child.id) ||
+                                        (edge.source === child.id && edge.target === id))
+                                            .reduce((acc, x) => acc + x.score, 0)
+                                })),
                         });
                     } else {
                         setState({
@@ -91,6 +102,16 @@ export const NetworkView = memo(function NetworkView({
                                 x.relations
                                     .filter(edge => edge.source !== id && edge.target !== id)
                                     .filter(x => communities[x.source] === communities[x.target]),
+                            connections: x.entities
+                                .filter(x => x.id !== id)
+                                .map((child: any) => ({
+                                    from: child.id,
+                                    to: x.entities.find(x => x.id === (id)),
+                                    publications: x.relations.filter((edge) =>
+                                        (edge.source === id && edge.target === child.id) ||
+                                        (edge.source === child.id && edge.target === id))
+                                            .reduce((acc, x) => acc + x.score, 0)
+                                })),
                         })
                     }
                 });
@@ -110,10 +131,12 @@ export const NetworkView = memo(function NetworkView({
 export function INetworkView({
     entities,
     relationships,
+    connections,
     communities
 } : {
     entities: GraphEntity[];
     relationships: GraphRelationship[];
+    connections: any[];
     communities: any[];
 }) {
     const graphRef = useRef<HTMLDivElement>(null);
@@ -137,6 +160,8 @@ export function INetworkView({
     });
 
     const faculties = entities.map((x) => x.faculty).filter((x, i, a) => a.findIndex(z => z.id === x.id) === i);
+
+    console.log(connections);
     
     useEffect(() => {
         if(graphRef.current && window.screen.width > 1280) {
@@ -195,6 +220,7 @@ export function INetworkView({
                     faculty: node.data('faculty'),
                     publications: node.data('score'),
                     visible: true,
+                    connections: connections?.filter((x: any) => x.from === node.id()),
                     position: [node.renderedPosition().x, node.renderedPosition().y],
                 });
             });
@@ -251,12 +277,11 @@ export function INetworkView({
             tooltipData.visible &&
             <GraphTooltip 
                 id={tooltipData.id}
-                className={'absolute top-0 left-0 z-50'}
                 name={tooltipData.name}
-                color={tooltipData.color}
                 faculty={tooltipData.faculty}
                 publications={tooltipData.publications}
                 followCursor={graphRef.current}
+                connections={tooltipData.connections}
             />
         }
             <GraphInternal r={graphRef} />
