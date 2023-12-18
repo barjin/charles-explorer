@@ -183,15 +183,17 @@ export function SunburstView({
                         if(e.data.id !== 'others') navigate({ pathname: `/person/${e.data.id}`, search });
                     }}
                     onMouseEnter={(e: any) => {
-                        setTooltipData({
-                            id: e.data.id,
-                            name: e.data.label,
-                            color: e.data.color,
-                            faculty: e.data.faculty,
-                            publications: e.data.score,
-                            visible: true,
-                            position: [e.clientX, e.clientY]
-                        });
+                        if(e.data.id !== tooltipData.id) {
+                            setTooltipData({
+                                id: e.data.id,
+                                name: e.data.label,
+                                color: e.data.color,
+                                faculty: e.data.faculty,
+                                publications: e.data.score,
+                                visible: true,
+                                position: [e.clientX, e.clientY]
+                            });
+                        }
                     }}
                     onMouseLeave={() => {
                         setTooltipData({

@@ -53,7 +53,7 @@ function IGraphTooltip({
             (context === 'entity' && connections?.length > 0 &&
             <div className="flex flex-col p-4 pb-1 ml-5 items-end">
               {
-                connections?.reverse()?.map?.((connection: any,i: number) => (
+                connections?.sort((a,b) => b.publications - a.publications)?.map?.((connection: any,i: number) => (
                   <div className="mb-3" key={i}>
                     <div className="text-sm font-semibold text-gray-700 flex flex-row items-center">
                       <div className="w-3 h-3 rounded-full mr-2 text-right" style={{backgroundColor: getFacultyColor(connection?.to?.faculty?.id)}}></div>
