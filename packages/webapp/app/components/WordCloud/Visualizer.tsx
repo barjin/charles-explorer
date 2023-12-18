@@ -4,7 +4,6 @@ import { TbChartDonut } from "react-icons/tb";
 import { Tooltip } from "react-tooltip";
 import { useParams, useSearchParams } from "@remix-run/react"
 import { useTranslation } from "react-i18next";
-import { useBeta } from "~/utils/hooks/useBeta";
 
 import { SunburstView } from "~/components/WordCloud/Sunburst";
 import { WordCloud } from "~/components/WordCloud/WordCloud";
@@ -59,11 +58,9 @@ export function Visualizer({ type, data, context }) {
   return (
       <div className="w-full h-full relative">
           {
-            useBeta() && (
-              <div className="absolute h-full -left-4">
-                  <ViewmodeSwitch />
-              </div>
-            )
+            <div className="absolute h-full -left-4">
+                <ViewmodeSwitch />
+            </div>
           }
           {
             showCloud && <WordCloud {...{data, context}}/>
