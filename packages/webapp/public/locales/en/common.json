@@ -57,5 +57,10 @@
     "contactUsAt": "Contact us at",
     "rootMetaDesc": "Discover the academic world of Charles University in Prague with the Charles Explorer app. Seamlessly search courses, connect with professors, explore publications, and find your ideal study program.",
     "unknownFaculty": "{{ type }} at CUNI",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "common": "common",
+    "at": "at",
+    "show": "Show",
+    "addToFilter": "Add to filter",
+    "filterActive": "Filtering collaborations with:"
 }

@@ -4,6 +4,8 @@ import { getFacultyColor } from "~/utils/colors";
 import { IconWithBackground } from "../ItemDetail/ItemHeader";
 import { CategoryIcons } from "~/utils/icons";
 import { RightClick } from "~/assets/RightClick";
+import { useTranslation } from "react-i18next";
+import { capitalize } from "~/utils/lang";
 
 function IGraphTooltip({ 
     id,
@@ -18,6 +20,8 @@ function IGraphTooltip({
 
     const matches = useMatches();  
     const context = matches[2]?.id === 'routes/$category/index' ? 'search' : 'entity';
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -46,7 +50,7 @@ function IGraphTooltip({
           </div>
             <div className="flex flex-col ml-3">
               <div className="text-lg font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap">{name}</div>
-              <div className="text-sm text-gray-500">Osoba na {faculty?.abbreviations?.[0]?.value ?? 'neznámá fakulta'} UK</div>
+              <div className="text-sm text-gray-500">{capitalize(t('person', {count: 1}))} {t('at')} {faculty?.abbreviations?.[0]?.value ?? 'neznámá fakulta'} UK</div>
           </div>
         </div>
         {
@@ -61,7 +65,7 @@ function IGraphTooltip({
                     </div>
                     <div className="text-xs text-right text-gray-500">
                       {CategoryIcons['publication']({className: 'inline'})} 
-                      {connection?.publications} společných publikací
+                      {connection?.publications} {t('common', { count: connection?.publications })} {t('publication', { count: connection?.publications })}
                     </div>
                   </div>
                 ))
@@ -74,7 +78,7 @@ function IGraphTooltip({
             <div className="flex flex-row items-center">
               <RightClick width="1em" height="1em" className="mr-1 -scale-x-100" />
               <span>
-                Zobrazit
+                {t('show')}
               </span>
             </div>
             {
@@ -82,7 +86,7 @@ function IGraphTooltip({
                 <div className="flex flex-row items-center ml-4">
                   <RightClick width="1em" height="1em" className="mr-1" />
                   <span>
-                    Přidat jako filtr
+                    {t('addToFilter')}
                   </span>
                 </div>
               )

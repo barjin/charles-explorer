@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, memo } from 'react';
+import { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { GraphInternal } from './WordCloud';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { useLocation, useNavigate, useParams } from '@remix-run/react';
@@ -82,15 +82,18 @@ export const NetworkView = memo(function NetworkView({
                             entities: response.entities,
                             relationships: response.relations,
                             connections: response.entities
-                                .filter(x => x.id !== id)
-                                .map((child: any) => ({
-                                    from: child.id,
-                                    to: response.entities.find(x => x.id === (id)),
-                                    publications: response.relations.filter((edge) =>
-                                        (edge.source === id && edge.target === child.id) ||
-                                        (edge.source === child.id && edge.target === id))
-                                            .reduce((acc, x) => acc + x.score, 0)
-                                })),
+                                .filter(x => seeds.includes(x.id))
+                                .flatMap((seed: any) => {
+                                    const seedData = response.entities.find(x => x.id === (seed.id));
+
+                                    const incidentEdges = response.relations.filter((edge) => [edge.source, edge.target].includes(seed.id));
+
+                                    return incidentEdges.map((edge: any) => ({
+                                        from: edge.source === seed.id ? edge.target : edge.source,
+                                        to: seedData,
+                                        publications: edge.score
+                                    }));
+                                })
                         });
                     } else {
                         setState({
@@ -102,15 +105,18 @@ export const NetworkView = memo(function NetworkView({
                                     .filter(edge => edge.source !== id && edge.target !== id)
                                     .filter(x => communities[x.source] === communities[x.target]),
                             connections: response.entities
-                                .filter(x => x.id !== id)
-                                .map((child: any) => ({
-                                    from: child.id,
-                                    to: response.entities.find(x => x.id === (id)),
-                                    publications: response.relations.filter((edge) =>
-                                        (edge.source === id && edge.target === child.id) ||
-                                        (edge.source === child.id && edge.target === id))
-                                            .reduce((acc, x) => acc + x.score, 0)
-                                })),
+                                .filter(x => seeds.includes(x.id))
+                                .flatMap((seed: any) => {
+                                    const seedData = response.entities.find(x => x.id === (seed.id));
+
+                                    const incidentEdges = response.relations.filter((edge) => [edge.source, edge.target].includes(seed.id));
+
+                                    return incidentEdges.map((edge: any) => ({
+                                        from: edge.source === seed.id ? edge.target : edge.source,
+                                        to: seedData,
+                                        publications: edge.score,
+                                    }));
+                            })
                         })
                     }
                 });
@@ -141,7 +147,7 @@ export function INetworkView({
     const graphRef = useRef<HTMLDivElement>(null);
     const cy = useRef<cytoscape.Core>(null);
 
-    const { category } = useParams();
+    const { category, id } = useParams();
     const navigate = useNavigate();
     const { search, pathname } = useLocation();
 
@@ -159,6 +165,12 @@ export function INetworkView({
     });
 
     const faculties = entities.map((x) => x.faculty).filter((x, i, a) => a.findIndex(z => z.id === x.id) === i);
+
+    const getNodeSize = useCallback((node: any) => {
+        const publications = connections?.filter((x: any) => x.from === node.id()).reduce((acc: number, x: any) => acc + x.publications, 0);
+
+        return `${Math.floor(10*(1.5 + (publications ?? 0) / 20))/10}em`;
+    }, [connections]);
 
     useEffect(() => {
         if(graphRef.current && window.screen.width > 1280) {
@@ -187,14 +199,14 @@ export function INetworkView({
                         selector: 'node',
                         style: {
                             'content': (element: any) => stripTitles(element?.data('title')),
-                            'font-size': '0.5em',
+                            'font-size': x => (getNodeSize(x).split('em')[0] * 0.3 + 'em'),
                             'background-opacity': 1,
                             shape: 'ellipse',
                             'color': (e: any) => getFacultyColor(e?.data('faculty')?.id),
-                            'background-color': (e: any) => getFacultyColor(e?.data('faculty')?.id, 40, 70),
+                            'background-color': (e: any) => getFacultyColor(e.data('faculty')?.id, 40, 70),
                             'opacity': 1,
-                            'width': '1.5em',
-                            'height': '1.5em'
+                            'width': getNodeSize,
+                            'height': getNodeSize,
                         }
                     },
                     {
@@ -255,6 +267,7 @@ export function INetworkView({
             cy.current?.layout({
                 name: 'fcose',
                 nodeRepulsion: 6000,
+                idealEdgeLength: 100,
                 animate: true,
                 animationDuration: 1000,
                 animationEasing: 'ease-in-out',

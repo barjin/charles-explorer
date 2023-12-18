@@ -183,12 +183,13 @@ export const ErrorBoundary = () => {
 function Filters({filters}: {filters: any[]}) {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
 
   return (
     <div className="pl-2">
       <div className="text-slate-600">
-        Filtruji spolupráce s:
+        {t('filterActive')}
       </div>
     {
       filters.map((x, i) => {
