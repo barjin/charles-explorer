@@ -52,6 +52,9 @@ function ViewmodeSwitch() {
 
 export function Visualizer({ type, data, context }) {
   const { category } = useParams();
+  const showSunburst = category === 'person' && type === 'sunburst' && context === 'entity';
+  const showNetwork = category === 'person' && type === 'network';
+  const showCloud = !showSunburst && !showNetwork;
 
   return (
       <div className="w-full h-full relative">
@@ -63,13 +66,13 @@ export function Visualizer({ type, data, context }) {
             )
           }
           {
-              (type === 'cloud' || category !== 'person') && type !== 'network' && <WordCloud {...{data, context}}/>
+            showCloud && <WordCloud {...{data, context}}/>
           }
           {
-            !(type === 'cloud' || category !== 'person' || context === 'search') && type === 'sunburst' && <SunburstView  {...{data, context}} />
+            showSunburst && <SunburstView  {...{data, context}} />
           }
           {
-              !(type === 'cloud' || category !== 'person') && type === 'network' && <NetworkView {...{data, context}} />
+            showNetwork && <NetworkView {...{data, context}} />
           }
       </div>
   )

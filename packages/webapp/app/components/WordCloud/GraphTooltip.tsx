@@ -1,11 +1,11 @@
 import { useMatches } from "@remix-run/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { getFacultyColor } from "~/utils/colors";
 import { IconWithBackground } from "../ItemDetail/ItemHeader";
 import { CategoryIcons } from "~/utils/icons";
 import { RightClick } from "~/assets/RightClick";
 
-export function GraphTooltip({ 
+function IGraphTooltip({ 
     id,
     name, 
     faculty, 
@@ -93,3 +93,7 @@ export function GraphTooltip({
       </div>
     )
 }
+
+export const GraphTooltip = memo(IGraphTooltip, (prevProps, nextProps) => {
+  return prevProps.id === nextProps.id
+});

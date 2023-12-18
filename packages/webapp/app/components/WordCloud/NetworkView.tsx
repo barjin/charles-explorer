@@ -60,14 +60,13 @@ export const NetworkView = memo(function NetworkView({
         } else if (context === 'entity') {
             fetch(`/${category}/network?mode=all&ids=${seeds.join(',')}`)
                 .then((x) => x.json())
-                .then((x) => {
-                    const maxScore = Math.max(...x.relations.map(x => x.score));
+                .then((response) => {
+                    const maxScore = Math.max(...response.relations.map(x => x.score));
 
-                    x.entities = x.entities
-                    .filter((x,_,a) => a.length < 30 || Math.min(...x.relations.filter(x => seeds.includes(x.source) || seeds.includes(x.target).map(x => x.score))) >= 0.1*maxScore)
+                    response.entities = response.entities
                     .map(b => ({
                         ...b, 
-                        score: x.relations.filter((edge) => 
+                        score: response.relations.filter((edge) => 
                             (edge.source === id && edge.target === b.id) || 
                             (edge.source === b.id && edge.target === id))
                                 .reduce((acc, x) => acc + x.score, 0)
@@ -75,19 +74,19 @@ export const NetworkView = memo(function NetworkView({
                         )
                     );
                     
-                    const communities = jLouvain(x.entities.map(x => x.id), x.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
+                    const communities = jLouvain(response.entities.map(x => x.id), response.relations.map(x => ({...x, value: x.score/(maxScore+1)})), 0.1);
 
 
                     if(Object.keys(communities).length === [...new Set(Object.values(communities))].length) {
                         setState({
-                            entities: x.entities,
-                            relationships: x.relations,
-                            connections: x.entities
+                            entities: response.entities,
+                            relationships: response.relations,
+                            connections: response.entities
                                 .filter(x => x.id !== id)
                                 .map((child: any) => ({
                                     from: child.id,
-                                    to: x.entities.find(x => x.id === (id)),
-                                    publications: x.relations.filter((edge) =>
+                                    to: response.entities.find(x => x.id === (id)),
+                                    publications: response.relations.filter((edge) =>
                                         (edge.source === id && edge.target === child.id) ||
                                         (edge.source === child.id && edge.target === id))
                                             .reduce((acc, x) => acc + x.score, 0)
@@ -95,19 +94,19 @@ export const NetworkView = memo(function NetworkView({
                         });
                     } else {
                         setState({
-                            entities: x.entities
+                            entities: response.entities
                                 .filter(x => x.id !== id),
-                            relationships: communities.length > x.relations.length * 0.8 ? 
-                                x.relations.filter(edge => edge.source !== id && edge.target !== id) : 
-                                x.relations
+                            relationships: communities.length > response.relations.length * 0.8 ? 
+                                response.relations.filter(edge => edge.source !== id && edge.target !== id) : 
+                                response.relations
                                     .filter(edge => edge.source !== id && edge.target !== id)
                                     .filter(x => communities[x.source] === communities[x.target]),
-                            connections: x.entities
+                            connections: response.entities
                                 .filter(x => x.id !== id)
                                 .map((child: any) => ({
                                     from: child.id,
-                                    to: x.entities.find(x => x.id === (id)),
-                                    publications: x.relations.filter((edge) =>
+                                    to: response.entities.find(x => x.id === (id)),
+                                    publications: response.relations.filter((edge) =>
                                         (edge.source === id && edge.target === child.id) ||
                                         (edge.source === child.id && edge.target === id))
                                             .reduce((acc, x) => acc + x.score, 0)
@@ -161,8 +160,6 @@ export function INetworkView({
 
     const faculties = entities.map((x) => x.faculty).filter((x, i, a) => a.findIndex(z => z.id === x.id) === i);
 
-    console.log(connections);
-    
     useEffect(() => {
         if(graphRef.current && window.screen.width > 1280) {
             cytoscape.use(fcose);
