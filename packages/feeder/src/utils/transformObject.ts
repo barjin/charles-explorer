@@ -15,7 +15,7 @@ function containsNullishLiterals(obj: any) {
  */
 export function getOnlyLiterals(obj: Record<string, string>, tableName: string) {
     const literalFields = Object.values(getTableSchema(tableName))
-    ?.filter((x: any) => x.kind === 'scalar')
+    ?.filter((x: any) => x.kind === 'scalar' || x.kind === 'enum')
     .map((x: any) => x.name);
 
     if (!literalFields) {

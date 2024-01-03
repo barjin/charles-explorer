@@ -38,7 +38,7 @@ abstract class ParsedEntity {
       return this.data.faculties;
     }
     getDetail(): string | null {
-      return null
+      return null;
     }
     async getRelevantRelatedEntities(query: string): Promise<Record<string, any[]>> {
       return {};

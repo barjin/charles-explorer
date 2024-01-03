@@ -225,6 +225,7 @@ export function INetworkView({
                 setTooltipData({
                     id: node.id(),
                     name: stripTitles(node.data('title')),
+                    type: node.data('type'),
                     color: getFacultyColor(node.data('faculty')?.id),
                     faculty: node.data('faculty'),
                     publications: node.data('score'),
@@ -288,6 +289,7 @@ export function INetworkView({
             <GraphTooltip 
                 id={tooltipData.id}
                 name={tooltipData.name}
+                type={tooltipData.type}
                 faculty={tooltipData.faculty}
                 publications={tooltipData.publications}
                 followCursor={graphRef.current}

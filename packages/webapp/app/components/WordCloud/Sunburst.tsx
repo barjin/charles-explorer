@@ -67,6 +67,7 @@ export function SunburstView({
                     .map((friend: any) => ({
                         id: friend.id,
                         name: stripTitles(friend.title),
+                        type: friend.type,
                         angle: Math.log2(scores[friend.id] + 1),
                         score: scores[friend.id],
                         faculty: friend.faculty,
@@ -156,6 +157,7 @@ export function SunburstView({
                     tooltipData.visible &&
                     <GraphTooltip 
                         id={tooltipData.id}
+                        type={tooltipData.type}
                         name={tooltipData.name}
                         faculty={tooltipData.faculty}
                         publications={tooltipData.publications}
@@ -164,7 +166,7 @@ export function SunburstView({
                     />
                 }
                 <ResponsivePie 
-                    data={stats.children.map((x: any) => ({ id: x.id, label: x.name, angle: x.angle, score: x.score, color: x.color, faculty: x.faculty }))}
+                    data={stats.children.map((x: any) => ({ ...x, label: x.name }))}
                     margin={{ top: 100, right: 100, bottom: 100, left: 200 }}
                     innerRadius={0.7}
                     cornerRadius={5}
@@ -184,6 +186,7 @@ export function SunburstView({
                                 id: e.data.id,
                                 name: e.data.label,
                                 color: e.data.color,
+                                type: e.data.type,
                                 faculty: e.data.faculty,
                                 publications: e.data.score,
                                 visible: true,
@@ -198,6 +201,23 @@ export function SunburstView({
                     }}
                     layers={['arcs', 'arcLinkLabels', 'arcLabels', 'legends']}
                     tooltip={() => null}
+                    defs={[
+                        {
+                            id: 'dots',
+                            type: 'patternDots',
+                            background: 'inherit',
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            size: 4,
+                            padding: 4,
+                            stagger: true
+                        }
+                    ]}
+                    fill={[
+                        {
+                            match: d => { return d.data.type === 'OTHER' },
+                            id: 'dots'
+                        }
+                    ]}
                 />
                 <span
                     className='absolute top-0 left-0 pl-28 w-full h-full flex flex-col items-center justify-center text-3xl font-bold text-slate-900 -z-40'

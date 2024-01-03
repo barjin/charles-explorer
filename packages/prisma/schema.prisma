@@ -72,11 +72,18 @@ model Person {
   id                 String               @id
   private_id         String               @unique
   names              Text[]               @relation("PersonNames")
+  type               PersonType
   classes            Class[]
   departments        Department[]
   faculties          Faculty[]
   publications       Publication[]
   programmes         Programme[]
+}
+
+enum PersonType {
+  INTERNAL
+  EXTERNAL
+  OTHER
 }
 
 model Publication {

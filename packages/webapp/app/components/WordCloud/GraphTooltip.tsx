@@ -11,6 +11,7 @@ function IGraphTooltip({
     id,
     name, 
     faculty, 
+    type,
     publications, 
     style,
     connections,
@@ -36,7 +37,7 @@ function IGraphTooltip({
     }, [followCursor]);
 
     return (
-      <div className={`w-80 flex flex-col fixed bg-gray-100 shadow-lg z-50 ${position[0] === 0 && position[1] === 0 ? 'hidden' : ''}`} style={
+      <div className={`w-96 flex flex-col fixed bg-gray-100 shadow-lg z-50 ${position[0] === 0 && position[1] === 0 ? 'hidden' : ''}`} style={
         {
           top: position[1] + 10,
           left: position[0] + 10,
@@ -50,7 +51,7 @@ function IGraphTooltip({
           </div>
             <div className="flex flex-col ml-3">
               <div className="text-lg font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap">{name}</div>
-              <div className="text-sm text-gray-500">{capitalize(t('person', {count: 1}))} {t('at')} {faculty?.abbreviations?.[0]?.value ?? ''} UK</div>
+              <div className="text-sm text-gray-500">{capitalize(t(type))} {t('at')} {faculty?.abbreviations?.[0]?.value ?? ''} UK</div>
           </div>
         </div>
         {

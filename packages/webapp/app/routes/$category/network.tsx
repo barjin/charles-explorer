@@ -53,7 +53,7 @@ export async function loader({ request, params }: LoaderArgs) {
     let nodes = people.map(x => x.private_id);
     let newNodes = nodes;
 
-    if(mode=== 'one') {
+    if(mode === 'one') {
         for (let i = 0; i < depth; i++) {
             const newDiscovered = newNodes
                 .flatMap(x => Object.entries(socialNetwork[x] ?? {})
@@ -123,6 +123,7 @@ export async function loader({ request, params }: LoaderArgs) {
     return {
         entities: peopleWithNames.map(x => ({
             id: x.id,
+            type: x.type,
             title: x.names[0].value,
             faculty: x.faculties?.[0] ?? {
                 id: '123',

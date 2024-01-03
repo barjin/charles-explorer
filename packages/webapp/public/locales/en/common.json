@@ -63,5 +63,8 @@
     "show": "Show",
     "addToFilter": "Add to filter",
     "filterActive": "Filtering collaborations with:",
-    "legend": "Legend"
+    "legend": "Legend",
+    "EXTERNAL": "External academic staff",
+    "INTERNAL": "Academic staff",
+    "OTHER": "External person"
 }

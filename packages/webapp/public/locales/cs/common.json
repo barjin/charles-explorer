@@ -70,5 +70,8 @@
     "common_few": "společné",
     "common_other": "společných",
     "filterActive": "Filtruji spolupráce s:",
-    "legend": "Legenda"
+    "legend": "Legenda",
+    "EXTERNAL": "Externí akademický pracovník",
+    "INTERNAL": "Akademický pracovník",
+    "OTHER": "Externí osoba"
 }
