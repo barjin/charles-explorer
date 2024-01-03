@@ -20,14 +20,16 @@ function ViewmodeSwitch() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { category, id } = useParams();
     const { t } = useTranslation();
-    const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'cloud';
+    const view: (typeof viewTypes)[number]['name'] = searchParams.get('view') as any ?? 'network';
 
     if(category !== 'person') return null;
   
     return (
           <div className="absolute top-1/3 hidden xl:block z-50">
             {
-              viewTypes.map((v, i, a) => (
+              viewTypes
+              .filter(x => x.name !== 'cloud')
+              .map((v, i, a) => (
                 v.name === 'sunburst' && !id ? null :
                 <div 
                   key={v.name}
@@ -51,9 +53,14 @@ function ViewmodeSwitch() {
 
 export function Visualizer({ type, data, context }) {
   const { category } = useParams();
-  const showSunburst = category === 'person' && type === 'sunburst' && context === 'entity';
-  const showNetwork = category === 'person' && type === 'network';
-  const showCloud = !showSunburst && !showNetwork;
+  let showSunburst = category === 'person' && type === 'sunburst' && context === 'entity';
+  let showNetwork = category === 'person' && type === 'network';
+  let showCloud = !showSunburst && !showNetwork;
+
+  if (category === 'person' && showCloud) {
+    showNetwork = true;
+    showCloud = false;
+  }
 
   return (
       <div className="w-full h-full relative">

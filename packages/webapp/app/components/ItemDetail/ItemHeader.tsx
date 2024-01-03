@@ -83,7 +83,11 @@ export default function ItemHeader({ data } : { data: any }) {
             )
             }
           />  
-          {capitalize(t(category === 'person' ? data.type : category))} {localize('at')} {
+          {
+            capitalize(category === 'person' ? t(data.type) : t(category, { count: 1 }))
+          } {
+            localize('at')
+          } {
             data.faculties.length > 0 ?
               data.faculties.map(x => localize(x.names)).join(', ')
               : 'CUNI'
