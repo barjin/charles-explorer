@@ -79,14 +79,14 @@ export default function App() {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
         <Meta />
         <Links />
-      </head>
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-W8ERPYSLFH"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-W8ERPYSLFH"></script>
         <script dangerouslySetInnerHTML={{ __html: `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-    gtag('config', 'G-W8ERPYSLFH');`}} />
+      gtag('config', 'G-W8ERPYSLFH');`}} />
+      </head>
       <body className="h-screen bg-slate-100 overflow-hidden">
         <Outlet />
         <ScrollRestoration />
