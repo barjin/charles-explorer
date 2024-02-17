@@ -62,7 +62,7 @@ export function RelatedItem({ items, type, matching }: { items: any, type: entit
         >
         <div aria-hidden={true} className={`flex space-x-2 ${skeleton ? 'animate-pulse motion-reduce:animate-none' : ''}` }>
           <div 
-            className={`p-1 ${skeleton ? 'bg-slate-400' : 'bg-orange-400'} text-white text-xl`}
+            className={`p-1 ${skeleton ? 'bg-slate-400' : 'bg-slate-400'} text-white text-xl`}
             style={{
               background: !skeleton ? getSteppedGradientCSS(items[0].faculties?.map(x => getFacultyColor(x.id))) : undefined
             }}>

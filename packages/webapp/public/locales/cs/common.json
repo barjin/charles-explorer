@@ -61,8 +61,8 @@
     "takingTooLong": "Systém nefunguje?",
     "contactUsAt": "Kontaktujte nás na",
     "rootMetaDesc": "Objevte akademický svět Univerzity Karlovy s aplikací Charles Explorer. Hladce vyhledávejte kurzy, spojujte se s profesory, prozkoumávejte publikace a najděte svůj ideální studijní program.",
-    "unknownFaculty": "{{ type }} na UK",
     "loadMore": "Načíst další",
+    "unknownFaculty": "{{ type }} bez příslušnosti k fakultě",
     "at": "na",
     "show": "Zobrazit",
     "addToFilter": "Přidat do filtru",
@@ -72,6 +72,8 @@
     "filterActive": "Filtruji spolupráce s:",
     "legend": "Legenda",
     "EXTERNAL": "Externí akademický pracovník",
+    "EXTERNAL_INFERRED": "Osoba mimo UK",
     "INTERNAL": "Akademický pracovník",
-    "OTHER": "Externí osoba"
+    "OTHER": "Externí osoba",
+    "CUNI": "UK"
 }

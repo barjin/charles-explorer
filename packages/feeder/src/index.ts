@@ -15,7 +15,7 @@ import { db } from '@charles-explorer/prisma';
 import { AsyncDatabase } from 'promised-sqlite3';
 import colors from 'ansi-colors';
 import { transformers, indexCreation } from './transformers';
-import { connectPrismaEntities, fixPeopleFaculties, insertToSolr, migrateSqliteToPrisma } from './migrate';
+import { connectPrismaEntities, insertToSolr, migrateSqliteToPrisma } from './migrate';
 
 import dotenv from "dotenv";
 
@@ -53,8 +53,12 @@ function main() {
         process.exit(1);
     }
 
+    console.log('Preparing the SQLite database for migration...');
+    console.time('time spent on sqlite operations');
     const inDB = await AsyncDatabase.open(`${__dirname}/../../../explorer.db`);
     await inDB.exec(indexCreation);
+    console.log('SQLite database prepared!');
+    console.timeEnd('time spent on sqlite operations');
 
     // Creation task - create all the tables without joining the data
     for (const table of ordering) {
@@ -68,12 +72,10 @@ function main() {
         
             `);
 
-    // Joining task - join the data and insert it into Solr
+    // Joining task - fill up the relational tables
     for (const table of ordering) {
         await connectPrismaEntities(inDB, db, table, transformers[table], { batchSize })
     }
-
-    await fixPeopleFaculties(db);
 
     inDB.close();
 })().then(async () => {

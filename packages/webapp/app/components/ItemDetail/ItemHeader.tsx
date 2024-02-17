@@ -43,7 +43,7 @@ export default function ItemHeader({ data } : { data: any }) {
       className='hidden xl:flex'
       background={getSteppedGradientCSS(
         item?.getFaculties().length > 0 ?
-          item?.getFaculties().map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+          item?.getFaculties().map(x => getFacultyColor(x.id)): ['rgb(71, 85, 105)']
       )
       }
     />
@@ -79,18 +79,14 @@ export default function ItemHeader({ data } : { data: any }) {
             className='inline-block xl:hidden mr-2'
             background={getSteppedGradientCSS(
               data.faculties.length > 0 ?
-                data.faculties.map(x => getFacultyColor(x.id)): ['rgb(255, 153, 0)']
+                data.faculties.map(x => getFacultyColor(x.id)): ['rgb(71, 85, 105)']
             )
             }
           />  
           {
-            capitalize(category === 'person' ? t(data.type) : t(category, { count: 1 }))
-          } {
-            localize('at')
-          } {
             data.faculties.length > 0 ?
-              data.faculties.map(x => localize(x.names)).join(', ')
-              : 'CUNI'
+                `${capitalize(category === 'person' ? t(data.type) : t(category, { count: 1 }))} ${t('at')} ${data.faculties.map(x => localize(x.names)).join(', ')}` :
+                `${capitalize(category === 'person' ? t(data.type) : t(category, { count: 1 }))}`
           }
           {
             item.getDetail() && (

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "PersonType" ADD VALUE 'EXTERNAL_INFERRED';
