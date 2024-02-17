@@ -51,7 +51,13 @@ function IGraphTooltip({
           </div>
             <div className="flex flex-col ml-3">
               <div className="text-lg font-semibold text-gray-900 text-ellipsis overflow-hidden whitespace-nowrap">{name}</div>
-              <div className="text-sm text-gray-500">{capitalize(t(type))} {t('at')} {faculty?.abbreviations?.[0]?.value ?? ''} UK</div>
+              <div className="text-sm text-gray-500">
+                {
+                  faculty?.abbreviations?.[0]?.value ?
+                     `${capitalize(t(type))} ${t('at')} ${faculty?.abbreviations?.[0]?.value} ${t('CUNI')}` :
+                     `${capitalize(t(type))}`
+                }
+              </div>
           </div>
         </div>
         {

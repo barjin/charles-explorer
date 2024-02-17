@@ -84,13 +84,15 @@ enum PersonType {
   INTERNAL
   EXTERNAL
   OTHER
+  EXTERNAL_INFERRED
 }
 
 model Publication {
   id                 String               @id
   names              Text[]               @relation("PublicationNames")
-  year               String
+  year               String?
   authors            String
+  language           String               @default("cs")
   abstract           Text[]               @relation("PublicationAbstract")
   keywords           Text[]               @relation("PublicationKeywords")
   people             Person[]

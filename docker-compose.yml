@@ -92,6 +92,9 @@ services:
         source: ./packages/feeder/src/transformers.ts
         target: /app/packages/feeder/src/transformers.ts
       - type: bind
+        source: ./packages/database-scripts/
+        target: /app/packages/database-scripts/
+      - type: bind
         source: ./.env
         target: /app/.env
     profiles: ['seeder']

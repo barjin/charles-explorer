@@ -16,6 +16,10 @@ const { capitalize, waitUntilDbIdle, getTableSchema } = utils;
 
 let x = 0;
 
+function escapeUnsafeSQLChars(str: any) {
+    return String(str)?.replace?.(/'/g, "''") ?? str;
+}
+
 /**
  * Migrate a table from a sqlite database to a prisma database
  * @param inDB Instance of the sqlite database
@@ -101,7 +105,7 @@ export async function migrateSqliteToPrisma(inDB: AsyncDatabase, outDB: typeof d
 
             for (const [key, value] of Object.entries(newTableRecords)) {
                 try {
-                    await outDB.$executeRawUnsafe(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
+                    await outDB.$executeRawUnsafe(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${escapeUnsafeSQLChars(x.A)}', '${escapeUnsafeSQLChars(x.B)}')`).join(', ')}`);
                 } catch (e) {
                     console.log();
                     console.log(`INSERT INTO "${key}" ("A", "B") VALUES ${value.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
@@ -130,112 +134,6 @@ export async function migrateSqliteToPrisma(inDB: AsyncDatabase, outDB: typeof d
 
     singleBar.update(totalCount, { spinner: spinner.next().value, tableName: tableName.toUpperCase() });
 
-    singleBar.stop();
-}
-
-/**
- * Infers people's connections to faculties and departments from their programmes and classes.
- * @param prisma Instance of the Prisma client
- */
-export async function fixPeopleFaculties(prisma: typeof db) {
-    const singleBar = new cliProgress.SingleBar({
-        clearOnComplete: false,
-        format: `${x % 2 === 0 ? colors.redBright('{bar}') : colors.white('{bar}')} | {percentage}% | {value}/{total} | ETA: {eta_formatted} | Elapsed time: {duration_formatted} | {spinner} Inserting {tableName}`,
-    }, cliProgress.Presets.shades_classic);
-
-    console.log('Infering people\'s connections to faculties and departments from their programmes and classes...');
-
-    const c = await prisma['person'].findMany({
-        where: {
-            OR: [
-                {
-                    faculties: {
-                        none: {}
-                    },
-                },
-                // {
-                //     departments: {
-                //         none: {}
-                //     }
-                // }
-            ]
-        },
-        select: {
-            id: true,
-        }
-    });
-
-    singleBar.start(c.length, 0, { spinner: spinner.next().value, tableName: 'people\'s faculties...' });
-
-    let i = 0;
-    for (const { id } of c) {
-        if ( ++i % 100 === 0) {
-            singleBar.update(i, { spinner: spinner.next().value, tableName: 'people\'s faculties...' });
-        }
-        const person = await prisma['person'].findUnique({
-            where: {
-                id
-            },
-            include: {
-                names: true,
-                programmes: {
-                    include: {
-                        faculties: true,
-                    }
-                },
-                classes: {
-                    include: {
-                        faculties: true,
-                    }
-                },
-                publications: {
-                    include: {
-                        faculties: true,
-                    }
-                },
-            }
-        });
-
-        if(person) {
-            const faculties = {};
-
-            for (const programme of person.programmes) {
-                for (const faculty of programme.faculties) {
-                    faculties[faculty.id] ??= 0;
-                    faculties[faculty.id]++;
-                }
-            }
-    
-            for (const c of person.classes) {
-                for (const faculty of c.faculties) {
-                    faculties[faculty.id] ??= 0;
-                    faculties[faculty.id]++;
-                }
-            }
-
-            for (const p of person.publications) {
-                for (const faculty of p.faculties) {
-                    faculties[faculty.id] ??= 0;
-                    faculties[faculty.id]++;
-                }
-            }
-    
-            const facultyIds = Object.entries(faculties).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0,1).map(x => x[0]);
-    
-            await prisma['person'].update({
-                where: {
-                    id
-                },
-                data: {
-                    faculties: {
-                        connect: facultyIds.map(id => ({ id }))
-                    }
-                }
-            });
-        }
-    }
-
-    singleBar.update(c.length, { spinner: spinner.next().value, tableName: 'people\'s faculties...' });
     singleBar.stop();
 }
 
@@ -314,7 +212,8 @@ export async function connectPrismaEntities(inDB: AsyncDatabase, outDB: typeof d
 
         for (const [tableName, rows] of Object.entries(newTableRecords)) {
             try {
-                await outDB.$executeRawUnsafe(`INSERT INTO "${tableName}" ("A", "B") VALUES ${rows.map(x => `('${x.A}', '${x.B}')`).join(', ')} ON CONFLICT DO NOTHING`);
+                if (rows.length === 0) continue;
+                await outDB.$executeRawUnsafe(`INSERT INTO "${tableName}" ("A", "B") VALUES ${rows.map(x => `('${escapeUnsafeSQLChars(x.A)}', '${escapeUnsafeSQLChars(x.B)}')`).join(', ')} ON CONFLICT DO NOTHING`);
             } catch (e) {
                 console.log();
                 console.log(`INSERT INTO "${tableName}" ("A", "B") VALUES ${rows.map(x => `('${x.A}', '${x.B}')`).join(', ')}`);
@@ -358,7 +257,7 @@ export async function insertToSolr(coreName: string, inDB: typeof db, transforme
     let soFar = 0;
 
     while (hasMore) {
-        const t = {
+        const prismaQuery = {
             include: {
                 ...getTextFields(coreName as any)?.reduce((p: Record<string, any>, x) => ({
                     ...p,
@@ -376,12 +275,13 @@ export async function insertToSolr(coreName: string, inDB: typeof db, transforme
                     }), {})
                 : {})
             },
+            ...(coreName === 'person' ? { where: { type: { not: "EXTERNAL_INFERRED" } }} : {}), // Disables search on external inferred people
             take: batchSize,
             skip: cursor ? 1 : 0,
             cursor: cursor ? { id: cursor } : undefined,
         };
 
-        const records: any[] = await (inDB[coreName] as any).findMany(t);
+        const records: any[] = await (inDB[coreName] as any).findMany(prismaQuery);
 
         soFar += records.length;
 

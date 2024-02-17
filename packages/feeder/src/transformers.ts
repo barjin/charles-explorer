@@ -1,5 +1,7 @@
 import type { Transformers } from "./types/types";
 import { iso6392BTo1 } from "./utils/lang";
+import { readFileSync } from 'fs';
+import path from 'path';
 
 /**
  * The following transformers are used to transform the data from the SQLite database export into the Prisma schema.
@@ -69,20 +71,18 @@ export const transformers: Transformers = {
         }
     },
     person: {
-        query: `SELECT * from (SELECT PERSON.*, 
-            CLASS.FACULTY_ID, 
-            CLASS.DEPT_ID 
-        FROM 
-            (SELECT * FROM PERSON) as PERSON
-                LEFT JOIN 
-            CLASS 
-            ON PERSON.PERSON_ID = CLASS.TEACHER_ID
-        GROUP BY PERSON_ID) as P WHERE (P.PERSON_ID in (SELECT PERSON_ID from PUBLICATION_AUTHOR) or P.PERSON_ID in (SELECT TEACHER_ID from CLASS))`,
+        query: `SELECT * FROM T_PERSON`,
         transform: (data: any) => {
+            const publicId = data.TYPE === 'EXTERNAL_INFERRED' ? data.PERSON_ID : data.PERSON_WHOIS_ID;
+            if(!publicId) throw new Error('No public id found for person' + JSON.stringify(data));
+
+            const faculties = JSON.parse(data.FACULTY_ID) ?? [];
+            const departments = JSON.parse(data.DEPT_ID) ?? [];
+
             return {
-                id: data.PERSON_WHOIS_ID,
+                id: publicId,
                 private_id: data.PERSON_ID,
-                type: data.TYPE === 'U' ? 'INTERNAL' : data.TYPE === 'E' ? 'EXTERNAL' : 'OTHER',
+                type: data.TYPE === 'U' ? 'INTERNAL' : data.TYPE === 'E' ? 'EXTERNAL' : data.TYPE === 'EXTERNAL_INFERRED' ? 'EXTERNAL_INFERRED' : 'OTHER',
                 names: {
                     create: [{
                         lang: 'en',
@@ -90,20 +90,16 @@ export const transformers: Transformers = {
                     }]
                 },
                 faculties: {
-                    connect: {
-                        id: data.FACULTY_ID,
-                    }
+                    connect: faculties.map((x: any) => ({id: x}))
                 },
                 departments: {
-                    connect: {
-                        id: data.DEPT_ID,
-                    }
+                    connect: departments.map((x: any) => ({id: x}))
                 }
             }
         }
     },
     class: {
-        query: 'SELECT C.*, P.PERSON_ID FROM CLASS as C LEFT JOIN PERSON as P ON C.TEACHER_ID = PERSON_ID GROUP BY C.CLASS_ID',
+        query: 'SELECT C.*, P.PERSON_ID FROM CLASS as C LEFT JOIN T_PERSON as P ON C.TEACHER_ID = PERSON_ID GROUP BY C.CLASS_ID',
         transform: (data: any) => {
             return {
                 id: data.CLASS_ID,
@@ -160,14 +156,14 @@ export const transformers: Transformers = {
         query: `
 SELECT 
     S.*, 
-    PERSON.PERSON_ID, 
+    T_PERSON.PERSON_ID, 
     (SELECT group_concat(ID, '/') from STUDY_PROGRAMME where s.STUDY_PROGRAMME_ID = STUDY_PROGRAMME_ID and id != s.id) AS RELATED_PROGRAMMES,
     (SELECT group_concat(STUDY_PROGRAMME_CLASS.CLASS_ID, '/') from STUDY_PROGRAMME_CLASS LEFT JOIN CLASS as c on c.CLASS_ID = STUDY_PROGRAMME_CLASS.CLASS_ID where s.ID = ID and c.CLASS_ID is not null) AS RELATED_CLASSES
 FROM 
     STUDY_PROGRAMME as S 
         LEFT JOIN 
-    PERSON 
-        ON S.GARANT_ID = PERSON.PERSON_ID 
+    T_PERSON 
+        ON S.GARANT_ID = T_PERSON.PERSON_ID 
 GROUP BY ID`,
         transform: (row) => {
             return {
@@ -216,71 +212,57 @@ GROUP BY ID`,
     },
     publication: {
         query: `
-        SELECT P.*, 
-    json_group_array(json_object(
-            'lang',PUBLICATION_KEYWORDS.languague,
-            'title', PUBLICATION_KEYWORDS.title,
-            'abstract', PUBLICATION_KEYWORDS.abstract,
-            'keywords', PUBLICATION_KEYWORDS.keywords)
-    ) as LOCALIZED FROM
-            (SELECT publication.PUBLICATION_ID, 
-                    PUB_YEAR,
-                    group_concat(DISTINCT DEPARTMENT.DEPT_ID) AS DEPT_ID,
-                    group_concat(DISTINCT DEPARTMENT.FACULTY_ID) AS FACULTY_ID,
-                    group_concat(DISTINCT PERSON.PERSON_ID) AS AUTHORS
-                    from 
-                    PUBLICATION
-                            LEFT JOIN
-                    DEPARTMENT
-                    ON PUBLICATION.DEPT_POID = DEPARTMENT.POID
-                            LEFT JOIN
-                    PUBLICATION_AUTHOR
-                    ON PUBLICATION.PUBLICATION_ID = PUBLICATION_AUTHOR.PUBLICATION_ID
-                    	LEFT JOIN
-                    PERSON
-                    ON PUBLICATION_AUTHOR.PERSON_ID = PERSON.PERSON_ID
-            GROUP by PUBLICATION.PUBLICATION_ID
-            {{LIMIT}} {{OFFSET}}) AS P
-            LEFT JOIN
-        PUBLICATION_KEYWORDS
-        ON PUBLICATION_KEYWORDS.PUBLICATION_ID = P.PUBLICATION_ID
-    GROUP by P.PUBLICATION_ID`,
+        SELECT * from PUBLICATION 
+            left join
+            T_PUBLICATION_ORGANISATION using("PUBLICATION_ID")
+            left join
+            T_PUBLICATION_AUTHORS using("PUBLICATION_ID")
+            left join
+            T_PUBLICATION_TEXTS using("PUBLICATION_ID")`,
         transform: (row) => {
-            const localized: Record<string, any>[] = 
-                JSON.parse(row.LOCALIZED)
-                .filter((x: any, i: number, a: any[]) => {
-                    return a.findIndex((y: any) => y.lang === x.lang) === i;
-                });
+            let texts = {}
+
+            try {
+                texts = JSON.parse(row.texts) ?? {};
+            } catch (e) {
+                console.error('Error parsing texts', e);
+            }
+
+            const langs = Object.keys(texts);
+            const departments = JSON.parse(row.DEPARTMENTS) ?? [];
+            const faculties = JSON.parse(row.FACULTIES) ?? [];
+            const authors = JSON.parse(row.AUTHORS) ?? [];
 
             return {
                 id: row.PUBLICATION_ID,
                 year: row.PUB_YEAR,
+                language: iso6392BTo1[row.LANGUAGE.toLowerCase()] ?? 'cs',
                 authors: '',
                 departments: {
-                    connect: row.DEPT_ID?.split(',').map((x: string) => ({ id: x.length > 0 ? x : null })),
+                    connect: departments.map((x: any) => ({id: x}))
                 },
                 faculties: {
-                    connect: row.FACULTY_ID?.split(',').map((x: string) => ({ id: x.length > 0 ? x : null })),
+                    connect: faculties.map((x: any) => ({id: x}))
                 },
                 people: {
-                    connect: row.AUTHORS?.split(',').map((x: string) => ({ private_id: x.length > 0 ? x : null })),
+                    connect: authors.filter(x=>x).map((x: any) => ({private_id: x}))
                 },
                 names: {
-                    create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
-                        value: x.title,
+                    create: langs.map((x: any) => ({
+                        lang: iso6392BTo1[x.toLowerCase()] ?? 'cs',
+                        value: texts[x]?.title,
                     }))
                 },
                 abstract: {
-                    create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
-                        value: x.abstract,
+                    create: langs.map((x: any) => ({
+                        lang: iso6392BTo1[x.toLowerCase()] ?? 'cs',
+                        value: texts[x]?.abstract,
                     }))
                 },
                 keywords: {
-                    create: localized.map((x: any) => ({
-                        lang: iso6392BTo1[x.lang.toLowerCase()] ?? 'en',
-                        value: x.keywords,
+                    create: langs.map((x: any) => ({
+                        lang: iso6392BTo1[x.toLowerCase()] ?? 'cs',
+                        value: texts[x]?.keywords,
                     }))
                 },
                 
@@ -292,11 +274,12 @@ GROUP BY ID`,
 export const indexCreation = `
 CREATE INDEX IF NOT EXISTS "STUDY_PROGRAMME_ID" ON "STUDY_PROGRAMME" ("STUDY_PROGRAMME_ID");
 CREATE INDEX IF NOT EXISTS "STUDY_PROGRAMME_CLASS_ID" ON "STUDY_PROGRAMME_CLASS" ("ID");
-CREATE INDEX IF NOT EXISTS "PUBLICATION_AUTHOR_PUB_ID" ON "PUBLICATION_AUTHOR" ("PUBLICATION_ID");
-CREATE INDEX IF NOT EXISTS "PUBLICATION_AUTHOR_AUT_ID" ON "PUBLICATION_AUTHOR" ("PERSON_ID");
 CREATE INDEX IF NOT EXISTS "PUBLICATION_ID" ON "PUBLICATION" ("PUBLICATION_ID");
 CREATE INDEX IF NOT EXISTS "PUBLICATION_KEYWORDS_PUB_ID" ON PUBLICATION_KEYWORDS("PUBLICATION_ID");
 CREATE INDEX IF NOT EXISTS "CLASS_ID" ON "CLASS" ("CLASS_ID");
 CREATE INDEX IF NOT EXISTS "TEACHER_ID" ON "CLASS" ("TEACHER_ID");
 CREATE INDEX IF NOT EXISTS "PERSON_ID" ON "PERSON" ("PERSON_ID");
-`;
+`
++ readFileSync(path.join(__dirname, '../../database-scripts/normalization.sql'), 'utf-8')
++ readFileSync(path.join(__dirname, '../../database-scripts/temporaries.sql'), 'utf-8')
++ readFileSync(path.join(__dirname, '../../database-scripts/inference.sql'), 'utf-8');

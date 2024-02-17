@@ -64,7 +64,7 @@ export function SearchTool() {
                             className='flex flex-1 flex-col items-center'
                         >
                             {icon({
-                                className: `${searchMode === mode ? 'text-orange-400' : 'text-slate-400'} pb-1`,
+                                className: `${searchMode === mode ? 'text-rose-700' : 'text-slate-400'} pb-1`,
                                 size: 25,
                                 cursor: 'pointer',
                                 'aria-hidden': true,
