@@ -1,3 +1,7 @@
+> **IMPORTANT**: This is a GitHub mirror of the original repository hosted at [GitLab](https://gitlab.mff.cuni.cz/barj/charles-explorer). It might not be totally up to date. 
+>
+> Please, refer to the original repository for the latest changes and issues.
+
 <div align="center">
     <a href="https://explorer.cuni.cz" align="center">
         <picture>
