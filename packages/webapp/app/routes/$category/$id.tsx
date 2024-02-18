@@ -16,6 +16,7 @@ import TextField from "~/components/ItemDetail/TextField";
 import RelatedEntities from "~/components/ItemDetail/RelatedEntities";
 
 import { IoClose } from 'react-icons/io5';
+import { t } from "i18next";
 
 function getQueryParam(request, key){
   const url = new URL(request.url);
@@ -238,9 +239,7 @@ export default function Index() {
           return (localize(data[x as keyof typeof data] as any)?.trim()?.length ?? -1) > 0
         }).length === 0 && (
           <p className="text-stone-600 font-sans font-normal text-1xl py-2">
-            Pro {
-              `${data.category === 'person' ? 'tuto osobu' : data.category === 'publication' ? 'tuto publikaci' : data.category === 'class' ? 'tento předmět' : 'tento program'}`
-            } bohužel nemáme k dispozici žádný popis.
+            {t('no_better_description', { thisTypeAccusative: t(`this_${data.category}_accusative`) })}
           </p>
         )
       }

@@ -87,7 +87,7 @@ export default function App() {
 
       gtag('config', 'G-W8ERPYSLFH');`}} />
       </head>
-      <body className="h-screen bg-slate-100 overflow-hidden">
+      <body className="xl:h-screen bg-slate-100 xl:overflow-hidden">
         <Outlet />
         <ScrollRestoration />
         <Scripts />

@@ -34,15 +34,19 @@
     "class_one": "class",
     "class_other": "classes",
     "thisClass": "this class",
+    "this_class_accusative": "this class",
     "person_one": "person",
     "person_other": "people",
     "thisPerson": "this person",
+    "this_person_accusative": "this person",
     "publication_one": "publication",
     "publication_other": "publications",
     "thisPublication": "this publication",
+    "this_publication_accusative": "this publication",
     "programme_one": "study programme",
     "programme_other": "study programmes",
     "thisProgramme": "this study programme",
+    "this_programme_accusative": "this study programme",
     "relevant_one": "relevant",
     "relevant_other": "relevant",
     "matches": "{{ thisType }} is also relevant to the query \"{{query}}\"",
@@ -68,5 +72,6 @@
     "EXTERNAL_INFERRED": "Person without affiliation with CUNI",
     "INTERNAL": "Academic staff",
     "OTHER": "External person",
-    "CUNI": "CUNI"
+    "CUNI": "CUNI",
+    "no_better_description": "Unfortunately, we do not have a better description for {{ thisTypeAccusative }}."
 }
