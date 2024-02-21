@@ -15,5 +15,6 @@ solr-data/data/*
 charles-explorer.db
 *.AppImage
 *.sqlite3
+graph.db
 
 website

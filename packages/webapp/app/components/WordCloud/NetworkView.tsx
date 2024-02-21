@@ -25,7 +25,7 @@ interface GraphRelationship {
     score: number;
 }
 
-export const NetworkView = memo(function NetworkView({
+export const NetworkView = function NetworkView({
     data, context
 }: {
     data: any,
@@ -43,7 +43,7 @@ export const NetworkView = memo(function NetworkView({
         if ( context === 'search' ) {
             const searchResultIds = data.searchResults.map(x => x.id)
 
-            fetch(`/${category}/network?ids=${searchResultIds.join(',')}`)
+            fetch(`/${category}/network?op=ONLY&node=${searchResultIds.join(',')}`)
                 .then((x) => x.json())
                 .then((x) => {
 
@@ -58,7 +58,7 @@ export const NetworkView = memo(function NetworkView({
                     })
                 });
         } else if (context === 'entity') {
-            fetch(`/${category}/network?mode=all&ids=${seeds.join(',')}`)
+            fetch(`/${category}/network?mode=AND&node=${seeds.join(',')}`)
                 .then((x) => x.json())
                 .then((response) => {
                     const maxScore = Math.max(...response.relations.map(x => x.score));
@@ -121,14 +121,12 @@ export const NetworkView = memo(function NetworkView({
                     }
                 });
         }
-    }, [id, filters, context])
+    }, [id, filters, context, data.searchResults, data.category])
 
     return (
         <INetworkView {...{...state}} />
     );
-}, (prev, next) => {
-    return (prev.data.id === next.data.id && prev.data.filters?.length === next.data.filters?.length && prev.context === next.context && prev.data.query === next.data.query);
-});
+};
 
 /**
  * Renders a social network view on entities and their relationships

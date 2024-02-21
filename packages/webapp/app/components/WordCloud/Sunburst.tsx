@@ -35,7 +35,7 @@ export function SunburstView({
     const seeds = [id, ...(filters?.map(x => x.id).filter(x => x) ?? [])];
     
     useEffect(() => {
-        fetch(`/person/network?mode=all&ids=${seeds.join(',')}`)
+        fetch(`/person/network?mode=OR&node=${seeds.join(',')}`)
             .then(x => x.json())
             .then(network => {
                 const { entities, relations } = network;
