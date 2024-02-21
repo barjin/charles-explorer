@@ -10,7 +10,7 @@ export function ChordChart() {
     const [data, setData] = useState<any>(null);
     
     useEffect(() => {
-        fetch(`/person/network?id=${id}`)
+        fetch(`/person/network?node=${id}`)
             .then(x => x.json())
             .then(network => {
                 if(!network || network.length < 0 || !network.me) return;

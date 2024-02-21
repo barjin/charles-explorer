@@ -7,5 +7,6 @@
 
 **/.git
 **/explorer.db
+**/graph.db
 
 !**/.env

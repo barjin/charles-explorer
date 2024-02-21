@@ -1,6 +1,6 @@
 import { type LoaderArgs } from "@remix-run/node";
-import socialNetwork from "~/assets/social_network.json";
 import { db } from "~/connectors/prisma";
+import axios from 'axios';
 
 const emptyResponse = {
     entities: [],
@@ -22,84 +22,32 @@ export async function loader({ request, params }: LoaderArgs) {
         return emptyResponse;
     }
 
-    const ids = searchParams.get('ids')?.split(',') ?? [];
-    let depth = parseInt(searchParams.get('depth') ?? '0');
-    const mode = searchParams.get('mode') ?? 'one';
+    const ids = searchParams.get('node')?.split(',') ?? [];
+    const mode: 'AND' | 'OR' = searchParams.get('op') ?? 'AND' as 'AND' | 'OR' | 'ONLY';
 
-    if ( ids.length === 1 ) {
-        depth = 1;
-    }
+    const url = process.env.NETWORK_URL ?? 'http://localhost:8899/graph';
 
-    if(!ids) {
-        console.error('[network] no ids provided');
-        return emptyResponse; 
-    }
+    const graphUrl = new URL(url);
+    graphUrl.searchParams.append('op', mode);
+    graphUrl.searchParams.append('node', ids.join(','));
 
-    const people = (await db.person.findMany({
-        where: {
-            id: { in: ids }
-        },
-        select: {
-            private_id: true,
-        }
-    })) ?? {};
+    let nodes = [];
+    let edges = [];
 
-    if(people.length === 0) {
-        console.error('[network] no valid nodes found');
-        return emptyResponse;
-    }
 
-    // find neighborhood of nodes
-    let nodes = people.map(x => x.private_id);
-    let newNodes = nodes;
-
-    if(mode === 'one') {
-        for (let i = 0; i < depth; i++) {
-            const newDiscovered = newNodes
-                .flatMap(x => Object.entries(socialNetwork[x] ?? {})
-                    .filter(([_, score], i, a) => {
-                        if(a.length < 50) return true;
-                        const maxScore = Math.max(...a.map(([_, score]) => score));
-                        return score > maxScore * 0.1;
-                    })
-                    .map(([id]) => id)
-                );
-            nodes = [...new Set([...nodes, ...newNodes])];
+    try {
+        const data = await axios.get(graphUrl.href);
     
-            newNodes = newDiscovered;
-        }
-    } else if(mode === 'all') {
-        const newDiscovered = newNodes
-            .map(x => Object.keys(socialNetwork[x] ?? {}))
-            .map((x,_,a) => x.filter((y) => a.every(z => z.includes(y))))
-
-        nodes = [...new Set([...nodes, ...newDiscovered.flat()])];
-    }
-
-
-    nodes = [...new Set([...nodes, ...newNodes])];
-
-    const relations = [];
-
-    for (const id of nodes) {
-        for (const id2 of nodes) {
-            if (id <= id2) {
-                continue;
-            }
-
-            if (socialNetwork[id]?.[id2]) {
-                relations.push({
-                    source: id,
-                    target: id2,
-                    score: socialNetwork[id][id2]
-                });
-            }
-        }
+        nodes = data.data.nodes;
+        edges = data.data.edges;
+    } catch (e) {
+        console.error('[network] Failed to fetch graph', e);
+        return emptyResponse;
     }
 
     const peopleWithNames = await db.person.findMany({
         where: {
-            private_id: { in: nodes },
+            id: { in: nodes.map(x => x.id) },
         },
         include: {
             names: true,
@@ -112,24 +60,21 @@ export async function loader({ request, params }: LoaderArgs) {
         }
     });
 
-    const peopleIdMap = Object.fromEntries(peopleWithNames.map(x => [x.private_id, x]));
-
-    const translatedRelations = relations.map(x => ({
-        source: peopleIdMap[x.source]?.id,
-        target: peopleIdMap[x.target]?.id,
-        score: x.score,
-    })).filter(x => x.source && x.target)
-
     return {
-        entities: peopleWithNames.map(x => ({
+        entities: peopleWithNames
+        .map(x => ({
             id: x.id,
             type: x.type,
             title: x.names[0].value,
             faculty: x.faculties?.[0] ?? {
-                id: '123',
-                names: [{ value: 'Unknown' }]
+                id: 'EXTERNAL',
+                names: [{ value: 'External' }]
             }
         })),
-        relations: translatedRelations
+        relations: edges.map(edge => ({
+            source: edge.from,
+            target: edge.to,
+            score: edge.weight,
+        })).filter(x => x.source && x.target)
     };
 }

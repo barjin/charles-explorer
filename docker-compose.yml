@@ -78,6 +78,21 @@ services:
             aliases:
               - postgres.charles
 
+  social-network:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.graph
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./packages/go-network/graph.db
+        target: /app/graph.db
+    profiles: ['app']
+    networks:
+      interhub:    
+          aliases:
+            - gonetwork.charles
+
   seed-data:
     build: 
       context: .
@@ -95,6 +110,9 @@ services:
         source: ./packages/database-scripts/
         target: /app/packages/database-scripts/
       - type: bind
+        source: ./packages/go-network/
+        target: /app/packages/go-network/
+      - type: bind
         source: ./.env
         target: /app/.env
     profiles: ['seeder']
@@ -106,6 +124,10 @@ services:
       - /bin/sh
       - -c
       - |
+        cd /app
+        rm -f graph.db
+        sqlite3 /app/explorer.db < /app/packages/database-scripts/sqlite-graph.sql
+        mv /app/graph.db /app/packages/go-network/graph.db
         cp /app/.env /app/packages/prisma
         cd /app/packages/prisma
         npx prisma migrate deploy

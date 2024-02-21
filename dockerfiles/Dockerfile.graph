@@ -1,0 +1,12 @@
+FROM golang:alpine
+
+RUN apk update && apk upgrade
+RUN apk add --no-cache sqlite gcc musl-dev
+
+COPY ./packages/go-network /app
+WORKDIR /app
+
+RUN go mod download
+RUN go build -o main .
+
+CMD ["./main"]
