@@ -139,9 +139,9 @@ services:
         cd /app
         cp /app/.env /app/packages/prisma
         cd /app/packages/prisma
-        # npx prisma migrate deploy
+        npx prisma migrate deploy
         cd /app/packages/feeder
-        # npx ts-node src/index.ts
+        npx ts-node src/index.ts
         cd /app
         rm -f graph.db
         sqlite3 /app/explorer.db < /app/packages/database-scripts/sqlite-graph.sql
