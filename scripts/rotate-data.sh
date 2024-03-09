@@ -19,3 +19,5 @@ docker compose exec solr sh -c "solr delete -c programme"
 
 docker compose --profile='seeder' rm -f
 docker compose --profile='seeder' up
+
+./scripts/apply-deltas.sh
