@@ -27,6 +27,16 @@ services:
     networks:
       - interhub
 
+  debug-web:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/Dockerfile.debugapp
+    ports:
+      - "8080:3000"
+    networks: 
+      - interhub
+    restart: unless-stopped
+
   solr:
     image: solr
     volumes:
