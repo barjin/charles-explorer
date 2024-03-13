@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { useNavigate, useLocation } from '@remix-run/react';
 import { getFacultyColor } from '~/utils/colors';
@@ -8,6 +8,7 @@ import { WithLegend } from './Legends/WithLegend';
 import { FacultiesLegend } from './Legends/FacultiesLegend';
 import { groupBy } from '~/utils/groupBy';
 import { GraphTooltip } from './GraphTooltip';
+import { MdAlternateEmail } from 'react-icons/md';
 
 export function SunburstView({
         data, context
@@ -17,6 +18,7 @@ export function SunburstView({
     }
 ) {
     const { id, filters } = data;
+    const category = 'person';
     const [stats, setStats] = useState<any>(null);
 
     const [tooltipData, setTooltipData] = useState<any>({
@@ -66,6 +68,7 @@ export function SunburstView({
                     .sort((a, b) => (faculties.indexOf(a.faculty?.id ?? 10000) - faculties.indexOf(b.faculty?.id ?? 10000)))
                     .map((friend: any) => ({
                         id: friend.id,
+                        alternativeIds: friend.alternativeIds,
                         name: stripTitles(friend.title),
                         type: friend.type,
                         angle: Math.log2(scores[friend.id] + 1),
@@ -137,6 +140,42 @@ export function SunburstView({
 
     const graphRef = useRef<HTMLDivElement>(null);
 
+    const rightClickListener = useCallback((node) => {
+        const id = node.id;
+        const data = { alternativeIds: node.alternativeIds };
+
+        setTooltipData({
+            visible: false,
+        });
+
+        const newPath = pathname + `,${
+            data?.alternativeIds && data.alternativeIds.length > 1
+                ? `[${data.alternativeIds.join('|')}]` 
+                : id
+        }`;
+
+        navigate(newPath + search);
+    }, [navigate, pathname, search]);
+
+    const leftClickListener = useCallback((node) => {
+        const id = node.id;
+        const data = { alternativeIds: node.alternativeIds };
+
+        setTooltipData({
+            visible: false,
+        });
+
+        if(data?.alternativeIds && data.alternativeIds.length > 1) {
+            return rightClickListener(node);
+        }
+
+        navigate(`/${category}/${
+            data?.alternativeIds && data.alternativeIds.length > 1
+                ? `[${data.alternativeIds.join('|')}]` 
+                : id
+            }?` + search.substring(1));
+    }, [navigate, pathname, search]);
+
     return stats &&
         <WithLegend
             legend={<FacultiesLegend faculties={stats.children.map((x: any) => x.faculty).filter((x,i,a) => a.findIndex(z => z.id === x.id) === i)} />}
@@ -146,7 +185,7 @@ export function SunburstView({
                 e.preventDefault();
                 e.stopPropagation();
                 if(tooltipData.visible && tooltipData.id !== 'others') {
-                    navigate({ pathname: pathname + ',' + tooltipData.id, search });
+                    rightClickListener({ id: tooltipData.id, alternativeIds: tooltipData.alternativeIds });
                 }
             }}
         >
@@ -178,12 +217,15 @@ export function SunburstView({
                     borderColor={'#f1f5f9'}
                     borderWidth={5}
                     onClick={(e: any) => {
-                        if(e.data.id !== 'others') navigate({ pathname: `/person/${e.data.id}`, search });
+                        if(e.data.id !== 'others') {
+                            leftClickListener(e.data);
+                        }
                     }}
                     onMouseEnter={(e: any) => {
                         if(e.data.id !== tooltipData.id) {
                             setTooltipData({
                                 id: e.data.id,
+                                alternativeIds: e.data.alternativeIds,
                                 name: e.data.label,
                                 color: e.data.color,
                                 type: e.data.type,

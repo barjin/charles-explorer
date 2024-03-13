@@ -241,27 +241,44 @@ export function INetworkView({
                 });
             });
 
-            cy.current?.on('click', 'node', function({ target: node }){
+            const rightClickListener = ({ target: node }) => {
                 const id = node.id();
+                const data = node.data();
 
                 setTooltipData({
                     visible: false,
                 });
 
-                navigate(`/${category}/${id}?` + search.substring(1));
-            });
-
-            cy.current?.on('cxttapstart', 'node', function({ target: node }){
-                const id = node.id();
-
-                setTooltipData({
-                    visible: false,
-                });
-
-                const newPath = pathname + `,${id}`;
+                const newPath = pathname + `,${
+                    data?.alternativeIds && data.alternativeIds.length > 1
+                        ? `[${data.alternativeIds.join('|')}]` 
+                        : id
+                }`;
 
                 navigate(newPath + search);
-            });
+            };
+
+            const leftClickListener = ({ target: node }) => {
+                const id = node.id();
+                const data = node.data();
+
+                setTooltipData({
+                    visible: false,
+                });
+
+                if(data?.alternativeIds && data.alternativeIds.length > 1) {
+                    return rightClickListener({ target: node });
+                }
+
+                navigate(`/${category}/${
+                    data?.alternativeIds && data.alternativeIds.length > 1
+                        ? `[${data.alternativeIds.join('|')}]` 
+                        : id
+                    }?` + search.substring(1));
+            }
+
+            cy.current?.on('click', 'node', leftClickListener);
+            cy.current?.on('cxttapstart', 'node', rightClickListener);
 
             cy.current?.layout({
                 name: 'fcose',
