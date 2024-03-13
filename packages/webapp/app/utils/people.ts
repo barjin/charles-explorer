@@ -35,7 +35,12 @@ export function stripTitles(nameWithTitles: string): string {
     'profesor',
     'Univerzity',
     'Karlovy',
+    'PhD'
   ]
 
   return nameWithTitles.split(' ').filter(x => !x.endsWith('.') && !x.endsWith(',') && !titles.includes(x) && !titles.includes(`${x},`)).join(' ')
+}
+
+export function normalizeName(name: string): string {
+  return stripTitles(name).toLowerCase().split(' ').sort().join(' ');
 }

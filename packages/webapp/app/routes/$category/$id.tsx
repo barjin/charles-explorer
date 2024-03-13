@@ -89,6 +89,76 @@ async function loadEntities(category, ids) {
     };
 }
 
+function parsePackedId(id: string) {
+  if(id[0] === '[' && id[id.length - 1] === ']') {
+    return id.slice(1, -1).split('|');
+  }
+  else {
+    return [id]
+  }
+}
+
+async function loadGroup(ids: string[]) {
+
+  const peopleIds: string[][] = ids.map(parsePackedId);
+
+  const people = await db.person.findMany({
+    where: {
+      id: {
+        in: peopleIds.map(x => x[0])
+      }
+    },
+    include: {
+      faculties: {
+        include: {
+          abbreviations: true,
+          names: true,
+        }
+      },
+      departments: true,
+      names: true,
+    }
+  });
+
+  people.sort((a, b) => {
+    return peopleIds.findIndex(x => x[0] === a.id) - peopleIds.findIndex(x => x[0] === b.id);
+  });
+
+  const [publications] = await Promise.all([
+    db.publication.findMany({
+      where: {
+        AND: peopleIds.map(ids => ({
+          people: {
+            some: {
+              id: {
+                in: ids
+              }
+            }
+          }
+        }))
+      },
+      include: {
+        faculties: {
+          include: {
+            abbreviations: true,
+            names: true,
+          },
+        },
+        names: true,
+      }
+    })
+  ]);
+
+  return {
+    ...people[0],
+    private_id: undefined,
+    publications,
+    classes: [],
+    programmes: [],
+    filters: people.slice(1).map(x => ({...x, private_id: undefined})),
+  }
+}
+
 export const loader = async ({ request, params }: LoaderArgs) => {
   const { category, id } = params;
   const query = getQueryParam(request, 'query');
@@ -103,7 +173,12 @@ export const loader = async ({ request, params }: LoaderArgs) => {
     });
   }
 
-  const loaded = await loadEntities(category, ids);
+  let loaded;
+  if (category === 'person' && ids.length > 1) {
+    loaded = await loadGroup(ids);
+  } else {
+    loaded = await loadEntities(category, ids);
+  }
 
   if (!loaded) {
     throw new Response(null, {
@@ -200,8 +275,17 @@ function Filters({filters}: {filters: any[]}) {
             className="p-1 px-2 bg-slate-200 rounded-md shadow-sm mb-2 cursor-pointer flex flex-row items-center justify-between" 
             key={i}
             onClick={() => {
-              const newPathname = pathname.split(',').filter((y) => y !== x.id).join(',');
-              navigate(newPathname + search);
+              const pathSegments = pathname.split('/');
+
+              const lastPathPart = pathSegments.pop();
+              const newPathname = lastPathPart.split(',').filter((y) => {
+                if(y[0] === '[') {
+                  return parsePackedId(y).every((z) => z !== encodeURIComponent(x.id));
+                }
+                return y !== encodeURIComponent(x.id)
+              }).join(',');
+
+              navigate([...pathSegments, newPathname].join('/') + search);
             }}
           >
             <span>
