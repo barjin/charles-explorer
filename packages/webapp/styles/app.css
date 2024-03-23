@@ -13,3 +13,19 @@
 svg g path {
     cursor: pointer;
 }
+
+.spinner {
+    animation: spin infinite 5s cubic-bezier(0.19, 1, 0.22, 1)
+
+    /*You can increase or decrease the timer (5s) to 
+     increase or decrease the speed of the spinner*/
+  }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

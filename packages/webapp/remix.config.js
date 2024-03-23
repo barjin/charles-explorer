@@ -24,7 +24,8 @@ module.exports = {
     'p-locate',
     'p-limit',
     'yocto-queue',
-    /@nivo\/.+/, 
+    'd3',
     /d3-.+/,
+    'internmap'
   ]
 };
