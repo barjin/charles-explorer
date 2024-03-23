@@ -1,6 +1,7 @@
 import { type LoaderArgs } from "@remix-run/node";
 import graph, { Integer, Node } from 'neo4j-driver';
 import { db } from '~/connectors/prisma';
+import { searchClient } from "~/connectors/solr.server";
 
 
 const driver = graph.driver('bolt://localhost:7687');
@@ -40,7 +41,7 @@ export async function loader({ request, params }: LoaderArgs): Promise<any> {
                 variable IN collections.sort(
                     collections.remove_all(
                     split(
-                        toLower(c.PERSON_NAME), 
+                        toLower(coalesce(c.PERSON_NAME, "")), 
                         ' '), 
                     [ "doc.", "ph.d.", "phd", "rndr.", "mgr.", "prof.", "csc.", "ing.", "m.sc.", "mudr.", "dipl.-inform.", "dipl.-ing.", "bc.", "drsc."]
                     )
@@ -87,9 +88,15 @@ export async function loader({ request, params }: LoaderArgs): Promise<any> {
     }
 
     const nodeIdentityMap = new Map<string, string>();
-    const outGraph = {
+    const publicationTitles: string[] = [];
+
+    const outGraph: any = {
         nodes: retrievedGraph.records[0]._fields[0].nodes.map((node: Node) => {
             const identity = identities.records.find(r => r.get('nodes').some((x: Node) => x.identity.toNumber() === node.identity.toNumber()));
+
+            if(node.properties.TITLE) {
+                publicationTitles.push(node.properties.TITLE);
+            }
 
             if(nodeIdentityMap.has(node.elementId)) return false;
     
@@ -113,6 +120,9 @@ export async function loader({ request, params }: LoaderArgs): Promise<any> {
             target: edge.endNodeElementId,
         })),
     };
+
+    const keywords = await searchClient.getKeywords(publicationTitles.join(' '), { lang: 'en' });
+    outGraph.keywords = [...keywords.slice(0, 3), ...keywords.slice(-3)].map((keyword, i) => keyword.value); 
 
     return outGraph;
 }

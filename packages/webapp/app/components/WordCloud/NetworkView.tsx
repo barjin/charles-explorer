@@ -2,21 +2,25 @@ import { useFetcher, useNavigate, useParams } from "@remix-run/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PiSpinner } from "react-icons/pi";
 import * as d3 from 'd3';
+import { useDebounce } from "~/utils/hooks/useDebounce";
 
-const colors = ['blue','yellow','orange','red','green', 'orange']
+const colors = ['blue','purple','orange','red','green', 'orange']
 
 export default function Network({ data, centerId }: { data: {
     nodes: any[],
     edges: any[],
+    keywords: string[],
 }, centerId: string }) {
     const svgContainer = useRef<HTMLElement>(null);
     const navigate = useNavigate();
+
     const isCurrentNode = useCallback((d) => {
         return d.PERSON_ID === centerId || d.PUBLICATION_ID === centerId;
     }, [centerId]);
+    
     const elements = useRef<{
-      people: d3.Selection<SVGCircleElement | null, any, SVGGElement, undefined> | null,
-      publications: d3.Selection<SVGRectElement | null, any, SVGGElement, undefined> | null,
+      people: d3.Selection<SVGGElement | null, any, SVGGElement, undefined> | null,
+      publications: d3.Selection<SVGGElement | null, any, SVGGElement, undefined> | null,
       edges: d3.Selection<SVGLineElement | null, any, SVGGElement, undefined> | null,
     }>({
         people: null,
@@ -26,6 +30,30 @@ export default function Network({ data, centerId }: { data: {
 
     const [simulationRunning, setSimulationRunning] = useState<boolean>(true);
     const [graphSearchQuery, setGraphQuery] = useState<string>('');
+
+    const createNodeLayerWithLabels = useCallback((container: d3.Selection<SVGGElement, undefined, null, undefined>, nodes: any[], labelKey: string, labelOptions?: any) => {
+        const containers = container.append("g")
+            .selectAll()
+            .data(nodes)
+            .join("g")
+            .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+        containers.append("title")
+            .text(d => d?.[labelKey] ?? '');
+
+        containers.append("text")
+            .attr("font-size", 12)
+            .attr("font-family", "sans-serif")
+            .attr("fill", "black")
+            .attr("stroke", "none")
+            .attr("dx", 15)
+            .attr("dy", 4)
+            .text(d => d?.[labelKey] ?? '')
+            .attr("opacity", labelOptions?.opacity ?? 1);
+
+        return containers;
+    }, []);
+
 
     useEffect(()=>{
         // Specify the dimensions of the chart.
@@ -66,80 +94,55 @@ export default function Network({ data, centerId }: { data: {
             return d.source.community === d.target.community && !isCurrentNode(d.source) && !isCurrentNode(d.target)
         }
 
-        // Add a line for each link, and a circle for each node.
         const link = content.append("g")
             .selectAll()
             .data(links)
             .join("line")
-            .attr('stroke', '#999')
             .attr('stroke-width', 1)
             .attr("stroke", (d) => isInterCommunityEdge(d)
                     ? colors[d.source.community % colors.length] 
                     : '#999'
             )
-            .attr("stroke-opacity", d => isInterCommunityEdge(d) ? 0.5 : 0.1)
+            .attr("stroke-opacity", '0.5')
 
         const people = nodes.filter(x => x.label === 'person');
         const publications = nodes.filter(x => x.label === 'publication');
 
         const nodeLayer = content.append("g");
 
-        const peopleNodes = nodeLayer.append("g")
-            .selectAll()
-            .data(people)
-            .join("circle")
-                .attr("r", d => isCurrentNode(d) ? '8' : '5')
-                .attr("fill", d => isCurrentNode(d) 
-                    ? 'orange' 
-                    : d.found
-                        ? 'black'
-                        : '#999')
-                .style("cursor", "pointer")
-                .on("click", e => {
-                    navigate(`/person/${e.target.__data__.PERSON_ID}`);
-                });
+        const peopleNodes = createNodeLayerWithLabels(nodeLayer, people, 'PERSON_NAME');
 
+        peopleNodes.append("circle")
+            .attr("r", d => isCurrentNode(d) ? '8' : '5')
+            .attr("fill", d => isCurrentNode(d) 
+                ? 'orange' 
+                : 'white')
+            .attr("stroke", d => isCurrentNode(d) ? "black" : "#999")
+            .attr("stroke-width", 3)
+            .style("cursor", "pointer")
+            .on("click", e => {
+                navigate(`/person/${e.target.__data__.PERSON_ID}`);
+            });
+    
         const publicationSize = 10;
         
-        const publicationNodes = nodeLayer.append("g")
-            .selectAll()
-            .data(publications)
-            .join("rect")
-                .attr("width", publicationSize)
-                .attr("height", publicationSize)
-                .attr("fill", d => '#fff')
-                .attr("stroke", d => '#999')
-                .attr("stroke-width", 3)
-                .style("cursor", "pointer")
-                .on("click", e => {
-                    navigate(`/publication/${e.target.__data__.PUBLICATION_ID}`);
-                });
-
-        peopleNodes.append("title")
-            .text(d => d.PERSON_NAME);
-        publicationNodes.append("title")
-            .text(d => d.TITLE);
-
-        const labels = content.append("g")
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 1.5)
-            .selectAll()
-            .data(nodes)
-            .join("text")
-            .attr("font-size", 12)
-            .attr("font-family", "sans-serif")
-            .attr("fill", "black")
-            .attr("stroke", "none")
-            .attr("dx", 12)
-            .attr("dy", ".35em")
-            .text(d => 
-                d.label === 'person' 
-                    ? d.PERSON_NAME 
-                    : d.TITLE.slice(0, 20) + (d.TITLE.length > 20 ? '...' : '')
-            )
-            .attr("opacity", d => {
-                return d.label === 'person' ? 0.8 : 0.4;
+        const publicationNodes = createNodeLayerWithLabels(nodeLayer, publications, 'TITLE', { opacity: 0.3 });
+        
+        publicationNodes.append("rect")
+            .attr("width", publicationSize)
+            .attr("height", publicationSize)
+            .attr("x", -publicationSize / 2)
+            .attr("y", -publicationSize / 2)
+            .attr("fill", d => '#fff')
+            .attr("stroke", d => '#999')
+            .attr("stroke-width", 3)
+            .style("cursor", "pointer")
+            .on("click", e => {
+                navigate(`/publication/${e.target.__data__.PUBLICATION_ID}`);
             });
+        
+        publicationNodes.selectAll("text")
+            .text(d => d.TITLE.length > 35 ? d.TITLE.substring(0, 35) + '...' : d.TITLE);
 
         const zoom = d3.zoom()
             .on('zoom', handleZoom);
@@ -147,20 +150,27 @@ export default function Network({ data, centerId }: { data: {
         function handleZoom(e) {
             content.attr('transform', e.transform);
 
-            labels
-                .attr("opacity", d => e.transform.k > 0.5 ? d.label === 'person' ? 0.8 : 0.4 : 0);
-            peopleNodes.attr("r", e.transform.k > 0.5 ? 5 : 10);
-            publicationNodes.attr("width", e.transform.k > 0.5 ? publicationSize : publicationSize * 2);
-            publicationNodes.attr("height", e.transform.k > 0.5 ? publicationSize : publicationSize * 2);
-            link.attr("stroke-width", e.transform.k > 0.5 ? 1.5 : 3);
-            link.attr("stroke-opacity", d => isInterCommunityEdge(d) ? e.transform.k > 0.5 ? 0.2 : 0.5 : e.transform.k > 0.5 ? 0.1 : 0.2);
+            peopleNodes
+                .selectAll("text")
+                .attr("opacity", d => e.transform.k > 0.6 ? 0.8 : 0);
+
+            peopleNodes
+                .selectAll("circle")
+                .attr("r", e.transform.k > 0.6 ? 5 : 10);
+
+            publicationNodes
+                .selectAll("text")
+                .attr("opacity", d => e.transform.k > 0.6 ? 0.4 : 0);
+
+            publicationNodes
+                .selectAll("rect")
+                .attr("width", e.transform.k > 0.6 ? publicationSize : publicationSize * 2)
+                .attr("height", e.transform.k > 0.6 ? publicationSize : publicationSize * 2)
         }
 
         svg.call(zoom);          
 
         function ticked() {
-            // if(Date.now() - start > 5000) simulation.stop();
-            
             try {
                 link
                     .attr("x1", d => d.source.x)
@@ -169,14 +179,10 @@ export default function Network({ data, centerId }: { data: {
                     .attr("y2", d => d.target.y);
     
                 peopleNodes
-                    .attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
+                    .attr("transform", d => `translate(${d.x}, ${d.y})`);
 
                 publicationNodes
-                    .attr("x", d => d.x - publicationSize / 2)
-                    .attr("y", d => d.y - publicationSize / 2);
-    
-                labels.attr("x", d => d.x).attr("y", d => d.y);
+                    .attr("transform", d => `translate(${d.x}, ${d.y})`);
             } catch (e) {
 
             }
@@ -185,7 +191,7 @@ export default function Network({ data, centerId }: { data: {
         setTimeout(() => {
             simulation.stop();
 
-            setSimulationRunning(false);
+            setSimulationRunning(false);            
         }, 3000);
 
         elements.current.people = peopleNodes;
@@ -203,34 +209,64 @@ export default function Network({ data, centerId }: { data: {
     useEffect(() => {
         if(!elements.current) return;
 
-        console.log(elements.current);
+        const query = graphSearchQuery.toLowerCase();
 
+        const people = elements.current.people?.each((d) => {
+            d.found = d.PERSON_NAME?.toLowerCase().includes(query) || d.PERSON_ID === centerId
+        }) ?? null;
+
+        const publications = elements.current.publications?.each((d) => {
+            d.found = d.TITLE.toLowerCase().includes(query) || d.PUBLICATION_ID === centerId
+        }) ?? null;
+        
+        elements.current.edges?.each((d) => {
+            d.found = (d.source.found || d.target.found) && (d.source.PERSON_ID !== centerId && d.target.PERSON_ID !== centerId);
+        });
+        
+        const edges = elements.current.edges?.each((d) => {
+            if(d.found) {
+                d.source.found = true;
+                d.target.found = true;
+            }
+        }) ?? null;
+        
         elements.current = {
-            people: elements.current.people?.each((d) => {
-                d.found = d.PERSON_NAME.toLowerCase().includes(graphSearchQuery) || d.PERSON_ID === centerId
-            }) ?? null,
-            edges: elements.current.edges?.each((d) => {
-                d.found = d.source.found || d.target.found;
-            }) ?? null,
-            publications: elements.current.publications?.each((d) => {
-                d.found = d.TITLE.toLowerCase().includes(graphSearchQuery) || d.PUBLICATION_ID === centerId
-            }) ?? null,
+            people,
+            edges,
+            publications,
         }
 
-        elements.current.people?.attr("opacity", d => d.found ? 1 : 0);
-        elements.current.edges?.transition()
-            .attr("opacity", d => d3.interpolateNumber(0.0, 1)(d.found ? 1 : 0));
-    }, [graphSearchQuery]);
+        elements.current.people?.attr("display", d => d.found ? 'block' : 'none');
+        elements.current.publications?.attr("display", d => d.found ? 'block' : 'none');
+
+
+        elements.current.edges
+        ?.attr("opacity", d => d.found ? 1 : 0.4)
+        ?.transition()
+            .attr("stroke-width", d => d.found && query.length > 0 ? 5 : 1)
+    }, [centerId, graphSearchQuery]);
 
     return (
         <div className="relative w-full h-full">
             <div
-                className="absolute">
+                className="absolute w-full flex flex-row">
                 <input 
                     placeholder="Search in graph"    
                     className="p-1 pl-2 m-4 rounded-md shadow-md"
                     onChange={(e) => setGraphQuery(e.target.value)}
+                    value={graphSearchQuery}
                 />
+                {
+                    data.keywords.map((keyword, i) => (
+                        <span 
+                            key={i} 
+                            className="my-4 py-2 px-4 rounded-full shadow-md bg-blue-500 text-white font-semibold text-xs ml-2 cursor-pointer"
+                            onClick={() => setGraphQuery(keyword)}
+                        >
+                                {keyword}
+                        </span>
+                    ))
+                }
             </div>
             <div 
                 className={`
